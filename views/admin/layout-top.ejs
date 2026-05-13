@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> — Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-brand">
+      <div class="brand"><%= appName %> <span>Admin</span></div>
+    </div>
+    <nav class="admin-sidebar-nav">
+      <div class="admin-nav-section">Overview</div>
+      <a href="/admin/dashboard" class="admin-nav-link <%= currentPath === '/admin/dashboard' ? 'active' : '' %>">
+        <span class="admin-nav-icon">📊</span> Dashboard
+      </a>
+
+      <div class="admin-nav-section">Content</div>
+      <a href="/admin/exams" class="admin-nav-link <%= currentPath.startsWith('/admin/exams') ? 'active' : '' %>">
+        <span class="admin-nav-icon">🎓</span> Exams
+      </a>
+      <a href="/admin/series" class="admin-nav-link <%= currentPath.startsWith('/admin/series') ? 'active' : '' %>">
+        <span class="admin-nav-icon">📚</span> Test Series
+      </a>
+      <a href="/admin/tests" class="admin-nav-link <%= currentPath.startsWith('/admin/tests') ? 'active' : '' %>">
+        <span class="admin-nav-icon">📝</span> Tests
+      </a>
+      <a href="/admin/questions" class="admin-nav-link <%= currentPath.startsWith('/admin/questions') ? 'active' : '' %>">
+        <span class="admin-nav-icon">❓</span> Questions
+      </a>
+
+      <div class="admin-nav-section">Users</div>
+      <a href="/admin/users" class="admin-nav-link <%= currentPath.startsWith('/admin/users') ? 'active' : '' %>">
+        <span class="admin-nav-icon">👥</span> Users
+      </a>
+      <a href="/admin/results" class="admin-nav-link <%= currentPath.startsWith('/admin/results') ? 'active' : '' %>">
+        <span class="admin-nav-icon">🏆</span> Results
+      </a>
+
+      <div style="padding: 24px 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 16px;">
+        <a href="/" class="admin-nav-link" style="font-size: 0.8rem;">← View Site</a>
+        <a href="/admin/logout" class="admin-nav-link" style="font-size: 0.8rem;">Logout</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="admin-content">
+    <div class="admin-topbar">
+      <h4 style="font-family: 'DM Sans'; font-size: 0.95rem;"><%= title %></h4>
+    </div>
+    <div class="admin-page">

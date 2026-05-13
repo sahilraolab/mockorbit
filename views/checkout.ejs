@@ -1,0 +1,268 @@
+<%- include('partials/header') %>
+
+<section class="section" aria-labelledby="checkout-heading">
+  <div class="container">
+    <div style="margin-bottom:28px;">
+      <a href="/series/<%= series._id %>" style="font-size:0.85rem; color:var(--ink-muted); text-decoration:none;" aria-label="Back to series details">← Back</a>
+    </div>
+    <h1 id="checkout-heading" style="font-size:1.6rem; margin-bottom:32px;">Complete Your Purchase</h1>
+
+    <% if (error && error.length > 0) { %>
+      <div class="alert alert-error" role="alert">⚠️ <%= error[0] %></div>
+    <% } %>
+
+    <div class="checkout-layout">
+      <!-- Order summary -->
+      <div>
+        <h2 style="font-size:1rem; font-family:'DM Sans',sans-serif; margin-bottom:16px; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.05em;">Order Summary</h2>
+        <div class="card">
+          <span class="badge badge-orange mb-3"><%= series.examId.name %></span>
+          <h3 style="font-family:'DM Sans',sans-serif; font-size:1.15rem; margin-bottom:8px;"><%= series.title %></h3>
+          <p class="text-small mb-4"><%= series.totalMocks %> Mock Tests · Lifetime Access</p>
+
+          <% if (series.features && series.features.length > 0) { %>
+            <ul class="feature-list" style="margin-bottom:20px;" aria-label="What's included">
+              <% series.features.forEach(f => { %><li><%= f %></li><% }) %>
+            </ul>
+          <% } %>
+
+          <div class="divider"></div>
+          <div class="flex-between mt-4 mb-2">
+            <span class="text-small text-muted">Test Series Price</span>
+            <span class="text-small">₹<%= series.price.toLocaleString('en-IN') %></span>
+          </div>
+          <div class="flex-between mb-2">
+            <span class="text-small text-muted">GST</span>
+            <span class="text-small text-muted">Included</span>
+          </div>
+          <div class="divider"></div>
+          <div class="flex-between mt-2">
+            <span class="fw-600">Total Payable</span>
+            <div class="price" style="font-size:1.7rem;"><span class="price-currency">₹</span><%= series.price.toLocaleString('en-IN') %></div>
+          </div>
+        </div>
+
+        <div class="card-flat mt-4" role="list" aria-label="Purchase guarantees">
+          <ul class="feature-list">
+            <li>Instant access after payment</li>
+            <li>Works on all devices — mobile, tablet, desktop</li>
+            <li>Lifetime validity — attempt tests anytime</li>
+            <li>Full result analytics & rank after every test</li>
+          </ul>
+        </div>
+
+        <p class="trust-text mt-4" aria-label="Security badge">
+          🔒 100% Secure Payment via Razorpay
+        </p>
+      </div>
+
+      <!-- Payment panel -->
+      <div>
+        <h2 style="font-size:1rem; font-family:'DM Sans',sans-serif; margin-bottom:16px; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.05em;">Payment</h2>
+        <div class="card">
+          <!-- Logged-in user info -->
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+            <div style="width:40px; height:40px; border-radius:50%; background:var(--accent-light); display:flex; align-items:center; justify-content:center; font-size:1rem;" aria-hidden="true">👤</div>
+            <div>
+              <p style="font-size:0.82rem; color:var(--ink-muted); margin-bottom:2px;">Logged in as</p>
+              <p style="font-weight:600; font-size:0.95rem;">+91 <%= user.mobile %></p>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div style="margin-top:20px;">
+
+            <!-- ── Free access mode (ALLOW_FREE_ACCESS=true) ── -->
+            <% if (allowFreeAccess && !useMockPayment) { %>
+              <div class="alert alert-success" style="margin-bottom:20px;" role="status">
+                ✅ Free access is enabled for this environment.
+              </div>
+              <button id="payBtn" class="btn btn-primary btn-lg btn-block" aria-label="Get instant free access">
+                Get Free Access
+              </button>
+
+            <!-- ── Mock payment mode (USE_MOCK_PAYMENT=true) ── -->
+            <% } else if (useMockPayment) { %>
+              <div class="alert alert-info" style="margin-bottom:20px;" role="status">
+                🛠️ <strong>Development mode</strong> — Click to simulate a successful payment.
+              </div>
+              <button id="payBtn" class="btn btn-primary btn-lg btn-block" aria-label="Simulate payment in development mode">
+                Simulate Payment &nbsp;·&nbsp; ₹<%= series.price.toLocaleString('en-IN') %>
+              </button>
+
+            <!-- ── Live Razorpay ── -->
+            <% } else { %>
+              <div id="payError" class="alert alert-error hidden" role="alert"></div>
+              <button id="payBtn" class="btn btn-primary btn-lg btn-block" aria-label="Pay ₹<%= series.price.toLocaleString('en-IN') %> via Razorpay">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                Pay ₹<%= series.price.toLocaleString('en-IN') %>
+              </button>
+              <p style="text-align:center; font-size:0.76rem; color:var(--ink-muted); margin-top:10px;">
+                UPI · Cards · Net Banking · Wallets — powered by Razorpay
+              </p>
+            <% } %>
+
+            <p style="text-align:center; font-size:0.76rem; color:var(--ink-muted); margin-top:16px;">
+              By completing this purchase you agree to our <a href="/terms">Terms of Service</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<% if (!useMockPayment) { %>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<% } %>
+
+<script>
+const seriesId = '<%- series._id.toString() %>';
+const userMobile = '<%= user.mobile %>';
+const isMock = '<%= useMockPayment %>' === 'true';
+const isFree = '<%= allowFreeAccess %>' === 'true' && '<%= useMockPayment %>' !== 'true';
+
+const payBtn   = document.getElementById('payBtn');
+const payError = document.getElementById('payError');
+
+function setLoading(loading, label) {
+  payBtn.disabled = loading;
+  payBtn.innerHTML = loading
+    ? '<span class="spinner"></span> Processing…'
+    : label;
+}
+
+function showError(msg) {
+  if (payError) {
+    payError.textContent = '⚠️ ' + msg;
+    payError.classList.remove('hidden');
+    payError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    alert(msg);
+  }
+}
+
+// ── Free access ──────────────────────────────────────────────────────────
+if (isFree) {
+  payBtn.addEventListener('click', async function() {
+    setLoading(true, 'Get Free Access');
+    try {
+      const res = await fetch('/payment/free-access/' + seriesId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = data.redirect;
+      } else {
+        showError(data.message || 'Could not grant access. Try again.');
+        setLoading(false, 'Get Free Access');
+      }
+    } catch(e) {
+      showError('Network error. Please try again.');
+      setLoading(false, 'Get Free Access');
+    }
+  });
+}
+
+// ── Mock payment ─────────────────────────────────────────────────────────
+if (isMock && !isFree) {
+  payBtn.addEventListener('click', async function() {
+    setLoading(true, 'Simulate Payment');
+    try {
+      const res = await fetch('/payment/mock-success', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seriesId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = data.redirect;
+      } else {
+        showError(data.message || 'Simulation failed.');
+        setLoading(false, 'Simulate Payment');
+      }
+    } catch(e) {
+      showError('Network error. Please try again.');
+      setLoading(false, 'Simulate Payment');
+    }
+  });
+}
+
+// ── Live Razorpay ─────────────────────────────────────────────────────────
+if (!isMock && !isFree) {
+  payBtn.addEventListener('click', async function() {
+    if (payError) payError.classList.add('hidden');
+    setLoading(true, 'Pay ₹<%= series.price.toLocaleString("en-IN") %>');
+
+    let order;
+    try {
+      const res = await fetch('/payment/create-order/' + seriesId, { method: 'POST' });
+      order = await res.json();
+      if (!order.success) throw new Error(order.message || 'Could not create order');
+    } catch(e) {
+      showError(e.message);
+      setLoading(false, 'Pay ₹<%= series.price.toLocaleString("en-IN") %>');
+      return;
+    }
+
+    const options = {
+      key: '<%= razorpayKeyId %>',
+      amount: order.amount,
+      currency: order.currency,
+      name: 'MockOrbit',
+      description: order.seriesName,
+      order_id: order.orderId,
+      prefill: {
+        contact: '+91' + userMobile
+      },
+      notes: {
+        seriesId: seriesId
+      },
+      theme: {
+        color: '#f97316',    // MockOrbit orange
+        backdrop_color: 'rgba(28,43,58,0.6)'
+      },
+      handler: async function(response) {
+        // Client-side callback after successful payment
+        try {
+          const verifyRes = await fetch('/payment/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id:   response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature:  response.razorpay_signature,
+              seriesId
+            })
+          });
+          const result = await verifyRes.json();
+          if (result.success) {
+            window.location.href = result.redirect;
+          } else {
+            showError('Payment received but verification failed. Please contact support with Payment ID: ' + response.razorpay_payment_id);
+            setLoading(false, 'Pay ₹<%= series.price.toLocaleString("en-IN") %>');
+          }
+        } catch(e) {
+          showError('Verification error. Your payment may have gone through — please check your email or contact support.');
+          setLoading(false, 'Pay ₹<%= series.price.toLocaleString("en-IN") %>');
+        }
+      },
+      modal: {
+        ondismiss: function() {
+          setLoading(false, 'Pay ₹<%= series.price.toLocaleString("en-IN") %>');
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function(resp) {
+      const errDesc = resp.error?.description || 'Payment was declined.';
+      showError(errDesc + ' Please try a different payment method.');
+      setLoading(false, 'Pay ₹<%= series.price.toLocaleString("en-IN") %>');
+    });
+    rzp.open();
+  });
+}
+</script>
+
+<%- include('partials/footer') %>

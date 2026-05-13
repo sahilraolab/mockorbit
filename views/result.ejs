@@ -1,0 +1,99 @@
+<%- include('partials/header') %>
+
+<section class="section">
+  <div class="container-sm">
+    <!-- Score overview -->
+    <div class="card text-center mb-6">
+      <div class="result-score-ring">
+        <div class="result-score-number"><%= attempt.score %></div>
+        <div class="result-score-label">/ <%= attempt.totalMarks %></div>
+      </div>
+      <h2 style="font-size: 1.5rem; margin-bottom: 8px;"><%= attempt.testId.title %></h2>
+      <p class="text-muted text-small">Test completed</p>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px;">
+        <div class="result-stat">
+          <div class="result-stat-value">#<%= attempt.rank %></div>
+          <div class="result-stat-label">Rank</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-value"><%= percentile %>%</div>
+          <div class="result-stat-label">Percentile</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-value"><%= accuracy %>%</div>
+          <div class="result-stat-label">Accuracy</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weak areas -->
+    <% if (attempt.weakAreas && attempt.weakAreas.length > 0) { %>
+      <div class="card mb-6">
+        <h4 style="font-family: 'DM Sans'; margin-bottom: 14px;">📉 Areas to Improve</h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <% attempt.weakAreas.forEach(area => { %>
+            <span class="badge badge-warm"><%= area %></span>
+          <% }) %>
+        </div>
+        <p class="text-small text-muted mt-3">Focus on these topics to improve your score significantly.</p>
+      </div>
+    <% } %>
+
+    <!-- Stats -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;">
+      <div class="result-stat">
+        <div class="result-stat-value color-success"><%= review.filter(r => r.isCorrect).length %></div>
+        <div class="result-stat-label">Correct</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-value color-danger"><%= review.filter(r => !r.isCorrect && r.userAnswer !== -1).length %></div>
+        <div class="result-stat-label">Incorrect</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-value text-muted"><%= review.filter(r => r.userAnswer === -1).length %></div>
+        <div class="result-stat-label">Skipped</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 12px; margin-bottom: 40px;">
+      <a href="/dashboard" class="btn btn-outline">← Dashboard</a>
+      <a href="/test/start/<%= attempt.testId._id %>" class="btn btn-primary">Reattempt</a>
+    </div>
+
+    <!-- Detailed review -->
+    <h3 style="font-family: 'DM Sans'; margin-bottom: 20px;">Detailed Review</h3>
+    <% review.forEach((q, idx) => { %>
+      <div class="review-q mb-4">
+        <div class="review-q-header <%= q.userAnswer === -1 ? 'skipped' : q.isCorrect ? 'correct' : 'wrong' %>">
+          <span class="text-small fw-600">Q<%= idx + 1 %>. <span class="badge badge-blue" style="margin-left: 6px;"><%= q.tag %></span></span>
+          <span class="badge <%= q.userAnswer === -1 ? 'badge-warm' : q.isCorrect ? 'badge-green' : '' %>" style="<%= !q.isCorrect && q.userAnswer !== -1 ? 'background: var(--danger-light); color: var(--danger);' : '' %>">
+            <%= q.userAnswer === -1 ? 'Skipped' : q.isCorrect ? 'Correct' : 'Wrong' %>
+          </span>
+        </div>
+        <div class="review-q-body">
+          <p class="fw-600 text-small mb-3" style="color: var(--ink);"><%= q.question %></p>
+          <div class="options-grid">
+            <% ['A','B','C','D'].forEach((letter, i) => { %>
+              <div class="option-btn <%= i === q.correctAnswer ? 'correct' : (i === q.userAnswer && q.userAnswer !== q.correctAnswer) ? 'wrong' : '' %>" style="cursor: default; padding: 10px 14px;">
+                <span class="option-label" style="font-size: 0.7rem; width: 20px; height: 20px;"><%= letter %></span>
+                <span style="font-size: 0.88rem;"><%= q.options[i] %></span>
+                <% if (i === q.correctAnswer) { %><span style="margin-left: auto; font-size: 0.78rem; font-weight: 700;">✓</span><% } %>
+                <% if (i === q.userAnswer && q.userAnswer !== q.correctAnswer) { %><span style="margin-left: auto; font-size: 0.78rem; font-weight: 700;">✗</span><% } %>
+              </div>
+            <% }) %>
+          </div>
+          <% if (q.explanation) { %>
+            <div class="explanation-box">
+              <span class="text-xs text-muted fw-600">EXPLANATION</span>
+              <p class="text-small mt-1"><%= q.explanation %></p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

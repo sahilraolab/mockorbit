@@ -1,0 +1,46 @@
+<%- include('layout-top', { title: title, currentPath: '/admin/series' }) %>
+
+<% if (error && error.length > 0) { %><div class="alert alert-error mb-4">⚠️ <%= error[0] %></div><% } %>
+<% if (success && success.length > 0) { %><div class="alert alert-success mb-4">✓ <%= success[0] %></div><% } %>
+
+<div class="admin-page-header">
+  <h3 style="font-family: 'DM Sans';">Test Series (<%= series.length %>)</h3>
+  <a href="/admin/series/new" class="btn btn-primary">+ Add Series</a>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Exam</th>
+        <th>Price</th>
+        <th>Mocks</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (series.length === 0) { %>
+        <tr><td colspan="5" class="text-center text-muted" style="padding: 32px;">No test series yet. <a href="/admin/series/new">Create one</a></td></tr>
+      <% } %>
+      <% series.forEach(s => { %>
+        <tr>
+          <td class="fw-600"><%= s.title %></td>
+          <td><%= s.examId ? s.examId.name : '—' %></td>
+          <td>₹<%= s.price.toLocaleString('en-IN') %></td>
+          <td><%= s.totalMocks %></td>
+          <td>
+            <div style="display: flex; gap: 8px;">
+              <a href="/admin/series/<%= s._id %>/edit" class="btn btn-outline btn-sm">Edit</a>
+              <form method="POST" action="/admin/series/<%= s._id %>/delete" onsubmit="return confirm('Delete this series?')">
+                <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('layout-bottom') %>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+</head>
+<body>
+
+<!-- Test Header -->
+<div class="test-header">
+  <div class="container">
+    <div class="flex-between">
+      <div>
+        <h4 style="font-family: 'DM Sans'; font-size: 0.95rem; margin-bottom: 2px;"><%= test.title %></h4>
+        <p class="text-xs text-muted"><%= questions.length %> questions · <%= test.duration %> minutes</p>
+      </div>
+      <div class="timer" id="timer">00:00</div>
+    </div>
+    <div class="test-progress-bar mt-3">
+      <div class="test-progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+  </div>
+</div>
+
+<input type="hidden" id="attemptId" value="<%= attempt._id %>">
+<input type="hidden" id="testDuration" value="<%= test.duration %>">
+<script id="questionsData" type="application/json"><%- JSON.stringify(questions) %></script>
+<script id="existingAnswers" type="application/json"><%- JSON.stringify(attempt.answers) %></script>
+
+<div id="testInterface">
+  <div style="padding: 32px 0;">
+    <div class="container">
+      <div style="display: grid; grid-template-columns: 1fr 280px; gap: 32px; align-items: start;">
+        <!-- Question area -->
+        <div>
+          <% if (error && error.length > 0) { %>
+            <div class="alert alert-error mb-4">⚠️ <%= error[0] %></div>
+          <% } %>
+
+          <div class="question-card">
+            <div class="question-number" id="qNumber">Question 1 of <%= questions.length %></div>
+            <div class="question-text" id="qText"></div>
+            <div class="options-grid" id="options"></div>
+          </div>
+
+          <div class="flex-between mt-4">
+            <button id="prevBtn" class="btn btn-outline">← Previous</button>
+            <div style="display: flex; gap: 10px;">
+              <button id="nextBtn" class="btn btn-outline">Next →</button>
+              <button id="submitBtn" class="btn btn-primary hidden">Submit Test</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question palette -->
+        <div style="position: sticky; top: 80px;">
+          <div class="card-flat">
+            <h4 style="font-family: 'DM Sans'; font-size: 0.88rem; margin-bottom: 14px;">Questions</h4>
+            <div class="q-palette">
+              <% questions.forEach((q, i) => { %>
+                <button class="q-dot" data-index="<%= i %>"><%= i + 1 %></button>
+              <% }) %>
+            </div>
+            <div class="divider"></div>
+            <div style="display: flex; gap: 12px; font-size: 0.78rem; color: var(--ink-muted);">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 12px; height: 12px; background: var(--accent); border-radius: 3px; display: inline-block;"></span> Answered
+              </span>
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 12px; height: 12px; border: 1.5px solid var(--border); border-radius: 3px; display: inline-block;"></span> Unanswered
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>

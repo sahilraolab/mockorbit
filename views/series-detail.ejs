@@ -1,0 +1,72 @@
+<%- include('partials/header') %>
+
+<section class="section">
+  <div class="container-sm">
+    <a href="/series/exam/<%= series.examId.slug %>" class="text-small text-muted">← <%= series.examId.name %></a>
+
+    <% if (error && error.length > 0) { %>
+      <div class="alert alert-error mt-4">⚠️ <%= error[0] %></div>
+    <% } %>
+    <% if (success && success.length > 0) { %>
+      <div class="alert alert-success mt-4">✓ <%= success[0] %></div>
+    <% } %>
+
+    <div class="mt-4 mb-6">
+      <span class="badge badge-blue mb-3"><%= series.examId.name %></span>
+      <h1 style="font-size: 2rem;"><%= series.title %></h1>
+      <% if (series.description) { %><p class="mt-3"><%= series.description %></p><% } %>
+    </div>
+
+    <!-- Details card -->
+    <div class="card mb-6">
+      <div class="flex-between mb-4">
+        <div>
+          <div class="price"><span class="price-currency">₹</span><%= series.price.toLocaleString('en-IN') %></div>
+          <div class="price-note">One-time payment · Lifetime access</div>
+        </div>
+        <span class="badge badge-green"><%= series.totalMocks %> Mock Tests</span>
+      </div>
+
+      <% const featureList = series.features && series.features.length > 0 ? series.features : ['Latest pattern', 'Detailed solutions', 'Rank analysis']; %>
+      <ul class="feature-list mb-6">
+        <% featureList.forEach(f => { %><li><%= f %></li><% }) %>
+      </ul>
+
+      <% if (hasPurchased) { %>
+        <a href="/dashboard" class="btn btn-success btn-lg btn-block">Go to Dashboard →</a>
+      <% } else { %>
+        <a href="/payment/checkout/<%= series._id %>" class="btn btn-primary btn-lg btn-block">Buy Now — ₹<%= series.price.toLocaleString('en-IN') %></a>
+        <p class="trust-text mt-3">🔒 Secure payment · Instant access</p>
+      <% } %>
+    </div>
+
+    <!-- Preview questions -->
+    <% if (series.previewQuestions && series.previewQuestions.length > 0) { %>
+      <div class="mb-6">
+        <h3 class="mb-4" style="font-family: 'DM Sans', sans-serif;">Sample Questions</h3>
+        <% series.previewQuestions.slice(0, 3).forEach((pq, idx) => { %>
+          <div class="card mb-4">
+            <div class="question-number">Question <%= idx + 1 %></div>
+            <div class="question-text"><%= pq.question %></div>
+            <div class="options-grid">
+              <% ['A','B','C','D'].forEach((letter, i) => { %>
+                <div class="option-btn" style="cursor: default;">
+                  <span class="option-label"><%= letter %></span>
+                  <span><%= pq.options[i] %></span>
+                </div>
+              <% }) %>
+            </div>
+            <div class="alert alert-info mt-4">
+              <strong>Answer: Option <%= ['A','B','C','D'][pq.correctAnswer] %></strong>
+              <% if (pq.explanation) { %> — <%= pq.explanation %><% } %>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+
+    <p class="trust-text">⭐ Trusted by thousands of students preparing for <%= series.examId.name %></p>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

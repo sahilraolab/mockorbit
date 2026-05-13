@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body>
+<a href="#org-main" class="skip-nav">Skip to main content</a>
+
+<div class="org-layout-shell">
+  <!-- Sidebar -->
+  <aside class="org-sidebar" role="navigation" aria-label="Institution portal navigation">
+    <div class="org-sidebar-brand">
+      <div>
+        <div class="brand"><span class="brand-mock">Mock</span><span class="brand-orbit">Orbit</span></div>
+        <div style="font-size:0.68rem; color:rgba(255,255,255,0.35); margin-top:2px;">Institution Portal</div>
+      </div>
+    </div>
+
+    <nav class="org-sidebar-nav">
+      <div class="org-nav-section">Main</div>
+      <a href="/org/dashboard" class="org-nav-link <%= currentPath === '/org/dashboard' ? 'active' : '' %>" aria-current="<%= currentPath === '/org/dashboard' ? 'page' : 'false' %>">
+        <span class="org-nav-icon" aria-hidden="true">📊</span> Dashboard
+      </a>
+      <div class="org-nav-section">Manage</div>
+      <a href="/org/students" class="org-nav-link <%= currentPath.startsWith('/org/students') ? 'active' : '' %>" aria-current="<%= currentPath.startsWith('/org/students') ? 'page' : 'false' %>">
+        <span class="org-nav-icon" aria-hidden="true">👥</span> Students
+      </a>
+      <a href="/org/assignments" class="org-nav-link <%= currentPath.startsWith('/org/assignments') ? 'active' : '' %>" aria-current="<%= currentPath.startsWith('/org/assignments') ? 'page' : 'false' %>">
+        <span class="org-nav-icon" aria-hidden="true">📋</span> Assignments
+      </a>
+      <a href="/org/results" class="org-nav-link <%= currentPath.startsWith('/org/results') ? 'active' : '' %>" aria-current="<%= currentPath.startsWith('/org/results') ? 'page' : 'false' %>">
+        <span class="org-nav-icon" aria-hidden="true">📈</span> Results
+      </a>
+      <div class="org-nav-section">Account</div>
+      <a href="/org/logout" class="org-nav-link">
+        <span class="org-nav-icon" aria-hidden="true">🚪</span> Logout
+      </a>
+    </nav>
+
+    <div class="org-sidebar-footer">
+      <%= org ? org.name : 'Institution' %><br>
+      <span style="font-size:0.7rem;">MockOrbit Partner</span>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="org-content">
+    <div class="org-topbar">
+      <span class="org-topbar-title"><%= org ? org.name : 'Dashboard' %></span>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:0.82rem; color:var(--ink-muted);" aria-label="Logged in as institution">
+          🏛️ <%= org ? org.name : '' %>
+        </span>
+        <a href="/org/logout" class="btn btn-outline btn-sm">Logout</a>
+      </div>
+    </div>
+    <div id="org-main" class="org-page" role="main">

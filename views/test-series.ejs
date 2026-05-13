@@ -1,0 +1,55 @@
+<%- include('partials/header') %>
+
+<section class="section">
+  <div class="container">
+    <div class="mb-6">
+      <a href="/" class="text-small text-muted">← All Exams</a>
+      <div class="flex-between mt-3">
+        <div>
+          <span class="exam-icon" style="font-size: 2rem;"><%= exam.icon %></span>
+          <h2 style="display: inline; margin-left: 12px;"><%= exam.name %> Test Series</h2>
+        </div>
+      </div>
+      <p class="mt-2">Comprehensive mock tests designed for <%= exam.name %> aspirants.</p>
+    </div>
+
+    <% if (error && error.length > 0) { %>
+      <div class="alert alert-error mb-4">⚠️ <%= error[0] %></div>
+    <% } %>
+
+    <% if (series.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <h3>No test series available</h3>
+        <p>We're adding content soon. Check back shortly!</p>
+      </div>
+    <% } else { %>
+      <div class="card-grid">
+        <% series.forEach(s => { %>
+          <div class="card">
+            <div class="flex-between mb-4">
+              <span class="badge badge-blue"><%= s.totalMocks %> Mocks</span>
+              <div class="price"><span class="price-currency">₹</span><%= s.price.toLocaleString('en-IN') %></div>
+            </div>
+
+            <h3 style="font-family: 'DM Sans', sans-serif; font-size: 1.1rem; margin-bottom: 8px;"><%= s.title %></h3>
+            <% if (s.description) { %>
+              <p class="text-small mb-4"><%= s.description %></p>
+            <% } %>
+
+            <% const featureList = s.features && s.features.length > 0 ? s.features : ['Latest pattern', 'Detailed solutions', 'Rank analysis']; %>
+            <ul class="feature-list mb-6">
+              <% featureList.forEach(f => { %>
+                <li><%= f %></li>
+              <% }) %>
+            </ul>
+
+            <a href="/series/<%= s._id %>" class="btn btn-primary btn-block">View Details</a>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

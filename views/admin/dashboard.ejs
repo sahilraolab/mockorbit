@@ -1,0 +1,44 @@
+<%- include('layout-top', { title: title, currentPath: '/admin/dashboard' }) %>
+
+<div class="stats-cards-grid">
+  <div class="stat-card">
+    <div class="stat-card-value"><%= stats.users %></div>
+    <div class="stat-card-label">Total Users</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-value"><%= stats.exams %></div>
+    <div class="stat-card-label">Exams</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-value"><%= stats.series %></div>
+    <div class="stat-card-label">Test Series</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-value"><%= stats.attempts %></div>
+    <div class="stat-card-label">Tests Attempted</div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+  <div class="card">
+    <h4 style="font-family: 'DM Sans'; margin-bottom: 16px;">Quick Actions</h4>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <a href="/admin/exams" class="btn btn-outline">+ Add Exam</a>
+      <a href="/admin/series/new" class="btn btn-outline">+ Add Test Series</a>
+      <a href="/admin/tests" class="btn btn-outline">+ Add Test</a>
+      <a href="/admin/questions" class="btn btn-outline">+ Add Questions</a>
+    </div>
+  </div>
+  <div class="card">
+    <h4 style="font-family: 'DM Sans'; margin-bottom: 16px;">Content Flow</h4>
+    <div style="font-size: 0.88rem; color: var(--ink-soft); line-height: 2;">
+      <p>1. Create an <strong>Exam</strong> (e.g., CLAT)</p>
+      <p>2. Create a <strong>Test Series</strong> under the exam</p>
+      <p>3. Create <strong>Tests</strong> under the series</p>
+      <p>4. Add <strong>Questions</strong> to each test</p>
+      <p>5. Users can buy and attempt tests</p>
+    </div>
+  </div>
+</div>
+
+<%- include('layout-bottom') %>

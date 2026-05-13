@@ -1,0 +1,146 @@
+<%- include('layout-top') %>
+
+<% if (error && error.length > 0) { %>
+  <div class="alert alert-error" role="alert">⚠️ <%= error[0] %></div>
+<% } %>
+
+<div class="org-page-header">
+  <div>
+    <h1 style="font-size:1.5rem; margin-bottom:4px;">Student Results</h1>
+    <p style="font-size:0.88rem; color:var(--ink-muted);">
+      <%= attempts.length %> submitted attempts across <%= studentCount %> students
+      <% if (selectedAssignment) { %> · Filtered: <strong><%= selectedAssignment.title %></strong><% } %>
+    </p>
+  </div>
+  <% if (selectedAssignment) { %>
+    <a href="/org/results" class="btn btn-outline btn-sm">Clear Filter</a>
+  <% } %>
+</div>
+
+<!-- Filter by assignment -->
+<form action="/org/results" method="GET" style="margin-bottom:24px; display:flex; gap:12px; align-items:flex-end;" aria-label="Filter results by assignment">
+  <div class="form-group" style="flex:1; margin:0;">
+    <label class="form-label" for="assignment-filter">Filter by Assignment</label>
+    <select id="assignment-filter" name="assignment" class="form-control" onchange="this.form.submit()">
+      <option value="">All assignments</option>
+      <% assignments.forEach(a => { %>
+        <option value="<%= a._id %>" <%= selectedAssignment && selectedAssignment._id.toString() === a._id.toString() ? 'selected' : '' %>>
+          <%= a.title %> (<%= a.testId ? a.testId.title : 'Test deleted' %>)
+        </option>
+      <% }) %>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Filter</button>
+</form>
+
+<% if (attempts.length === 0) { %>
+  <div class="empty-state">
+    <div class="empty-state-icon" aria-hidden="true">📈</div>
+    <h3>No results yet</h3>
+    <p>Once students submit assigned tests, their results will appear here.</p>
+  </div>
+<% } else { %>
+  <div class="result-table-wrap" role="region" aria-label="Student results table">
+    <table aria-label="Student results">
+      <thead>
+        <tr>
+          <th scope="col">Student</th>
+          <th scope="col">Test</th>
+          <th scope="col">Score</th>
+          <th scope="col">Rank</th>
+          <th scope="col">Time Taken</th>
+          <th scope="col">Weak Areas</th>
+          <th scope="col">Submitted</th>
+          <th scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% attempts.forEach(a => { %>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="student-avatar" style="width:30px;height:30px;font-size:0.78rem;" aria-hidden="true">
+                  <%= a.studentInfo && a.studentInfo.name ? a.studentInfo.name[0].toUpperCase() : (a.userId && a.userId.mobile ? a.userId.mobile[0] : '?') %>
+                </div>
+                <div>
+                  <div style="font-weight:500; color:var(--ink); font-size:0.88rem;"><%= a.studentInfo ? (a.studentInfo.name || 'Unknown') : 'Unknown' %></div>
+                  <div style="font-size:0.75rem; color:var(--ink-muted);"><%= a.userId ? a.userId.mobile : '' %></div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:0.88rem;"><%= a.testId ? a.testId.title : 'Test deleted' %></td>
+            <td>
+              <span style="font-weight:700; color:var(--accent);">
+                <%= a.score %>/<%= a.totalMarks %>
+              </span>
+              <div style="font-size:0.75rem; color:var(--ink-muted);">
+                <%= a.totalMarks > 0 ? Math.round((a.score / a.totalMarks) * 100) : 0 %>%
+              </div>
+            </td>
+            <td>
+              <% if (a.rank) { %>
+                <span class="badge badge-navy">#<%= a.rank %></span>
+              <% } else { %>
+                <span style="color:var(--ink-muted);">—</span>
+              <% } %>
+            </td>
+            <td>
+              <% const mins = Math.floor(a.timeTaken / 60); const secs = a.timeTaken % 60; %>
+              <%= mins %>m <%= secs %>s
+            </td>
+            <td>
+              <% if (a.weakAreas && a.weakAreas.length > 0) { %>
+                <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                  <% a.weakAreas.slice(0,2).forEach(w => { %>
+                    <span class="badge badge-warm" style="font-size:0.72rem;"><%= w %></span>
+                  <% }) %>
+                  <% if (a.weakAreas.length > 2) { %>
+                    <span style="font-size:0.75rem; color:var(--ink-muted);">+<%= a.weakAreas.length - 2 %> more</span>
+                  <% } %>
+                </div>
+              <% } else { %>
+                <span style="color:var(--ink-muted);">None</span>
+              <% } %>
+            </td>
+            <td style="font-size:0.82rem; color:var(--ink-muted);">
+              <%= a.submittedAt ? new Date(a.submittedAt).toLocaleDateString('en-IN') : '—' %>
+            </td>
+            <td>
+              <a href="/test/result/<%= a._id %>" class="btn btn-ghost btn-sm" target="_blank" rel="noopener" aria-label="View detailed result for this attempt">View</a>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Summary card -->
+  <div style="background:var(--canvas); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 24px; margin-top:20px; display:flex; gap:32px; flex-wrap:wrap;" aria-label="Results summary">
+    <div>
+      <div style="font-size:1.4rem; font-weight:700; color:var(--accent); font-family:'Playfair Display',serif;">
+        <%= attempts.length > 0 ? Math.round(attempts.reduce((s,a) => s + (a.totalMarks > 0 ? (a.score/a.totalMarks)*100 : 0), 0) / attempts.length) : 0 %>%
+      </div>
+      <div style="font-size:0.78rem; color:var(--ink-muted);">Average Score</div>
+    </div>
+    <div>
+      <div style="font-size:1.4rem; font-weight:700; color:var(--ink); font-family:'Playfair Display',serif;">
+        <%= attempts.length > 0 ? Math.round(attempts.reduce((s,a) => s + a.timeTaken, 0) / attempts.length / 60) : 0 %>m
+      </div>
+      <div style="font-size:0.78rem; color:var(--ink-muted);">Avg Time Taken</div>
+    </div>
+    <div>
+      <div style="font-size:1.4rem; font-weight:700; color:var(--success); font-family:'Playfair Display',serif;">
+        <%= attempts.filter(a => a.totalMarks > 0 && (a.score/a.totalMarks) >= 0.6).length %>
+      </div>
+      <div style="font-size:0.78rem; color:var(--ink-muted);">Scored ≥ 60%</div>
+    </div>
+    <div>
+      <div style="font-size:1.4rem; font-weight:700; color:var(--danger); font-family:'Playfair Display',serif;">
+        <%= attempts.filter(a => a.totalMarks > 0 && (a.score/a.totalMarks) < 0.4).length %>
+      </div>
+      <div style="font-size:0.78rem; color:var(--ink-muted);">Scored &lt; 40%</div>
+    </div>
+  </div>
+<% } %>
+
+<%- include('layout-bottom') %>

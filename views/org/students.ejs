@@ -1,0 +1,105 @@
+<%- include('layout-top') %>
+
+<% if (error && error.length > 0) { %>
+  <div class="alert alert-error" role="alert">⚠️ <%= error[0] %></div>
+<% } %>
+<% if (success && success.length > 0) { %>
+  <div class="alert alert-success" role="status">✓ <%= success[0] %></div>
+<% } %>
+
+<div class="org-page-header">
+  <div>
+    <h1 style="font-size:1.5rem; margin-bottom:4px;">Students</h1>
+    <p style="font-size:0.88rem; color:var(--ink-muted);"><%= students.filter(s=>s.isActive).length %> active students</p>
+  </div>
+  <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.add('open')" aria-haspopup="dialog">+ Add Student</button>
+</div>
+
+<!-- Students table -->
+<div class="table-wrap" role="region" aria-label="Students list">
+  <% if (students.length === 0) { %>
+    <div class="empty-state">
+      <div class="empty-state-icon" aria-hidden="true">👥</div>
+      <h3>No students yet</h3>
+      <p>Add students by their mobile number to start assigning tests.</p>
+      <button class="btn btn-primary" style="margin-top:16px;" onclick="document.getElementById('add-modal').classList.add('open')">Add First Student</button>
+    </div>
+  <% } else { %>
+    <table aria-label="Students list">
+      <thead>
+        <tr>
+          <th scope="col">Student</th>
+          <th scope="col">Mobile</th>
+          <th scope="col">Roll No.</th>
+          <th scope="col">Batch</th>
+          <th scope="col">Status</th>
+          <th scope="col">Added</th>
+          <th scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% students.forEach(s => { %>
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="student-avatar" aria-hidden="true"><%= s.name ? s.name[0].toUpperCase() : (s.userId && s.userId.mobile ? s.userId.mobile[0] : '?') %></div>
+                <span style="font-weight:500; color:var(--ink);"><%= s.name || 'Unknown' %></span>
+              </div>
+            </td>
+            <td><code style="font-size:0.85rem;"><%= s.userId ? s.userId.mobile : '—' %></code></td>
+            <td><%= s.rollNumber || '—' %></td>
+            <td><%= s.batch || '—' %></td>
+            <td>
+              <span class="badge <%= s.isActive ? 'badge-green' : 'badge-warm' %>">
+                <%= s.isActive ? 'Active' : 'Removed' %>
+              </span>
+            </td>
+            <td><%= new Date(s.createdAt).toLocaleDateString('en-IN') %></td>
+            <td>
+              <% if (s.isActive) { %>
+                <form action="/org/students/<%= s._id %>/remove" method="POST" style="display:inline;" onsubmit="return confirm('Remove this student from your organisation?')">
+                  <button type="submit" class="btn btn-danger btn-sm" aria-label="Remove <%= s.name || 'student' %>">Remove</button>
+                </form>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<!-- Add student modal -->
+<div class="modal-backdrop" id="add-modal" role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="add-modal-title" style="font-size:1.1rem; font-family:'DM Sans',sans-serif;">Add Student</h2>
+      <button class="modal-close" onclick="document.getElementById('add-modal').classList.remove('open')" aria-label="Close add student dialog">✕</button>
+    </div>
+    <form action="/org/students/add" method="POST" novalidate aria-label="Add student form">
+      <div class="form-group">
+        <label class="form-label" for="mobile">Mobile Number <span aria-hidden="true" style="color:var(--danger)">*</span></label>
+        <input type="tel" id="mobile" name="mobile" class="form-control" placeholder="10-digit mobile number" required pattern="[0-9]{10}" maxlength="10" aria-required="true">
+        <p class="form-hint">Student will receive an OTP on this number to login.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="sname">Student Name</label>
+        <input type="text" id="sname" name="name" class="form-control" placeholder="e.g. Ravi Kumar">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="roll">Roll Number</label>
+        <input type="text" id="roll" name="rollNumber" class="form-control" placeholder="e.g. BL2024001">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="batch">Batch / Class</label>
+        <input type="text" id="batch" name="batch" class="form-control" placeholder="e.g. Batch A 2024">
+      </div>
+      <div style="display:flex; gap:12px; margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Add Student</button>
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('add-modal').classList.remove('open')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('layout-bottom') %>

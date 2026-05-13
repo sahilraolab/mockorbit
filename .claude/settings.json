@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(mkdir -p /Users/sahil/.claude/projects/-Users-sahil-Downloads-prepflow/memory)"
+    ],
+    "additionalDirectories": [
+      "/Users/sahil/.claude/projects/-Users-sahil-Downloads-prepflow"
+    ]
+  }
+}

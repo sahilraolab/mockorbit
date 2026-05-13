@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /org/dashboard
+Disallow: /org/students
+Disallow: /org/assignments
+Disallow: /org/results
+Disallow: /dashboard
+Disallow: /test/start/
+Disallow: /test/result/
+Disallow: /payment/
+
+Sitemap: http://localhost:3001/sitemap.xml

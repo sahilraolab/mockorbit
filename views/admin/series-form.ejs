@@ -1,0 +1,65 @@
+<%- include('layout-top', { title: title, currentPath: '/admin/series' }) %>
+
+<% if (error && error.length > 0) { %><div class="alert alert-error mb-4">⚠️ <%= error[0] %></div><% } %>
+
+<div class="admin-page-header">
+  <h3 style="font-family: 'DM Sans';"><%= series ? 'Edit' : 'New' %> Test Series</h3>
+  <a href="/admin/series" class="btn btn-outline btn-sm">← Back</a>
+</div>
+
+<div style="max-width: 600px;">
+  <div class="card">
+    <form method="POST" action="<%= series ? '/admin/series/' + series._id + '/update' : '/admin/series' %>">
+      <div class="form-group">
+        <label class="form-label">Exam *</label>
+        <select name="examId" class="form-control" required>
+          <option value="">Select Exam</option>
+          <% exams.forEach(exam => { %>
+            <option value="<%= exam._id %>" <%= series && series.examId && series.examId.toString() === exam._id.toString() ? 'selected' : '' %>><%= exam.name %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Title *</label>
+        <input type="text" name="title" class="form-control" value="<%= series ? series.title : '' %>" placeholder="e.g., CLAT 2025 Complete Package" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label class="form-label">Price (₹) *</label>
+          <input type="number" name="price" class="form-control" value="<%= series ? series.price : '' %>" placeholder="999" min="0" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Total Mocks *</label>
+          <input type="number" name="totalMocks" class="form-control" value="<%= series ? series.totalMocks : '' %>" placeholder="20" min="1" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" placeholder="Brief description of this test series"><%= series ? series.description : '' %></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Features (one per line)</label>
+        <textarea name="features" class="form-control" placeholder="Latest pattern&#10;Detailed solutions&#10;Rank analysis"><%= series && series.features ? series.features.join('\n') : 'Latest pattern\nDetailed solutions\nRank analysis' %></textarea>
+        <p class="text-xs text-muted mt-1">Each line becomes a feature bullet point.</p>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <a href="/admin/series" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary"><%= series ? 'Save Changes' : 'Create Series' %></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Convert textarea features (newlines) to array on submit
+document.querySelector('form').addEventListener('submit', function(e) {
+  // Features field already handled by controller splitting on \n
+});
+</script>
+
+<%- include('layout-bottom') %>

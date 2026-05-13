@@ -1,0 +1,95 @@
+<%- include('layout-top') %>
+
+<% if (error && error.length > 0) { %>
+  <div class="alert alert-error" role="alert">⚠️ <%= error[0] %></div>
+<% } %>
+<% if (success && success.length > 0) { %>
+  <div class="alert alert-success" role="status">✓ <%= success[0] %></div>
+<% } %>
+
+<div class="org-page-header">
+  <div>
+    <h1 style="font-size:1.5rem; margin-bottom:4px;">Welcome, <%= org.name %></h1>
+    <p style="font-size:0.88rem; color:var(--ink-muted);">Institution Dashboard — MockOrbit</p>
+  </div>
+  <a href="/org/assignments" class="btn btn-primary">+ New Assignment</a>
+</div>
+
+<!-- Stats cards -->
+<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; margin-bottom:32px;" role="list" aria-label="Dashboard statistics">
+  <div class="org-stat-card" role="listitem">
+    <div class="org-stat-icon orange" aria-hidden="true">👥</div>
+    <div>
+      <div class="org-stat-value"><%= stats.studentCount %></div>
+      <div class="org-stat-label">Total Students</div>
+    </div>
+  </div>
+  <div class="org-stat-card" role="listitem">
+    <div class="org-stat-icon navy" aria-hidden="true">📋</div>
+    <div>
+      <div class="org-stat-value"><%= stats.assignmentCount %></div>
+      <div class="org-stat-label">Assignments Created</div>
+    </div>
+  </div>
+  <div class="org-stat-card" role="listitem">
+    <div class="org-stat-icon green" aria-hidden="true">✅</div>
+    <div>
+      <div class="org-stat-value"><%= stats.attemptCount %></div>
+      <div class="org-stat-label">Tests Submitted</div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent assignments -->
+<div style="background:var(--canvas); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden;">
+  <div style="padding:20px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+    <h2 style="font-size:1rem; font-family:'DM Sans',sans-serif;">Recent Assignments</h2>
+    <a href="/org/assignments" class="btn btn-ghost btn-sm">View all →</a>
+  </div>
+  <% if (recentAssignments.length === 0) { %>
+    <div class="empty-state">
+      <div class="empty-state-icon" aria-hidden="true">📋</div>
+      <h3>No assignments yet</h3>
+      <p>Create your first assignment to assign tests to your students.</p>
+      <a href="/org/assignments" class="btn btn-primary" style="margin-top:16px;">Create Assignment</a>
+    </div>
+  <% } else { %>
+    <div role="list" aria-label="Recent assignments">
+      <% recentAssignments.forEach(a => { %>
+        <div class="assignment-card" role="listitem" style="border-radius:0; border-left:none; border-right:none; border-top:none;">
+          <div>
+            <div style="font-weight:600; font-size:0.95rem; color:var(--ink);"><%= a.title %></div>
+            <div class="assignment-meta">
+              Test: <%= a.testId ? a.testId.title : 'N/A' %> &nbsp;·&nbsp;
+              <%= a.testId ? a.testId.duration + ' min' : '' %> &nbsp;·&nbsp;
+              <%= a.assignAll ? 'Assigned to all students' : (a.assignedStudents.length + ' students') %> &nbsp;·&nbsp;
+              <% if (a.dueDate) { %>Due: <%= new Date(a.dueDate).toLocaleDateString('en-IN') %><% } else { %>No deadline<% } %>
+            </div>
+          </div>
+          <span class="badge badge-navy">Active</span>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<!-- Quick actions -->
+<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:24px;">
+  <a href="/org/students" class="card" style="text-align:center; text-decoration:none; padding:24px 16px;">
+    <div style="font-size:1.8rem; margin-bottom:8px;" aria-hidden="true">👥</div>
+    <div style="font-weight:600; font-size:0.9rem; color:var(--ink);">Manage Students</div>
+    <p style="font-size:0.8rem; margin-top:4px;">Add, view, and organise your students</p>
+  </a>
+  <a href="/org/assignments" class="card" style="text-align:center; text-decoration:none; padding:24px 16px;">
+    <div style="font-size:1.8rem; margin-bottom:8px;" aria-hidden="true">📋</div>
+    <div style="font-weight:600; font-size:0.9rem; color:var(--ink);">Create Assignment</div>
+    <p style="font-size:0.8rem; margin-top:4px;">Assign tests to your students</p>
+  </a>
+  <a href="/org/results" class="card" style="text-align:center; text-decoration:none; padding:24px 16px;">
+    <div style="font-size:1.8rem; margin-bottom:8px;" aria-hidden="true">📈</div>
+    <div style="font-weight:600; font-size:0.9rem; color:var(--ink);">View Results</div>
+    <p style="font-size:0.8rem; margin-top:4px;">Track all student scores &amp; ranks</p>
+  </a>
+</div>
+
+<%- include('layout-bottom') %>

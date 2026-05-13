@@ -1,0 +1,142 @@
+<%- include('layout-top', { title: title, currentPath: '/admin/questions' }) %>
+
+<% if (error && error.length > 0) { %><div class="alert alert-error mb-4">⚠️ <%= error[0] %></div><% } %>
+<% if (success && success.length > 0) { %><div class="alert alert-success mb-4">✓ <%= success[0] %></div><% } %>
+
+<!-- Test selector -->
+<div class="card mb-6">
+  <form method="GET" action="/admin/questions" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+      <label class="form-label">Select Test to Manage Questions</label>
+      <select name="testId" class="form-control">
+        <option value="">— Choose a test —</option>
+        <% tests.forEach(t => { %>
+          <option value="<%= t._id %>" <%= testId && testId.toString() === t._id.toString() ? 'selected' : '' %>><%= t.title %></option>
+        <% }) %>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary" style="margin-bottom: 0;">Load Questions</button>
+  </form>
+</div>
+
+<% if (selectedTest) { %>
+  <div class="admin-page-header">
+    <div>
+      <h3 style="font-family: 'DM Sans';"><%= selectedTest.title %></h3>
+      <p class="text-small text-muted"><%= questions.length %> questions · <%= selectedTest.duration %> minutes</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('addQModal')">+ Add Question</button>
+  </div>
+
+  <% if (questions.length === 0) { %>
+    <div class="empty-state card">
+      <div class="empty-state-icon">❓</div>
+      <h3>No questions yet</h3>
+      <p>Add your first question to this test.</p>
+      <button class="btn btn-primary mt-4" onclick="openModal('addQModal')">+ Add Question</button>
+    </div>
+  <% } else { %>
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <% questions.forEach((q, idx) => { %>
+        <div class="card" style="padding: 20px 24px;">
+          <div class="flex-between mb-3">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="badge badge-blue">Q<%= idx + 1 %></span>
+              <span class="badge badge-warm"><%= q.tag %></span>
+            </div>
+            <form method="POST" action="/admin/questions/<%= q._id %>/delete?testId=<%= testId %>" onsubmit="return confirm('Delete this question?')">
+              <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+            </form>
+          </div>
+          <p class="fw-600 text-small mb-3" style="color: var(--ink);"><%= q.question %></p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <% q.options.forEach((opt, i) => { %>
+              <div style="padding: 8px 12px; border-radius: 8px; font-size: 0.83rem; border: 1.5px solid <%= i === q.correctAnswer ? 'var(--success)' : 'var(--border)' %>; background: <%= i === q.correctAnswer ? 'var(--success-light)' : 'var(--canvas-soft)' %>; color: <%= i === q.correctAnswer ? 'var(--success)' : 'var(--ink-soft)' %>;">
+                <strong><%= ['A','B','C','D'][i] %>.</strong> <%= opt %>
+                <% if (i === q.correctAnswer) { %> ✓<% } %>
+              </div>
+            <% }) %>
+          </div>
+          <% if (q.explanation) { %>
+            <div class="explanation-box mt-3">
+              <span class="text-xs text-muted fw-600">EXPLANATION</span>
+              <p class="text-small mt-1"><%= q.explanation %></p>
+            </div>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <!-- Add Question Modal -->
+  <div class="modal-backdrop" id="addQModal">
+    <div class="modal" style="max-width: 640px;">
+      <div class="modal-header">
+        <h4 style="font-family: 'DM Sans';">Add Question</h4>
+        <button class="modal-close" onclick="closeModal('addQModal')">✕</button>
+      </div>
+      <form method="POST" action="/admin/questions">
+        <input type="hidden" name="testId" value="<%= testId %>">
+
+        <div class="form-group">
+          <label class="form-label">Question Text *</label>
+          <textarea name="question" class="form-control" rows="3" placeholder="Enter the question..." required></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">Option A *</label>
+            <input type="text" name="option0" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Option B *</label>
+            <input type="text" name="option1" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Option C *</label>
+            <input type="text" name="option2" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Option D *</label>
+            <input type="text" name="option3" class="form-control" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">Correct Answer *</label>
+            <select name="correctAnswer" class="form-control" required>
+              <option value="0">A</option>
+              <option value="1">B</option>
+              <option value="2">C</option>
+              <option value="3">D</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tag (Topic) *</label>
+            <input type="text" name="tag" class="form-control" placeholder="e.g., Constitutional Law" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Explanation</label>
+          <textarea name="explanation" class="form-control" rows="2" placeholder="Explain the correct answer..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('addQModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Question</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<% } else { %>
+  <div class="empty-state">
+    <div class="empty-state-icon">❓</div>
+    <h3>Select a test above</h3>
+    <p>Choose a test from the dropdown to view and manage its questions.</p>
+  </div>
+<% } %>
+
+<%- include('layout-bottom') %>

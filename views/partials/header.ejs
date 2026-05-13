@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <!-- Primary SEO -->
+  <title><%= title %></title>
+  <meta name="description" content="<%= typeof metaDesc !== 'undefined' ? metaDesc : 'MockOrbit — Mission for Academic Rank & Success. Full-length mock tests for Judiciary, CLAT, SSC, and more with real-time rank analytics and personalised weak-area reports.' %>">
+  <meta name="keywords" content="<%= typeof metaKeywords !== 'undefined' ? metaKeywords : 'mock test, online mock test, free mock test, judiciary mock test, CLAT mock test, SSC mock test, competitive exam preparation, rank predictor, test series' %>">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="author" content="MockOrbit">
+  <link rel="canonical" href="<%= appUrl %><%= currentPath %>">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="<%= typeof ogType !== 'undefined' ? ogType : 'website' %>">
+  <meta property="og:url" content="<%= appUrl %><%= currentPath %>">
+  <meta property="og:title" content="<%= title %>">
+  <meta property="og:description" content="<%= typeof metaDesc !== 'undefined' ? metaDesc : 'Full-length mock tests for top competitive exams. Real rankings, personalised analytics, and expert-crafted questions.' %>">
+  <meta property="og:image" content="<%= appUrl %>/images/og-banner.jpg">
+  <meta property="og:site_name" content="MockOrbit">
+  <meta property="og:locale" content="en_IN">
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@mockorbit">
+  <meta name="twitter:title" content="<%= title %>">
+  <meta name="twitter:description" content="<%= typeof metaDesc !== 'undefined' ? metaDesc : 'Full-length mock tests with rank analytics for Judiciary, CLAT, SSC & more.' %>">
+  <meta name="twitter:image" content="<%= appUrl %>/images/og-banner.jpg">
+
+  <!-- Theme color -->
+  <meta name="theme-color" content="#1c2b3a">
+  <meta name="msapplication-TileColor" content="#1c2b3a">
+
+  <!-- JSON-LD: Organization + WebSite -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "<%= appUrl %>/#organization",
+        "name": "MockOrbit",
+        "url": "<%= appUrl %>",
+        "logo": "<%= appUrl %>/images/logo.png",
+        "description": "MockOrbit — Mission for Academic Rank & Success. India's focused mock test platform for competitive exam aspirants.",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "email": "hello@mockorbit.in",
+          "availableLanguage": ["English", "Hindi"]
+        },
+        "sameAs": [
+          "https://twitter.com/mockorbit",
+          "https://www.instagram.com/mockorbit",
+          "https://www.linkedin.com/company/mockorbit"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "<%= appUrl %>/#website",
+        "url": "<%= appUrl %>",
+        "name": "MockOrbit",
+        "description": "Mission for Academic Rank & Success",
+        "publisher": { "@id": "<%= appUrl %>/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "<%= appUrl %>/series/exam/{search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    ]
+  }
+  </script>
+
+  <% if (typeof pageSchema !== 'undefined') { %>
+  <script type="application/ld+json"><%- pageSchema %></script>
+  <% } %>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+
+<!-- ADA: Skip to main content -->
+<a href="#main-content" class="skip-nav">Skip to main content</a>
+
+<header role="banner">
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <div class="container">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-brand" aria-label="MockOrbit — Go to homepage">
+        <span class="brand-mock">Mock</span><span class="brand-orbit">Orbit</span>
+      </a>
+      <div class="navbar-nav" role="list">
+        <a href="/#exams" class="nav-link" role="listitem">Exams</a>
+        <a href="/org/login" class="nav-link" role="listitem">For Institutes</a>
+        <div class="nav-divider" role="separator" aria-hidden="true"></div>
+        <% if (user) { %>
+          <a href="/dashboard" class="nav-link" role="listitem">My Dashboard</a>
+          <a href="/auth/logout" class="nav-link" role="listitem">Logout</a>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-primary btn-sm" role="listitem">Login Free</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</nav>
+</header>
+
+<main id="main-content" role="main">

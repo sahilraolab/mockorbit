@@ -1,0 +1,37 @@
+<%- include('layout-top', { title: title, currentPath: '/admin/users' }) %>
+
+<div class="admin-page-header">
+  <h3 style="font-family: 'DM Sans';">Users (<%= users.length %>)</h3>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Mobile</th>
+        <th>Purchased Tests</th>
+        <th>Joined</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (users.length === 0) { %>
+        <tr><td colspan="3" class="text-center text-muted" style="padding: 32px;">No users registered yet.</td></tr>
+      <% } %>
+      <% users.forEach(u => { %>
+        <tr>
+          <td class="fw-600">+91 <%= u.mobile %></td>
+          <td>
+            <% if (u.purchasedTests && u.purchasedTests.length > 0) { %>
+              <span class="badge badge-green"><%= u.purchasedTests.length %> series</span>
+            <% } else { %>
+              <span class="text-muted text-small">None</span>
+            <% } %>
+          </td>
+          <td class="text-muted text-small"><%= new Date(u.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('layout-bottom') %>

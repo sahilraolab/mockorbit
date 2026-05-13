@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="background: var(--canvas-soft); min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+<div style="max-width: 380px; width: 100%; padding: 24px;">
+  <div class="text-center mb-6">
+    <h2><%= appName %> Admin</h2>
+    <p class="mt-1 text-small">Sign in to manage content</p>
+  </div>
+
+  <% if (error && error.length > 0) { %>
+    <div class="alert alert-error mb-4">⚠️ <%= error[0] %></div>
+  <% } %>
+
+  <div class="card">
+    <form method="POST" action="/admin/login">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" placeholder="admin@example.com" required autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Sign In</button>
+    </form>
+  </div>
+</div>
+<script src="/js/app.js"></script>
+</body>
+</html>

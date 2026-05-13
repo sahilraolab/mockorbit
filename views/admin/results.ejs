@@ -1,0 +1,50 @@
+<%- include('layout-top', { title: title, currentPath: '/admin/results' }) %>
+
+<div class="admin-page-header">
+  <h3 style="font-family: 'DM Sans';">Test Results (<%= attempts.length %>)</h3>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Test</th>
+        <th>Score</th>
+        <th>Rank</th>
+        <th>Weak Areas</th>
+        <th>Submitted</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (attempts.length === 0) { %>
+        <tr><td colspan="6" class="text-center text-muted" style="padding: 32px;">No results yet.</td></tr>
+      <% } %>
+      <% attempts.forEach(a => { %>
+        <tr>
+          <td class="fw-600">+91 <%= a.userId ? a.userId.mobile : '—' %></td>
+          <td><%= a.testId ? a.testId.title : '—' %></td>
+          <td>
+            <span class="badge badge-blue"><%= a.score %>/<%= a.totalMarks %></span>
+          </td>
+          <td>#<%= a.rank || '—' %></td>
+          <td>
+            <% if (a.weakAreas && a.weakAreas.length > 0) { %>
+              <% a.weakAreas.slice(0, 2).forEach(w => { %>
+                <span class="badge badge-warm" style="margin-right: 4px; font-size: 0.72rem;"><%= w %></span>
+              <% }) %>
+              <% if (a.weakAreas.length > 2) { %><span class="text-xs text-muted">+<%= a.weakAreas.length - 2 %></span><% } %>
+            <% } else { %>
+              <span class="text-muted text-small">—</span>
+            <% } %>
+          </td>
+          <td class="text-muted text-small">
+            <%= a.submittedAt ? new Date(a.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—' %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('layout-bottom') %>

@@ -1,0 +1,112 @@
+<%- include('layout-top', { title: title, currentPath: '/admin/exams' }) %>
+
+<% if (error && error.length > 0) { %><div class="alert alert-error mb-4">⚠️ <%= error[0] %></div><% } %>
+<% if (success && success.length > 0) { %><div class="alert alert-success mb-4">✓ <%= success[0] %></div><% } %>
+
+<div class="admin-page-header">
+  <h3 style="font-family: 'DM Sans';">Exams (<%= exams.length %>)</h3>
+  <button class="btn btn-primary" onclick="openModal('addExamModal')">+ Add Exam</button>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Icon</th>
+        <th>Name</th>
+        <th>Slug</th>
+        <th>Description</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (exams.length === 0) { %>
+        <tr><td colspan="5" class="text-center text-muted" style="padding: 32px;">No exams yet. Add your first exam.</td></tr>
+      <% } %>
+      <% exams.forEach(exam => { %>
+        <tr>
+          <td style="font-size: 1.4rem;"><%= exam.icon %></td>
+          <td class="fw-600"><%= exam.name %></td>
+          <td><code class="font-mono text-xs"><%= exam.slug %></code></td>
+          <td class="text-muted"><%= exam.description || '—' %></td>
+          <td>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-outline btn-sm" onclick="openEditExam('<%= exam._id %>', '<%= exam.name %>', '<%= exam.description || '' %>', '<%= exam.icon %>')">Edit</button>
+              <form method="POST" action="/admin/exams/<%= exam._id %>/delete" onsubmit="return confirm('Delete this exam?')">
+                <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Add Exam Modal -->
+<div class="modal-backdrop" id="addExamModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h4 style="font-family: 'DM Sans';">Add Exam</h4>
+      <button class="modal-close" onclick="closeModal('addExamModal')">✕</button>
+    </div>
+    <form method="POST" action="/admin/exams">
+      <div class="form-group">
+        <label class="form-label">Exam Name *</label>
+        <input type="text" name="name" class="form-control" placeholder="e.g., CLAT 2025" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Icon (Emoji)</label>
+        <input type="text" name="icon" class="form-control" placeholder="e.g., ⚖️" value="📚">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input type="text" name="description" class="form-control" placeholder="Short description">
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn btn-outline" onclick="closeModal('addExamModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Exam</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Exam Modal -->
+<div class="modal-backdrop" id="editExamModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h4 style="font-family: 'DM Sans';">Edit Exam</h4>
+      <button class="modal-close" onclick="closeModal('editExamModal')">✕</button>
+    </div>
+    <form method="POST" id="editExamForm">
+      <div class="form-group">
+        <label class="form-label">Exam Name *</label>
+        <input type="text" name="name" id="editExamName" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Icon (Emoji)</label>
+        <input type="text" name="icon" id="editExamIcon" class="form-control">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input type="text" name="description" id="editExamDesc" class="form-control">
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn btn-outline" onclick="closeModal('editExamModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openEditExam(id, name, desc, icon) {
+  document.getElementById('editExamName').value = name;
+  document.getElementById('editExamDesc').value = desc;
+  document.getElementById('editExamIcon').value = icon;
+  document.getElementById('editExamForm').action = '/admin/exams/' + id + '/update';
+  openModal('editExamModal');
+}
+</script>
+
+<%- include('layout-bottom') %>
