@@ -126,28 +126,30 @@ a:hover { color: var(--accent-hover); }
   height: 66px;
 }
 .navbar-brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: 'Playfair Display', serif;
-  font-size: 1.4rem;
-  font-weight: 700;
   color: var(--ink);
-  letter-spacing: -0.02em;
   text-decoration: none;
-  background: var(--navy);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 8px;
-  box-shadow: var(--shadow-sm);
+  padding: 0;
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
-.navbar-brand .brand-mock { color: white; }
+.navbar-brand:hover,
+.navbar-brand:focus {
+  color: var(--ink);
+}
+.navbar-brand .brand-mock { color: var(--ink); }
 .navbar-brand .brand-orbit { color: var(--accent); }
 .navbar-logo {
   width: 36px;
   height: 36px;
   border-radius: 8px;
   object-fit: contain;
+  display: none;
 }
 .navbar-nav { display: flex; align-items: center; gap: 4px; }
 .nav-link {
@@ -1028,34 +1030,87 @@ footer {
 .full-width { width: 100%; }
 
 /* ============================================================
-   LOGO — CSS Text Logo (replaces image)
+   LOGO — Minimal text logo
    ============================================================ */
 .navbar-brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  background: var(--navy);
-  color: white;
-  padding: 7px 14px 7px 10px;
-  border-radius: 10px;
+  gap: 10px;
+  color: var(--ink);
   text-decoration: none;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition), transform var(--transition);
+  padding: 0;
+  margin: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
-.navbar-brand:hover { box-shadow: var(--shadow); transform: translateY(-1px); color: white; }
-.logo-icon { display: flex; align-items: center; flex-shrink: 0; }
-.brand-text { font-family: 'Playfair Display', serif; font-size: 1.22rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-.brand-mock { color: #ffffff; }
-.brand-orbit { color: var(--accent); }
-
-/* Footer logo text */
-.footer-logo-text { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.footer-logo-text .logo-mock { color: #ffffff; font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; }
-.footer-logo-text .logo-orbit { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; }
-
-/* Auth logo */
-.auth-brand .brand-mock { color: var(--navy); font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
-.auth-brand .brand-orbit { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
+.navbar-brand:hover,
+.navbar-brand:focus {
+  color: var(--ink);
+}
+.navbar-brand .logo-mock {
+  color: var(--ink);
+}
+.navbar-brand .logo-orbit {
+  color: var(--accent);
+}
+.mobile-menu-header .logo-mock {
+  color: #ffffff;
+}
+.mobile-menu-header .logo-orbit {
+  color: var(--accent);
+}
+.header-logo-text {
+  font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 10px;
+}
+.mobile-menu-header .footer-logo-text {
+  font-size: 1.25rem;
+}
+.brand-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.brand-mock {
+  color: var(--ink);
+}
+.brand-orbit {
+  color: var(--accent);
+}
+.mobile-menu-header .brand-text,
+.footer-logo-text,
+.auth-brand .brand-mock,
+.auth-brand .brand-orbit {
+  /* font-family: 'DM Sans', sans-serif; */
+  font-weight: 700;
+}
+.footer-logo-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 1.35rem;
+}
+.footer-logo-text .logo-mock {
+  color: white;
+}
+.header-logo-text .logo-mock {
+  color: black;
+}
+.footer-logo-text .logo-orbit {
+  color: var(--accent);
+}
+.auth-brand .brand-mock {
+  color: var(--navy);
+}
+.auth-brand .brand-orbit {
+  color: var(--accent);
+}
 
 /* ============================================================
    HAMBURGER — Mobile nav toggle button
@@ -1262,6 +1317,15 @@ footer {
 .contact-card-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 2px; }
 .contact-card h3 { font-size: 1rem; margin-bottom: 6px; font-family: 'DM Sans', sans-serif; font-weight: 700; }
 .contact-card p { font-size: 0.88rem; line-height: 1.6; margin-bottom: 10px; }
+.contact-form-col .card {
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
+.contact-form-col .card h2 { margin-bottom: 12px; }
+.contact-form-col .form-group { margin-bottom: 18px; }
+.contact-form-col .btn-block { margin-top: 16px; }
 .contact-link { font-size: 0.9rem; font-weight: 600; color: var(--accent); text-decoration: none; }
 .contact-link:hover { text-decoration: underline; }
 
@@ -1273,7 +1337,7 @@ footer {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 20px 0;
+  padding: 20px 26px;
   font-size: 1rem;
   font-weight: 600;
   color: var(--ink);
@@ -1295,7 +1359,7 @@ footer {
   transition: max-height 0.35s ease, padding 0.25s;
   padding: 0;
 }
-.faq-item.open .faq-a { max-height: 200px; padding-bottom: 20px; }
+.faq-item.open .faq-a { max-height: 220px; padding: 12px 20px; }
 
 /* Company page */
 .company-mission-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: start; }

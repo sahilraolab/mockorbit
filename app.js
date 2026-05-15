@@ -79,6 +79,8 @@ app.use('/payment/webhook', express.raw({ type: 'application/json' }), (req, res
 app.use(express.json({ limit: '50kb' }));
 app.use(express.urlencoded({ extended: true, limit: '50kb' }));
 
+app.set('trust proxy', 1);
+
 // ------------------------------------------------------------------
 // SESSION
 // ------------------------------------------------------------------
