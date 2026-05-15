@@ -1,196 +1,144 @@
-# PrepFlow — Mock Test Platform
+# MockOrbit — Production Deployment Guide
 
-A clean, minimal, production-ready mock test platform for competitive exams (Judiciary, CLAT, SSC, etc.).
-
----
-
-## ✨ Features
-
-- **OTP-based login** (mock or Twilio SMS)
-- **Paid test series** with Razorpay integration (mock mode for dev)
-- **Full test interface** with timer and auto-submit
-- **Result analysis** — score, rank, percentile, weak areas, detailed solutions
-- **Admin panel** — manage exams, series, tests, questions, users, results
-- **Clean minimal UI** inspired by Stripe / Urban Company
+**Mission for Academic Rank & Success** — India's focused mock test platform for competitive exam aspirants.
 
 ---
 
-## 🚀 Quick Start
-
-### 1. Prerequisites
-
-- Node.js v18+
-- MongoDB (local or Atlas)
-
-### 2. Install dependencies
+## Quick Start (Local Dev)
 
 ```bash
-cd prepflow
+# 1. Clone and install
+git clone <your-repo>
+cd mockorbit
 npm install
-```
 
-### 3. Configure environment
-
-```bash
+# 2. Create .env from example
 cp .env.example .env
-```
+# Fill in MONGO_URI, SESSION_SECRET, RAZORPAY_*, GA_MEASUREMENT_ID
 
-Edit `.env`:
-
-```env
-APP_NAME=PrepFlow
-APP_URL=http://localhost:3000
-PORT=3000
-MONGODB_URI=mongodb://localhost:27017/prepflow
-SESSION_SECRET=your-secret-here
-
-# OTP — set USE_MOCK_OTP=true to log OTP to console (dev)
-USE_MOCK_OTP=true
-
-# Payment — set USE_MOCK_PAYMENT=true to skip real payment (dev)
-USE_MOCK_PAYMENT=true
-ALLOW_FREE_ACCESS=true
-
-# For production: set both to false and fill in real keys
-TWILIO_ACCOUNT_SID=ACxxx
-TWILIO_AUTH_TOKEN=xxx
-TWILIO_PHONE_NUMBER=+1xxxxxxxxxx
-RAZORPAY_KEY_ID=rzp_test_xxx
-RAZORPAY_KEY_SECRET=xxx
-
-ADMIN_EMAIL=admin@prepflow.in
-ADMIN_PASSWORD=Admin@123
-```
-
-### 4. Seed demo data
-
-```bash
+# 3. (Optional) Seed the database
 npm run seed
+
+# 4. Start dev server
+npm run dev
+# → http://localhost:3000
 ```
 
-This creates:
-- 3 exams: Judiciary, CLAT, SSC CGL
-- 3 test series with preview questions
-- 4 tests with real MCQ questions
-- 1 admin account
+---
 
-### 5. Start the server
+## Environment Variables
+
+See `.env.example` for the full list. **Critical before going live:**
+
+| Variable | Notes |
+|---|---|
+| `NODE_ENV` | Set to `production` |
+| `APP_URL` | Your live domain e.g. `https://mockorbit.in` |
+| `MONGO_URI` | MongoDB Atlas connection string |
+| `SESSION_SECRET` | Minimum 64 random characters |
+| `RAZORPAY_KEY_ID` | Use `rzp_live_` key for production |
+| `RAZORPAY_WEBHOOK_SECRET` | Set in Razorpay dashboard |
+| `GA_MEASUREMENT_ID` | Google Analytics 4 Measurement ID |
+
+---
+
+## Production Deploy (Render / Railway / DigitalOcean)
+
+### Render (recommended free tier)
+
+1. Push code to GitHub
+2. New Web Service → connect repo
+3. Build command: `npm install`
+4. Start command: `npm start`
+5. Add all env vars from `.env.example` in Render dashboard
+6. Set **Node version** to `18` in environment settings
+
+### DigitalOcean App Platform / VPS
 
 ```bash
-# Development (with auto-reload)
-npm run dev
-
-# Production
-npm start
+# On server
+git pull origin main
+npm install --production
+pm2 restart mockorbit
 ```
 
-Open: http://localhost:3000
-
----
-
-## 🔑 Default Credentials
-
-| Role  | Credential               |
-|-------|--------------------------|
-| Admin | admin@prepflow.in / Admin@123 |
-
----
-
-## 📱 User Flow
-
-1. **Browse** exams on homepage
-2. **View** test series details and preview questions
-3. **Login** with mobile number + OTP
-4. **Pay** for the test series (mock payment in dev)
-5. **Dashboard** → Start Test
-6. **Attempt** MCQ test with timer
-7. **Submit** → View result (score, rank, weak areas, solutions)
-
----
-
-## 🛠 Admin Panel
-
-URL: http://localhost:3000/admin/login
-
-### Content Setup Order:
-1. **Exams** → Create exam (e.g., Judiciary)
-2. **Test Series** → Create series under exam (set price, mocks count)
-3. **Tests** → Create tests under series (set duration)
-4. **Questions** → Add MCQ questions to each test
-
----
-
-## 🔁 Switching to Production
-
-### Real SMS (Twilio):
-```env
-USE_MOCK_OTP=false
-TWILIO_ACCOUNT_SID=ACxxx...
-TWILIO_AUTH_TOKEN=your_token
-TWILIO_PHONE_NUMBER=+91xxxxxxxxxx
+Use **Nginx** as reverse proxy:
+```nginx
+server {
+    listen 80;
+    server_name mockorbit.in www.mockorbit.in;
+    return 301 https://$host$request_uri;
+}
+server {
+    listen 443 ssl http2;
+    server_name mockorbit.in;
+    ssl_certificate /etc/letsencrypt/live/mockorbit.in/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mockorbit.in/privkey.pem;
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
 ```
 
-### Real Payments (Razorpay):
-```env
-USE_MOCK_PAYMENT=false
-RAZORPAY_KEY_ID=rzp_live_xxx
-RAZORPAY_KEY_SECRET=your_secret
-```
+---
 
-### Rebranding:
-Just change `APP_NAME` in `.env` — it propagates everywhere automatically.
+## Post-Deploy SEO Checklist
+
+- [ ] Submit `https://mockorbit.in/sitemap.xml` to [Google Search Console](https://search.google.com/search-console)
+- [ ] Verify site ownership in Search Console
+- [ ] Set up GA4 property and confirm data is flowing
+- [ ] Confirm `robots.txt` is accessible at `/robots.txt`
+- [ ] Test Open Graph tags with [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/)
+- [ ] Test structured data with [Google Rich Results Test](https://search.google.com/test/rich-results)
+- [ ] Verify HTTPS redirect is working
+- [ ] Check mobile rendering with Google's Mobile-Friendly Test
 
 ---
 
-## 📁 Project Structure
+## New Dependencies Added
+
+```bash
+npm install helmet compression
+```
+
+- **helmet** — Sets security HTTP headers (CSP, HSTS, etc.)
+- **compression** — Gzip compression for all responses (~70% bandwidth saving)
+
+---
+
+## Folder Structure
 
 ```
-prepflow/
-├── app.js              # Express app setup
-├── server.js           # Entry point
-├── .env                # Environment variables
-├── models/
-│   ├── User.js
-│   ├── Exam.js         # Exam, TestSeries, Test, Question
-│   └── Attempt.js      # Attempt, Payment, Admin
-├── controllers/
-│   ├── authController.js
-│   ├── homeController.js
-│   ├── seriesController.js
-│   ├── paymentController.js
-│   ├── dashboardController.js
-│   ├── testController.js
-│   └── adminController.js
-├── services/
-│   ├── otpService.js   # Mock + Twilio abstraction
-│   └── paymentService.js # Mock + Razorpay abstraction
+mockorbit/
+├── app.js              ← Express app (security, compression, routes)
+├── server.js           ← DB connect + listen
+├── .env.example        ← Environment variable template
 ├── routes/
-│   ├── index.js
-│   └── routes.js
-├── middlewares/
-│   └── auth.js
+│   ├── routes.js       ← All feature routers
+│   ├── index.js        ← Home + static pages
+│   └── sitemapRoute.js ← Dynamic /sitemap.xml
+├── controllers/
+│   └── staticController.js ← SEO meta for each static page
 ├── views/
 │   ├── partials/
-│   ├── admin/
-│   ├── home.ejs
-│   ├── login.ejs
-│   ├── checkout.ejs
-│   ├── dashboard.ejs
-│   ├── test-interface.ejs
-│   └── result.ejs
-├── public/
-│   ├── css/style.css
-│   └── js/app.js
-└── seeds/seed.js
+│   │   ├── header.ejs  ← Logo, nav, SEO meta, GA, JSON-LD
+│   │   └── footer.ejs  ← Footer links, schema
+│   ├── about.ejs
+│   ├── contact.ejs
+│   ├── privacy.ejs
+│   ├── terms.ejs
+│   ├── refund.ejs
+│   └── company.ejs
+└── public/
+    ├── css/style.css   ← Responsive styles + mobile nav + static pages
+    ├── js/app.js       ← Mobile menu JS + existing test interface
+    ├── favicon.svg
+    ├── robots.txt
+    └── site.webmanifest
 ```
-
----
-
-## 🔐 Security Notes
-
-- Admin passwords are bcrypt-hashed
-- OTP expires in 10 minutes
-- Session-based authentication
-- All admin routes are protected
-- Payment signature verified server-side
-- Input validation on all forms

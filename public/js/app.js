@@ -256,3 +256,60 @@ if (testInterface) {
   updateTimer();
   renderQuestion(0);
 }
+
+// ============================================================
+// MOBILE NAVIGATION — Hamburger / slide-in menu
+// ============================================================
+(function () {
+  const hamburger = document.getElementById('hamburgerBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const mobileClose = document.getElementById('mobileMenuClose');
+  const overlay = document.getElementById('mobileOverlay');
+
+  if (!hamburger || !mobileMenu) return;
+
+  function openMenu() {
+    mobileMenu.classList.add('open');
+    overlay.classList.add('open');
+    hamburger.classList.add('open');
+    hamburger.setAttribute('aria-expanded', 'true');
+    mobileMenu.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('menu-open');
+    // Trap focus — move to first link
+    const firstLink = mobileMenu.querySelector('a, button');
+    if (firstLink) firstLink.focus();
+  }
+
+  function closeMenu() {
+    mobileMenu.classList.remove('open');
+    overlay.classList.remove('open');
+    hamburger.classList.remove('open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    mobileMenu.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('menu-open');
+    hamburger.focus();
+  }
+
+  hamburger.addEventListener('click', openMenu);
+  mobileClose.addEventListener('click', closeMenu);
+  overlay.addEventListener('click', closeMenu);
+
+  // Close on Escape key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && mobileMenu.classList.contains('open')) closeMenu();
+  });
+
+  // Close when a nav link is tapped
+  mobileMenu.querySelectorAll('.mobile-nav-link').forEach(link => {
+    link.addEventListener('click', closeMenu);
+  });
+})();
+
+// ============================================================
+// SKIP NAV — make visible on focus
+// ============================================================
+const skipNav = document.querySelector('.skip-nav');
+if (skipNav) {
+  skipNav.addEventListener('focus', () => skipNav.classList.add('visible'));
+  skipNav.addEventListener('blur', () => skipNav.classList.remove('visible'));
+}

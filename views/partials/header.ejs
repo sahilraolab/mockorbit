@@ -7,8 +7,8 @@
 
   <!-- Primary SEO -->
   <title><%= title %></title>
-  <meta name="description" content="<%= typeof metaDesc !== 'undefined' ? metaDesc : 'MockOrbit — Mission for Academic Rank & Success. Full-length mock tests for Judiciary, CLAT, SSC, and more with real-time rank analytics and personalised weak-area reports.' %>">
-  <meta name="keywords" content="<%= typeof metaKeywords !== 'undefined' ? metaKeywords : 'mock test, online mock test, free mock test, judiciary mock test, CLAT mock test, SSC mock test, competitive exam preparation, rank predictor, test series' %>">
+  <meta name="description" content="<%= typeof metaDesc !== 'undefined' ? metaDesc : 'MockOrbit — Full-length mock tests for Judiciary, CLAT, SSC CGL, Banking & 20+ competitive exams. Real-time rank analytics, AI-powered weak-area reports, and expert solutions.' %>">
+  <meta name="keywords" content="<%= typeof metaKeywords !== 'undefined' ? metaKeywords : 'mock test, online mock test, free mock test, judiciary mock test, CLAT mock test, SSC CGL mock test, banking mock test, UPSC mock test, competitive exam preparation, rank predictor, test series India' %>">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="author" content="MockOrbit">
   <link rel="canonical" href="<%= appUrl %><%= currentPath %>">
@@ -43,8 +43,18 @@
         "@id": "<%= appUrl %>/#organization",
         "name": "MockOrbit",
         "url": "<%= appUrl %>",
-        "logo": "<%= appUrl %>/images/logo.png",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "<%= appUrl %>/images/og-banner.jpg",
+          "width": 1200,
+          "height": 630
+        },
         "description": "MockOrbit — Mission for Academic Rank & Success. India's focused mock test platform for competitive exam aspirants.",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "New Delhi",
+          "addressCountry": "IN"
+        },
         "contactPoint": {
           "@type": "ContactPoint",
           "contactType": "customer support",
@@ -54,7 +64,8 @@
         "sameAs": [
           "https://twitter.com/mockorbit",
           "https://www.instagram.com/mockorbit",
-          "https://www.linkedin.com/company/mockorbit"
+          "https://www.linkedin.com/company/mockorbit",
+          "https://www.youtube.com/@mockorbit"
         ]
       },
       {
@@ -78,14 +89,31 @@
   <script type="application/ld+json"><%- pageSchema %></script>
   <% } %>
 
+  <!-- Google Analytics -->
+  <% if (process.env.GA_MEASUREMENT_ID) { %>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=<%= process.env.GA_MEASUREMENT_ID %>"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '<%= process.env.GA_MEASUREMENT_ID %>', {
+      page_path: '<%= currentPath %>',
+      anonymize_ip: true
+    });
+  </script>
+  <% } %>
+
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
   <!-- Styles -->
   <link rel="stylesheet" href="/css/style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
 
@@ -96,12 +124,24 @@
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="container">
     <div class="navbar-inner">
+      <!-- CSS Text Logo — no image dependency -->
       <a href="/" class="navbar-brand" aria-label="MockOrbit — Go to homepage">
-        <span class="brand-mock">Mock</span><span class="brand-orbit">Orbit</span>
+        <span class="logo-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="14" cy="14" r="13" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+            <circle cx="14" cy="14" r="8" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+            <circle cx="14" cy="14" r="3.5" fill="#f97316"/>
+            <ellipse cx="14" cy="14" rx="13" ry="5" stroke="#f97316" stroke-width="1.5" fill="none" transform="rotate(-20 14 14)"/>
+          </svg>
+        </span>
+        <span class="brand-text"><span class="brand-mock">Mock</span><span class="brand-orbit">Orbit</span></span>
       </a>
-      <div class="navbar-nav" role="list">
+
+      <!-- Desktop nav -->
+      <div class="navbar-nav" role="list" id="desktopNav">
         <a href="/#exams" class="nav-link" role="listitem">Exams</a>
         <a href="/org/login" class="nav-link" role="listitem">For Institutes</a>
+        <a href="/about" class="nav-link" role="listitem">About</a>
         <div class="nav-divider" role="separator" aria-hidden="true"></div>
         <% if (user) { %>
           <a href="/dashboard" class="nav-link" role="listitem">My Dashboard</a>
@@ -110,9 +150,40 @@
           <a href="/auth/login" class="btn btn-primary btn-sm" role="listitem">Login Free</a>
         <% } %>
       </div>
+
+      <!-- Mobile hamburger -->
+      <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
     </div>
   </div>
 </nav>
+
+<!-- Mobile slide-in menu -->
+<div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Navigation menu" aria-hidden="true">
+  <div class="mobile-menu-inner">
+    <div class="mobile-menu-header">
+      <span class="brand-text"><span class="brand-mock">Mock</span><span class="brand-orbit">Orbit</span></span>
+      <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Close navigation menu">✕</button>
+    </div>
+    <nav class="mobile-nav">
+      <a href="/#exams" class="mobile-nav-link">📚 Exams</a>
+      <a href="/org/login" class="mobile-nav-link">🏛️ For Institutes</a>
+      <a href="/about" class="mobile-nav-link">ℹ️ About</a>
+      <a href="/contact" class="mobile-nav-link">✉️ Contact</a>
+      <div class="mobile-nav-divider"></div>
+      <% if (user) { %>
+        <a href="/dashboard" class="mobile-nav-link mobile-nav-primary">📊 My Dashboard</a>
+        <a href="/auth/logout" class="mobile-nav-link">← Logout</a>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-primary btn-block" style="margin-top:8px;">Login Free →</a>
+      <% } %>
+    </nav>
+  </div>
+</div>
+<div class="mobile-overlay" id="mobileOverlay"></div>
 </header>
 
 <main id="main-content" role="main">

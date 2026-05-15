@@ -1,13 +1,15 @@
+# MockOrbit robots.txt
 User-agent: *
 Allow: /
-Disallow: /admin/
-Disallow: /org/dashboard
-Disallow: /org/students
-Disallow: /org/assignments
-Disallow: /org/results
-Disallow: /dashboard
-Disallow: /test/start/
-Disallow: /test/result/
-Disallow: /payment/
 
-Sitemap: http://localhost:3001/sitemap.xml
+# Block private/auth areas from indexing
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /test/attempt/
+Disallow: /org/dashboard
+Disallow: /auth/verify-otp
+Disallow: /auth/send-otp
+Disallow: /api/
+
+# Allow search engines to see the sitemap
+Sitemap: https://mockorbit.in/sitemap.xml

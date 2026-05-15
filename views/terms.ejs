@@ -1,31 +1,103 @@
 <%- include('partials/header') %>
 
-<section class="section" aria-labelledby="terms-heading">
+<section class="static-hero" aria-labelledby="terms-heading">
   <div class="container">
-    <div class="section-heading">
+    <div class="static-hero-content">
       <span class="section-label">Terms of Service</span>
       <h1 id="terms-heading">Terms of Service</h1>
-      <p>These terms govern your use of MockOrbit’s website, services, and test platform. By using MockOrbit, you agree to these terms.</p>
+      <p class="static-hero-sub">Please read these terms carefully before using MockOrbit. By accessing or using our platform, you agree to be bound by these terms. Last updated: <time datetime="2025-01-01">January 2025</time>.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-label="Terms of service content">
+  <div class="container container-sm">
+    <div class="legal-toc card" style="padding: 24px; margin-bottom: 40px;">
+      <h2 style="font-size:1rem; font-family:'DM Sans',sans-serif; margin-bottom:12px;">Contents</h2>
+      <ol class="toc-list">
+        <li><a href="#acceptance">Acceptance of Terms</a></li>
+        <li><a href="#eligibility">Eligibility</a></li>
+        <li><a href="#account">Account Responsibilities</a></li>
+        <li><a href="#platform-use">Permitted Use</a></li>
+        <li><a href="#content">Intellectual Property</a></li>
+        <li><a href="#payments">Payments & Subscriptions</a></li>
+        <li><a href="#disclaimers">Disclaimers</a></li>
+        <li><a href="#limitation">Limitation of Liability</a></li>
+        <li><a href="#termination">Termination</a></li>
+        <li><a href="#governing-law">Governing Law</a></li>
+      </ol>
     </div>
 
-    <div class="content-block">
-      <h2>Acceptance</h2>
-      <p>By accessing MockOrbit, you accept these terms and agree to use the platform in a lawful and responsible manner.</p>
-    </div>
+    <div class="legal-body">
+      <div class="legal-section" id="acceptance">
+        <h2>1. Acceptance of Terms</h2>
+        <p>By creating an account, purchasing access, or otherwise using MockOrbit's website and services, you confirm that you have read, understood, and agree to be bound by these Terms of Service and our <a href="/privacy">Privacy Policy</a>. If you do not agree, do not use the platform.</p>
+      </div>
 
-    <div class="content-block">
-      <h2>Account use</h2>
-      <p>You are responsible for keeping your account credentials secure and for all activity under your account.</p>
-    </div>
+      <div class="legal-section" id="eligibility">
+        <h2>2. Eligibility</h2>
+        <p>MockOrbit is available to individuals aged 16 and above. By registering, you confirm that you meet this requirement. If you are under 18, you must have parental or guardian consent to use paid services.</p>
+      </div>
 
-    <div class="content-block">
-      <h2>Platform access</h2>
-      <p>MockOrbit may modify, suspend, or discontinue features at any time. We will strive to keep the platform available, but uptime is not guaranteed.</p>
-    </div>
+      <div class="legal-section" id="account">
+        <h2>3. Account Responsibilities</h2>
+        <p>You are responsible for:</p>
+        <ul>
+          <li>Providing accurate registration information and keeping it up to date.</li>
+          <li>Maintaining the confidentiality of your login credentials (mobile OTP sessions).</li>
+          <li>All activity that occurs under your account.</li>
+        </ul>
+        <p>You must notify us immediately at <a href="mailto:hello@mockorbit.in">hello@mockorbit.in</a> if you suspect unauthorised access to your account.</p>
+      </div>
 
-    <div class="content-block">
-      <h2>Payment and refunds</h2>
-      <p>Paid access is subject to our refund policy. Please review the refund page for details on cancellations and credit adjustments.</p>
+      <div class="legal-section" id="platform-use">
+        <h2>4. Permitted Use</h2>
+        <p>You may use MockOrbit for lawful personal exam preparation. You agree not to:</p>
+        <ul>
+          <li>Share, copy, distribute, or republish any test question, answer, or solution from our platform.</li>
+          <li>Use automated tools, bots, or scripts to access the platform.</li>
+          <li>Attempt to reverse-engineer, decompile, or hack any part of the platform.</li>
+          <li>Create multiple accounts to circumvent access restrictions or paid access.</li>
+          <li>Use the platform to infringe upon others' intellectual property or violate applicable law.</li>
+        </ul>
+        <p>Violation of these terms may result in immediate account suspension and legal action where warranted.</p>
+      </div>
+
+      <div class="legal-section" id="content">
+        <h2>5. Intellectual Property</h2>
+        <p>All content on MockOrbit — including questions, explanations, analytics algorithms, design, and branding — is the exclusive property of MockOrbit Technologies Pvt. Ltd. and is protected by Indian copyright law. No content may be reproduced, distributed, or used commercially without our prior written consent.</p>
+      </div>
+
+      <div class="legal-section" id="payments">
+        <h2>6. Payments & Subscriptions</h2>
+        <p>Paid test series are purchased on a one-time basis. Prices are listed in Indian Rupees (INR) inclusive of applicable GST. Payments are processed securely via Razorpay. Access to purchased content is granted immediately upon successful payment confirmation.</p>
+        <p>For refunds, please review our <a href="/refund">Refund Policy</a>.</p>
+      </div>
+
+      <div class="legal-section" id="disclaimers">
+        <h2>7. Disclaimers</h2>
+        <p>MockOrbit provides mock tests and analytics for preparation purposes only. We do not guarantee selection in any exam or employment. Our rank predictions are statistical estimates based on platform performance data and do not represent official exam results.</p>
+        <p>The platform is provided "as is". We strive for high availability but do not guarantee uninterrupted access, particularly during scheduled maintenance or unforeseen outages.</p>
+      </div>
+
+      <div class="legal-section" id="limitation">
+        <h2>8. Limitation of Liability</h2>
+        <p>To the maximum extent permitted by Indian law, MockOrbit's total liability to you for any claim arising from use of the platform shall not exceed the amount you paid us in the 3 months preceding the claim. We are not liable for indirect, incidental, or consequential damages.</p>
+      </div>
+
+      <div class="legal-section" id="termination">
+        <h2>9. Termination</h2>
+        <p>We reserve the right to suspend or permanently terminate accounts that violate these terms, engage in fraudulent activity, or for any reason at our reasonable discretion, with or without prior notice. You may delete your account at any time by contacting us.</p>
+      </div>
+
+      <div class="legal-section" id="governing-law">
+        <h2>10. Governing Law</h2>
+        <p>These Terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of courts in New Delhi, India. We encourage you to contact us first to resolve any concerns amicably before initiating legal proceedings.</p>
+        <address class="legal-address" style="margin-top:16px;">
+          MockOrbit Technologies Pvt. Ltd., New Delhi, India<br>
+          Email: <a href="mailto:hello@mockorbit.in">hello@mockorbit.in</a>
+        </address>
+      </div>
     </div>
   </div>
 </section>

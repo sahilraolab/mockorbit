@@ -1,31 +1,113 @@
 <%- include('partials/header') %>
 
-<section class="section" aria-labelledby="privacy-heading">
+<section class="static-hero" aria-labelledby="privacy-heading">
   <div class="container">
-    <div class="section-heading">
+    <div class="static-hero-content">
       <span class="section-label">Privacy Policy</span>
-      <h1 id="privacy-heading">Your Privacy Matters</h1>
-      <p>This privacy policy explains how MockOrbit collects, uses, and protects the personal information you share on our platform.</p>
+      <h1 id="privacy-heading">Your Privacy Matters to Us</h1>
+      <p class="static-hero-sub">We believe in being fully transparent about how we collect, use, and protect your personal information. Last updated: <time datetime="2025-01-01">January 2025</time>.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-label="Privacy policy content">
+  <div class="container container-sm">
+    <div class="legal-toc card" style="padding: 24px; margin-bottom: 40px;">
+      <h2 style="font-size:1rem; font-family:'DM Sans',sans-serif; margin-bottom:12px;">Contents</h2>
+      <ol class="toc-list">
+        <li><a href="#info-collect">Information We Collect</a></li>
+        <li><a href="#how-use">How We Use Your Data</a></li>
+        <li><a href="#data-sharing">Data Sharing</a></li>
+        <li><a href="#security">Data Security</a></li>
+        <li><a href="#cookies">Cookies & Tracking</a></li>
+        <li><a href="#your-rights">Your Rights</a></li>
+        <li><a href="#children">Children's Privacy</a></li>
+        <li><a href="#changes">Policy Changes</a></li>
+        <li><a href="#contact-privacy">Contact Us</a></li>
+      </ol>
     </div>
 
-    <div class="content-block">
-      <h2>Information we collect</h2>
-      <p>We collect only the information needed to provide our services, such as name, email, phone number, and exam preferences.</p>
-    </div>
+    <div class="legal-body">
+      <div class="legal-section" id="info-collect">
+        <h2>1. Information We Collect</h2>
+        <p>We collect only the information necessary to provide you with our services. This includes:</p>
+        <ul>
+          <li><strong>Account information:</strong> Name, mobile number, and email address when you register.</li>
+          <li><strong>Performance data:</strong> Your test attempts, answers, scores, and time-per-question data to generate analytics.</li>
+          <li><strong>Payment information:</strong> Transaction IDs and payment status (we do not store card or bank details — these are handled by Razorpay).</li>
+          <li><strong>Device & usage data:</strong> IP address, browser type, and pages visited, collected via server logs and analytics tools.</li>
+          <li><strong>Institution data:</strong> Organisation name, contact details, and student-enrolment information if you register as an institute partner.</li>
+        </ul>
+      </div>
 
-    <div class="content-block">
-      <h2>How we use your data</h2>
-      <p>We use your information to manage your account, process payments, deliver mock test results, and improve the platform experience.</p>
-    </div>
+      <div class="legal-section" id="how-use">
+        <h2>2. How We Use Your Data</h2>
+        <p>We use the information we collect to:</p>
+        <ul>
+          <li>Create and manage your account and authenticate your identity.</li>
+          <li>Deliver mock tests, generate personalised performance reports, and calculate rank analytics.</li>
+          <li>Process payments and send transaction confirmations.</li>
+          <li>Send service-related communications (e.g., OTPs, purchase receipts, critical updates).</li>
+          <li>Improve our platform, question quality, and user experience through aggregated usage insights.</li>
+          <li>Comply with legal obligations applicable to Indian edtech companies.</li>
+        </ul>
+        <p>We do <strong>not</strong> use your data for targeted advertising or sell it to any third party.</p>
+      </div>
 
-    <div class="content-block">
-      <h2>Data security</h2>
-      <p>MockOrbit takes reasonable measures to protect your data from unauthorized access and misuse.</p>
-    </div>
+      <div class="legal-section" id="data-sharing">
+        <h2>3. Data Sharing</h2>
+        <p>We share your data only in the following limited circumstances:</p>
+        <ul>
+          <li><strong>Payment processor:</strong> We share transaction details with Razorpay to process payments securely.</li>
+          <li><strong>Institution partners:</strong> If you are enrolled via an institution, that institution can view your performance results within their dashboard.</li>
+          <li><strong>Service providers:</strong> We may use third-party cloud hosting and analytics services. These providers are contractually bound to protect your data.</li>
+          <li><strong>Legal requirements:</strong> We may disclose information if required by law or in response to valid legal proceedings.</li>
+        </ul>
+      </div>
 
-    <div class="content-block">
-      <h2>Third-party services</h2>
-      <p>We may use trusted third-party services for hosting, analytics, and payment processing. We do not sell your personal information.</p>
+      <div class="legal-section" id="security">
+        <h2>4. Data Security</h2>
+        <p>We implement industry-standard security measures including encrypted connections (HTTPS/TLS), hashed session tokens, and access controls to protect your data. However, no internet transmission is completely secure, and we cannot guarantee absolute security.</p>
+        <p>If you suspect your account has been compromised, contact us immediately at <a href="mailto:hello@mockorbit.in">hello@mockorbit.in</a>.</p>
+      </div>
+
+      <div class="legal-section" id="cookies">
+        <h2>5. Cookies & Tracking</h2>
+        <p>We use session cookies strictly necessary for authentication and to keep you logged in. We also use Google Analytics to understand aggregate user behaviour and improve the platform. You can opt out of Google Analytics via the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">Google Analytics Opt-out Browser Add-on</a>.</p>
+        <p>We do not use tracking pixels or third-party advertising cookies.</p>
+      </div>
+
+      <div class="legal-section" id="your-rights">
+        <h2>6. Your Rights</h2>
+        <p>Under applicable Indian data protection law, you have the right to:</p>
+        <ul>
+          <li>Access the personal data we hold about you.</li>
+          <li>Request correction of inaccurate information.</li>
+          <li>Request deletion of your account and associated personal data.</li>
+          <li>Withdraw consent for non-essential data processing.</li>
+        </ul>
+        <p>To exercise any of these rights, email us at <a href="mailto:hello@mockorbit.in">hello@mockorbit.in</a> with the subject line "Data Request".</p>
+      </div>
+
+      <div class="legal-section" id="children">
+        <h2>7. Children's Privacy</h2>
+        <p>MockOrbit is designed for students aged 16 and above. We do not knowingly collect personal data from children under 16. If you believe we have inadvertently collected such data, please contact us and we will delete it promptly.</p>
+      </div>
+
+      <div class="legal-section" id="changes">
+        <h2>8. Policy Changes</h2>
+        <p>We may update this policy from time to time. When we make significant changes, we will notify registered users by email and update the "Last updated" date at the top of this page. Continued use of MockOrbit after changes constitutes acceptance of the updated policy.</p>
+      </div>
+
+      <div class="legal-section" id="contact-privacy">
+        <h2>9. Contact Us</h2>
+        <p>For any privacy-related questions or concerns, please contact us at:</p>
+        <address class="legal-address">
+          MockOrbit Technologies Pvt. Ltd.<br>
+          New Delhi, India<br>
+          Email: <a href="mailto:hello@mockorbit.in">hello@mockorbit.in</a>
+        </address>
+      </div>
     </div>
   </div>
 </section>
