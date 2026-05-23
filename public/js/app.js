@@ -11,20 +11,24 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Modal helpers
+// Modal helpers — display:none prevents FOUC; opacity transition gives the fade
 function openModal(id) {
   const backdrop = document.getElementById(id);
-  if (backdrop) backdrop.classList.add('open');
+  if (!backdrop) return;
+  backdrop.style.display = 'flex';
+  // Allow the browser to paint the flex state before triggering opacity transition
+  requestAnimationFrame(() => backdrop.classList.add('open'));
 }
 function closeModal(id) {
   const backdrop = document.getElementById(id);
-  if (backdrop) backdrop.classList.remove('open');
+  if (!backdrop) return;
+  backdrop.classList.remove('open');
+  const dur = parseFloat(getComputedStyle(backdrop).transitionDuration) * 1000 || 200;
+  setTimeout(() => { if (!backdrop.classList.contains('open')) backdrop.style.display = 'none'; }, dur);
 }
 // Close modal on backdrop click
 document.addEventListener('click', e => {
-  if (e.target.classList.contains('modal-backdrop')) {
-    e.target.classList.remove('open');
-  }
+  if (e.target.classList.contains('modal-backdrop')) closeModal(e.target.id);
 });
 
 // Test Interface
@@ -194,6 +198,21 @@ if (testInterface) {
     link.addEventListener('click', closeMenu);
   });
 })();
+
+// ============================================================
+// SAMPLE QUESTION ACCORDION — event delegation, no inline onclick
+// ============================================================
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.sample-accord-btn');
+  if (!btn) return;
+  const body = btn.nextElementSibling;
+  if (!body || !body.classList.contains('sample-accord-body')) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  body.style.display = isOpen ? 'none' : 'block';
+  btn.classList.toggle('open', !isOpen);
+  btn.setAttribute('aria-expanded', String(!isOpen));
+});
 
 // ============================================================
 // SKIP NAV — make visible on focus

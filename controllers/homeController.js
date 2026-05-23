@@ -7,7 +7,7 @@ exports.home = async (req, res) => {
       Exam.find({ isActive: true }).sort({ sortOrder: 1, createdAt: 1 }).lean(),
       Testimonial.find({ status: 'approved' }).sort({ createdAt: -1 }).limit(6).lean(),
       TestSeries.find({ isActive: true, orgId: { $exists: false } })
-        .populate('examId', 'name slug icon examDuration totalMarks conductedBy')
+        .populate('examId', 'name slug icon examDuration totalMarks conductedBy language')
         .sort({ createdAt: -1 })
         .limit(20)
         .lean()

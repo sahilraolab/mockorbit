@@ -57,6 +57,11 @@
             <% if (s.description) { %>
               <p class="mock-card-desc"><%= s.description %></p>
             <% } %>
+            <% if (exam.language && exam.language.length > 0) { %>
+              <div class="mock-card-langs">
+                <% exam.language.forEach(lang => { %><span class="mock-card-lang">🌐 <%= lang %></span><% }) %>
+              </div>
+            <% } %>
           </div>
 
           <div class="mock-card-stats">
@@ -82,11 +87,10 @@
 
           <div class="mock-card-footer">
             <% if (s.price === 0) { %>
-              <div class="mock-card-price-tag mock-card-price-free">Start Now</div>
+              <span class="mock-card-cta-btn mock-card-cta-free">Access Now — Free →</span>
             <% } else { %>
-              <div class="mock-card-price-tag">₹<%= s.price.toLocaleString('en-IN') %></div>
+              <span class="mock-card-cta-btn">Buy Now — ₹<%= s.price.toLocaleString('en-IN') %> →</span>
             <% } %>
-            <span class="mock-card-cta">Explore →</span>
           </div>
         </a>
         <% }) %>
@@ -103,12 +107,12 @@
     <div class="hero-layout">
 
       <div class="hero-left">
-        <div class="hero-badge" aria-label="Platform tagline">
-          ⚖️ Mission for Academic Rank &amp; Success
-        </div>
+        <!-- <div class="hero-badge" aria-label="Platform tagline">
+          ⚖️ Prepare Smarter. Rank Higher.
+        </div> -->
         <h1 id="hero-heading">
-          Prepare Smarter.<br>
-          <span class="highlight">Rank Higher.</span>
+          Mission for Academic<br>
+          <span class="highlight">Rank &amp; Success</span>
         </h1>
         <p class="hero-sub">
           Full-length mock tests for AIBE XXI and upcoming competitive exams — topic-wise analytics, detailed explanations, and an all-India rank among fellow aspirants.

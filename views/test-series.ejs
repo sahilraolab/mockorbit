@@ -137,11 +137,11 @@
               <!-- Sample Questions -->
               <% if (s.previewQuestions && s.previewQuestions.length > 0) { %>
                 <div class="sample-accord" style="margin-top:20px;">
-                  <button class="sample-accord-btn" onclick="toggleSampleAccord(this)">
+                  <button class="sample-accord-btn" aria-expanded="false">
                     <span>Sample Questions (<%= Math.min(s.previewQuestions.length, 3) %>)</span>
                     <span class="sample-accord-chevron">▼</span>
                   </button>
-                  <div class="sample-accord-body">
+                  <div class="sample-accord-body" style="display:none">
                     <% s.previewQuestions.slice(0, 3).forEach((pq, idx) => { %>
                       <div class="sample-q-item">
                         <div class="sample-q-text">Q<%= idx + 1 %>. <%= pq.question %></div>
@@ -169,7 +169,7 @@
                 <a href="/dashboard" class="btn btn-success ts-cta-btn">Go to My Tests →</a>
               <% } else if (s.price === 0) { %>
                 <form method="POST" action="/payment/free-access/<%= s._id %>" style="margin:0; flex:1;">
-                  <button type="submit" class="btn btn-primary ts-cta-btn">Start Mock Test →</button>
+                  <button type="submit" class="btn btn-primary ts-cta-btn">Access Now — Free →</button>
                 </form>
               <% } else { %>
                 <a href="/payment/checkout/<%= s._id %>" class="btn btn-primary ts-cta-btn">
@@ -219,12 +219,3 @@
 <% } %>
 
 <%- include('partials/footer') %>
-
-<script>
-function toggleSampleAccord(btn) {
-  const body = btn.nextElementSibling;
-  const isOpen = body.classList.contains('open');
-  body.classList.toggle('open', !isOpen);
-  btn.classList.toggle('open', !isOpen);
-}
-</script>
