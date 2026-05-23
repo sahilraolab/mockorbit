@@ -138,7 +138,7 @@ mockorbit/
 └── public/
     ├── css/style.css   ← Responsive styles + mobile nav + static pages
     ├── js/app.js       ← Mobile menu JS + existing test interface
-    ├── favicon.svg
+    ├── favicon.ico
     ├── robots.txt
     └── site.webmanifest
 ```

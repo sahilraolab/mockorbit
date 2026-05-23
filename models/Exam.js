@@ -1,11 +1,38 @@
 const mongoose = require('mongoose');
 
 const examSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  slug: { type: String, required: true, unique: true, trim: true },
+  name:        { type: String, required: true, trim: true },
+  slug:        { type: String, required: true, unique: true, trim: true },
   description: { type: String, trim: true },
-  icon: { type: String, default: '📚' },
-  createdAt: { type: Date, default: Date.now }
+  icon:        { type: String, default: '📚' },
+
+  // ── New rich metadata fields ──────────────────────────────────────
+  category:    {
+    type: String,
+    enum: ['Judiciary', 'Law Entrance', 'SSC', 'Banking', 'UPSC', 'State PSC', 'Railway', 'Defence', 'Teaching', 'Other'],
+    default: 'Other'
+  },
+  language:    [{ type: String, trim: true }],   // e.g. ['English', 'Hindi']
+  conductedBy: { type: String, trim: true },     // e.g. 'Bar Council of India'
+  examLevel:   {
+    type: String,
+    enum: ['National', 'State', 'District', 'University', 'Other'],
+    default: 'National'
+  },
+  eligibility: { type: String, trim: true },     // e.g. 'LLB / Law Graduate'
+  frequency:   {
+    type: String,
+    enum: ['Annual', 'Bi-Annual', 'Quarterly', 'Irregular', 'As Notified'],
+    default: 'Annual'
+  },
+  statesApplicable: [{ type: String, trim: true }],  // geo targeting
+  totalVacancies: { type: String, trim: true },       // e.g. '1,200 posts'
+  examDuration:   { type: String, trim: true },       // e.g. '2 hours'
+  totalMarks:     { type: String, trim: true },       // e.g. '200 marks'
+  metaDesc:       { type: String, trim: true },       // SEO meta description override
+  isActive:       { type: Boolean, default: true },
+  sortOrder:      { type: Number, default: 0 },
+  createdAt:      { type: Date, default: Date.now }
 });
 
 const testSeriesSchema = new mongoose.Schema({

@@ -37,6 +37,9 @@
         <span class="org-nav-icon" aria-hidden="true">📈</span> Results
       </a>
       <div class="org-nav-section">Account</div>
+      <a href="/org/plans" class="org-nav-link <%= currentPath.startsWith('/org/plans') ? 'active' : '' %>" aria-current="<%= currentPath.startsWith('/org/plans') ? 'page' : 'false' %>">
+        <span class="org-nav-icon" aria-hidden="true">💳</span> Plans
+      </a>
       <a href="/org/logout" class="org-nav-link">
         <span class="org-nav-icon" aria-hidden="true">🚪</span> Logout
       </a>
@@ -44,7 +47,12 @@
 
     <div class="org-sidebar-footer">
       <%= org ? org.name : 'Institution' %><br>
-      <span style="font-size:0.7rem;">MockOrbit Partner</span>
+      <% const sub = org && org.subscription; const hasPlan = sub && sub.status === 'active' && sub.endDate && new Date(sub.endDate) > new Date(); %>
+      <% if (hasPlan) { %>
+        <span style="font-size:0.68rem; color:#4ade80;">● <%= sub.planName %> Plan</span>
+      <% } else { %>
+        <a href="/org/plans" style="font-size:0.68rem; color:var(--accent); text-decoration:none;">⚠ No active plan</a>
+      <% } %>
     </div>
   </aside>
 

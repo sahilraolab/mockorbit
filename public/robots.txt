@@ -1,15 +1,19 @@
-# MockOrbit robots.txt
 User-agent: *
 Allow: /
 
-# Block private/auth areas from indexing
+# Block private/auth areas
 Disallow: /dashboard
 Disallow: /dashboard/
-Disallow: /test/attempt/
+Disallow: /test/
 Disallow: /org/dashboard
-Disallow: /auth/verify-otp
-Disallow: /auth/send-otp
+Disallow: /org/students
+Disallow: /org/assignments
+Disallow: /org/results
+Disallow: /org/plans
+Disallow: /admin/
+Disallow: /auth/
+
+# Block API/internal endpoints
 Disallow: /api/
 
-# Allow search engines to see the sitemap
 Sitemap: https://mockorbit.in/sitemap.xml

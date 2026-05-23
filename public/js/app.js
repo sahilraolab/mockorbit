@@ -27,116 +27,6 @@ document.addEventListener('click', e => {
   }
 });
 
-// OTP Login
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-  const mobileInput = document.getElementById('mobile');
-  const otpSection = document.getElementById('otpSection');
-  const sendOtpBtn = document.getElementById('sendOtpBtn');
-  const verifyBtn = document.getElementById('verifyBtn');
-  const otpInput = document.getElementById('otp');
-  const msgEl = document.getElementById('loginMsg');
-
-  let canResend = false;
-  let resendTimer = null;
-
-  function showMsg(text, type = 'error') {
-    msgEl.className = `alert alert-${type}`;
-    msgEl.textContent = text;
-    msgEl.classList.remove('hidden');
-  }
-
-  sendOtpBtn.addEventListener('click', async () => {
-    const mobile = mobileInput.value.trim();
-    if (!/^\d{10}$/.test(mobile)) {
-      return showMsg('Enter a valid 10-digit mobile number');
-    }
-
-    sendOtpBtn.disabled = true;
-    sendOtpBtn.innerHTML = '<span class="spinner"></span> Sending...';
-
-    try {
-      const res = await fetch('/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile })
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        otpSection.classList.remove('hidden');
-        mobileInput.disabled = true;
-        showMsg('OTP sent successfully! Check console in dev mode.', 'success');
-        startResendCountdown();
-      } else {
-        showMsg(data.message || 'Failed to send OTP');
-        sendOtpBtn.disabled = false;
-        sendOtpBtn.textContent = 'Send OTP';
-      }
-    } catch (e) {
-      showMsg('Network error. Please try again.');
-      sendOtpBtn.disabled = false;
-      sendOtpBtn.textContent = 'Send OTP';
-    }
-  });
-
-  function startResendCountdown() {
-    let secs = 30;
-    sendOtpBtn.textContent = `Resend in ${secs}s`;
-    resendTimer = setInterval(() => {
-      secs--;
-      if (secs <= 0) {
-        clearInterval(resendTimer);
-        sendOtpBtn.disabled = false;
-        sendOtpBtn.textContent = 'Resend OTP';
-        canResend = true;
-      } else {
-        sendOtpBtn.textContent = `Resend in ${secs}s`;
-      }
-    }, 1000);
-  }
-
-  verifyBtn.addEventListener('click', async () => {
-    const mobile = mobileInput.value.trim();
-    const otp = otpInput.value.trim();
-
-    if (!otp || otp.length !== 6) {
-      return showMsg('Enter the 6-digit OTP');
-    }
-
-    verifyBtn.disabled = true;
-    verifyBtn.innerHTML = '<span class="spinner"></span> Verifying...';
-
-    try {
-      const returnTo = document.getElementById('returnTo')?.value || '/dashboard';
-      const res = await fetch('/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile, otp, returnTo })
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        showMsg('Login successful! Redirecting...', 'success');
-        window.location.href = data.redirect;
-      } else {
-        showMsg(data.message || 'Invalid OTP');
-        verifyBtn.disabled = false;
-        verifyBtn.textContent = 'Verify & Login';
-      }
-    } catch (e) {
-      showMsg('Network error. Please try again.');
-      verifyBtn.disabled = false;
-      verifyBtn.textContent = 'Verify & Login';
-    }
-  });
-
-  // Auto-submit on 6 digits
-  otpInput?.addEventListener('input', () => {
-    if (otpInput.value.length === 6) verifyBtn.click();
-  });
-}
-
 // Test Interface
 const testInterface = document.getElementById('testInterface');
 if (testInterface) {
@@ -313,3 +203,192 @@ if (skipNav) {
   skipNav.addEventListener('focus', () => skipNav.classList.add('visible'));
   skipNav.addEventListener('blur', () => skipNav.classList.remove('visible'));
 }
+
+// ============================================================
+// STAR PICKER — click-to-rate rating widget
+// Uses picker.dataset.value as the source of truth so external
+// scripts can update it without conflicting with this closure.
+// ============================================================
+(function () {
+  const ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+
+  function initPicker(picker) {
+    const stars = Array.from(picker.querySelectorAll('.star-btn'));
+    const input = picker.querySelector('input[type="hidden"]');
+    const hint  = picker.querySelector('.star-picker-hint');
+
+    function paint() {
+      const n = parseInt(picker.dataset.value) || 0;
+      stars.forEach((s, i) => { s.style.color = i < n ? '#f59e0b' : '#d1d5db'; });
+      if (hint) hint.textContent = ratingLabels[n] || '';
+    }
+
+    paint();
+
+    stars.forEach((star, idx) => {
+      star.addEventListener('mouseenter', () => {
+        stars.forEach((s, i) => { s.style.color = i <= idx ? '#f59e0b' : '#d1d5db'; });
+        if (hint) hint.textContent = ratingLabels[idx + 1] || '';
+      });
+      star.addEventListener('mouseleave', paint);
+      star.addEventListener('click', () => {
+        picker.dataset.value = idx + 1;
+        input.value = idx + 1;
+        paint();
+      });
+    });
+  }
+
+  document.querySelectorAll('.star-picker').forEach(initPicker);
+})();
+
+// Shared helper — lets inline page scripts update a star picker
+// without conflicting with the app.js closure above.
+function setPickerValue(picker, n) {
+  if (!picker) return;
+  picker.dataset.value = n;
+  const inp = picker.querySelector('input[type="hidden"]');
+  if (inp) inp.value = n;
+  picker.querySelectorAll('.star-btn').forEach((s, i) => {
+    s.style.color = i < n ? '#f59e0b' : '#d1d5db';
+  });
+  const hint = picker.querySelector('.star-picker-hint');
+  const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+  if (hint) hint.textContent = labels[n] || '';
+}
+
+// ============================================================
+// TESTIMONIALS SLIDER — homepage auto-advancing carousel
+// ============================================================
+(function () {
+  const slider = document.getElementById('testimonialSlider');
+  if (!slider) return;
+
+  const cards = Array.from(slider.querySelectorAll('.testimonial-card'));
+  const total = cards.length;
+  if (total === 0) return;
+
+  let current = 0;
+  let autoTimer;
+
+  function perView() {
+    if (window.innerWidth < 540) return 1;
+    if (window.innerWidth < 900) return 2;
+    return 3;
+  }
+
+  function maxIdx() { return Math.max(0, total - perView()); }
+
+  function goTo(idx) {
+    current = idx < 0 ? maxIdx() : idx > maxIdx() ? 0 : idx;
+    const card = cards[current];
+    slider.scrollTo({ left: card.offsetLeft - slider.offsetLeft + slider.scrollLeft - (card.offsetLeft - slider.offsetLeft - slider.scrollLeft) , behavior: 'smooth' });
+    // Simpler: use offsetLeft of the card relative to slider
+    let scrollTarget = 0;
+    for (let i = 0; i < current; i++) {
+      scrollTarget += cards[i].offsetWidth + 20; // 20 = gap
+    }
+    slider.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+    document.querySelectorAll('.slider-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  function startAuto() {
+    autoTimer = setInterval(() => goTo(current + 1), 4500);
+  }
+  function stopAuto() { clearInterval(autoTimer); }
+
+  document.getElementById('sliderPrev')?.addEventListener('click', () => { stopAuto(); goTo(current - 1); startAuto(); });
+  document.getElementById('sliderNext')?.addEventListener('click', () => { stopAuto(); goTo(current + 1); startAuto(); });
+  slider.addEventListener('mouseenter', stopAuto);
+  slider.addEventListener('mouseleave', startAuto);
+  slider.addEventListener('touchstart', stopAuto, { passive: true });
+
+  // Build dots
+  const dotsEl = document.getElementById('sliderDots');
+  if (dotsEl) {
+    cards.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'slider-dot' + (i === 0 ? ' active' : '');
+      d.setAttribute('aria-label', `Review ${i + 1}`);
+      d.addEventListener('click', () => { stopAuto(); goTo(i); startAuto(); });
+      dotsEl.appendChild(d);
+    });
+  }
+
+  startAuto();
+})();
+
+// ============================================================
+// HOMEPAGE REVIEW FILTER — exam + mock dropdowns (legacy, kept for API routes)
+// ============================================================
+(function () {
+  const examSel  = document.getElementById('reviewExamFilter');
+  const mockSel  = document.getElementById('reviewMockFilter');
+  const grid     = document.getElementById('testimonialsGrid');
+  const loadEl   = document.getElementById('reviewFilterLoading');
+  if (!examSel || !grid) return;
+
+  function starStr(n) {
+    n = n || 5;
+    return '★'.repeat(n) + '☆'.repeat(5 - n);
+  }
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function cardHtml(r) {
+    return `<article class="testimonial-card">
+      <div class="testimonial-stars" aria-label="${r.rating} stars">${starStr(r.rating)}</div>
+      <p class="testimonial-text">"${escHtml(r.text)}"</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar" aria-hidden="true">${escHtml(r.name[0].toUpperCase())}</div>
+        <div>
+          <div class="testimonial-name">${escHtml(r.name)}</div>
+          ${r.role ? `<div class="testimonial-role">${escHtml(r.role)}</div>` : ''}
+        </div>
+      </div>
+    </article>`;
+  }
+
+  async function loadReviews(type, refId) {
+    if (loadEl) loadEl.style.display = 'inline';
+    const url = refId ? `/api/reviews?type=${type}&refId=${encodeURIComponent(refId)}` : '/api/reviews';
+    try {
+      const data = await fetch(url).then(r => r.json());
+      const list = data.reviews || [];
+      grid.innerHTML = list.length
+        ? list.map(cardHtml).join('')
+        : '<p style="grid-column:1/-1;text-align:center;color:var(--ink-muted);padding:40px 0;font-size:0.9rem;">No reviews yet for this selection.</p>';
+    } catch (e) {
+      grid.innerHTML = '';
+    }
+    if (loadEl) loadEl.style.display = 'none';
+  }
+
+  examSel.addEventListener('change', async function () {
+    const examId = this.value;
+    mockSel.style.display = 'none';
+    mockSel.innerHTML = '<option value="">All Mocks for this exam</option>';
+    if (!examId) { loadReviews('site', null); return; }
+
+    loadReviews('exam', examId);
+
+    try {
+      const data = await fetch(`/api/series-by-exam?examId=${encodeURIComponent(examId)}`).then(r => r.json());
+      if (data.series && data.series.length > 0) {
+        data.series.forEach(s => {
+          const o = document.createElement('option');
+          o.value = s._id;
+          o.textContent = s.title;
+          mockSel.appendChild(o);
+        });
+        mockSel.style.display = 'block';
+      }
+    } catch (e) {}
+  });
+
+  mockSel.addEventListener('change', function () {
+    const seriesId = this.value;
+    const examId   = examSel.value;
+    seriesId ? loadReviews('series', seriesId) : loadReviews('exam', examId);
+  });
+})();

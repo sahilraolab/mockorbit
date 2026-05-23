@@ -25,6 +25,25 @@ const requireOrg = (req, res, next) => {
   next();
 };
 
+const requireOrgPlan = async (req, res, next) => {
+  if (!req.session.orgId) {
+    req.session.returnOrgTo = req.originalUrl;
+    return res.redirect('/org/login');
+  }
+  try {
+    const org = req.org || await Organization.findById(req.session.orgId).lean();
+    const sub = org && org.subscription;
+    const isActive = sub && sub.status === 'active' && sub.endDate && new Date(sub.endDate) > new Date();
+    if (!isActive) {
+      req.flash('error', 'You need an active plan to use this feature.');
+      return res.redirect('/org/plans');
+    }
+    next();
+  } catch (e) {
+    return res.redirect('/org/plans');
+  }
+};
+
 const loadUser = async (req, res, next) => {
   if (req.session.userId) {
     try {
@@ -45,4 +64,4 @@ const loadUser = async (req, res, next) => {
   next();
 };
 
-module.exports = { requireAuth, requireAdmin, requireOrg, loadUser };
+module.exports = { requireAuth, requireAdmin, requireOrg, requireOrgPlan, loadUser };

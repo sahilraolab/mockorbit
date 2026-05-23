@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const compression = require('compression');
 
-const { authRouter, seriesRouter, paymentRouter, testRouter, dashboardRouter, adminRouter, orgRouter } = require('./routes/routes');
+const { authRouter, seriesRouter, paymentRouter, testRouter, dashboardRouter, adminRouter, orgRouter, apiRouter } = require('./routes/routes');
 const indexRouter = require('./routes/index');
 const sitemapRouter = require('./routes/sitemapRoute');
 const { loadUser } = require('./middlewares/auth');
@@ -79,8 +79,6 @@ app.use('/payment/webhook', express.raw({ type: 'application/json' }), (req, res
 app.use(express.json({ limit: '50kb' }));
 app.use(express.urlencoded({ extended: true, limit: '50kb' }));
 
-app.set('trust proxy', 1);
-
 // ------------------------------------------------------------------
 // SESSION
 // ------------------------------------------------------------------
@@ -114,6 +112,7 @@ app.use((req, res, next) => {
   res.locals.appUrl     = process.env.APP_URL  || 'http://localhost:3000';
   res.locals.user       = req.user || null;
   res.locals.currentPath = req.path;
+  res.locals.isAdminImpersonating = !!(req.session && req.session.adminImpersonating);
   res.locals.title      = 'MockOrbit — India\'s Best Mock Test Platform';
   res.locals.metaDesc   = 'Full-length mock tests for Judiciary, CLAT, SSC CGL, Banking & 20+ competitive exams. Real-time rank analytics and expert solutions.';
   res.locals.metaKeywords = 'mock test, online test series, judiciary mock test, CLAT, SSC CGL, banking PO preparation India';
@@ -144,6 +143,7 @@ app.use('/payment', paymentRouter);
 app.use('/test', testRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/admin', adminRouter);
+app.use('/api', apiRouter);
 
 // ------------------------------------------------------------------
 // 404

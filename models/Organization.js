@@ -14,6 +14,18 @@ const organizationSchema = new mongoose.Schema({
   address: { type: String, trim: true },
   website: { type: String, trim: true },
   isActive: { type: Boolean, default: true },
+  subscription: {
+    planKey:       { type: String },
+    planName:      { type: String },
+    billing:       { type: String, enum: ['monthly', 'yearly'] },
+    studentsLimit: { type: Number, default: 0 },
+    amount:        { type: Number },
+    startDate:     { type: Date },
+    endDate:       { type: Date },
+    razorpayOrderId:   { type: String },
+    razorpayPaymentId: { type: String },
+    status: { type: String, enum: ['active', 'expired', 'pending'], default: 'pending' }
+  },
   createdAt: { type: Date, default: Date.now }
 });
 

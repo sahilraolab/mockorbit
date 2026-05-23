@@ -4,7 +4,7 @@
 <% if (success && success.length > 0) { %><div class="alert alert-success mb-4">✓ <%= success[0] %></div><% } %>
 
 <div class="admin-page-header">
-  <h3 style="font-family: 'DM Sans';">Exams (<%= exams.length %>)</h3>
+  <h3 style="font-family:'DM Sans';">Exams (<%= exams.length %>)</h3>
   <button class="btn btn-primary" onclick="openModal('addExamModal')">+ Add Exam</button>
 </div>
 
@@ -14,24 +14,36 @@
       <tr>
         <th>Icon</th>
         <th>Name</th>
-        <th>Slug</th>
-        <th>Description</th>
+        <th>Category</th>
+        <th>Language</th>
+        <th>Level</th>
+        <th>Conducted By</th>
+        <th>Active</th>
+        <th>Order</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       <% if (exams.length === 0) { %>
-        <tr><td colspan="5" class="text-center text-muted" style="padding: 32px;">No exams yet. Add your first exam.</td></tr>
+        <tr><td colspan="9" class="text-center text-muted" style="padding:32px;">No exams yet.</td></tr>
       <% } %>
       <% exams.forEach(exam => { %>
         <tr>
-          <td style="font-size: 1.4rem;"><%= exam.icon %></td>
-          <td class="fw-600"><%= exam.name %></td>
-          <td><code class="font-mono text-xs"><%= exam.slug %></code></td>
-          <td class="text-muted"><%= exam.description || '—' %></td>
+          <td style="font-size:1.4rem;"><%= exam.icon %></td>
           <td>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn btn-outline btn-sm" onclick="openEditExam('<%= exam._id %>', '<%= exam.name %>', '<%= exam.description || '' %>', '<%= exam.icon %>')">Edit</button>
+            <div class="fw-600"><%= exam.name %></div>
+            <div class="text-muted" style="font-size:0.78rem;margin-top:2px;"><%= (exam.description||'').substring(0,55) %><%= exam.description && exam.description.length>55?'…':'' %></div>
+          </td>
+          <td><span class="badge badge-soft"><%= exam.category||'—' %></span></td>
+          <td style="font-size:0.82rem;"><%= (exam.language||[]).join(', ')||'—' %></td>
+          <td style="font-size:0.82rem;"><%= exam.examLevel||'—' %></td>
+          <td style="font-size:0.82rem;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= exam.conductedBy||'—' %></td>
+          <td><span class="badge <%- exam.isActive!==false?'badge-success':'badge-danger' %>"><%= exam.isActive!==false?'Active':'Hidden' %></span></td>
+          <td style="text-align:center;"><%= exam.sortOrder||0 %></td>
+          <td>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-outline btn-sm"
+                onclick="openEditExam('<%=exam._id%>','<%=encodeURIComponent(exam.name)%>','<%=encodeURIComponent(exam.description||'')%>','<%=exam.icon||'📚'%>','<%=exam.category||''%>','<%=exam.examLevel||''%>','<%=exam.frequency||''%>','<%=encodeURIComponent(exam.conductedBy||'')%>','<%=encodeURIComponent(exam.eligibility||'')%>','<%=encodeURIComponent((exam.language||[]).join(', '))%>','<%=encodeURIComponent((exam.statesApplicable||[]).join(', '))%>','<%=encodeURIComponent(exam.totalMarks||'')%>','<%=encodeURIComponent(exam.examDuration||'')%>','<%=encodeURIComponent(exam.totalVacancies||'')%>','<%=encodeURIComponent(exam.metaDesc||'')%>','<%=exam.isActive!==false?'true':'false'%>','<%=exam.sortOrder||0%>')">Edit</button>
               <form method="POST" action="/admin/exams/<%= exam._id %>/delete" onsubmit="return confirm('Delete this exam?')">
                 <button class="btn btn-danger btn-sm" type="submit">Delete</button>
               </form>
@@ -43,67 +55,261 @@
   </table>
 </div>
 
-<!-- Add Exam Modal -->
+<!-- ══════════ ADD EXAM MODAL ══════════ -->
 <div class="modal-backdrop" id="addExamModal">
-  <div class="modal">
+  <div class="modal modal-lg">
     <div class="modal-header">
-      <h4 style="font-family: 'DM Sans';">Add Exam</h4>
+      <h4>Add New Exam</h4>
       <button class="modal-close" onclick="closeModal('addExamModal')">✕</button>
     </div>
-    <form method="POST" action="/admin/exams">
-      <div class="form-group">
-        <label class="form-label">Exam Name *</label>
-        <input type="text" name="name" class="form-control" placeholder="e.g., CLAT 2025" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Icon (Emoji)</label>
-        <input type="text" name="icon" class="form-control" placeholder="e.g., ⚖️" value="📚">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <input type="text" name="description" class="form-control" placeholder="Short description">
-      </div>
-      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+    <div class="modal-body-scroll">
+    <form method="POST" action="/admin/exams" id="addExamForm">
+
+      <div class="exam-form-grid">
+
+        <!-- Col 1: Basic -->
+        <div class="exam-form-col">
+          <div class="form-section-title">📋 Basic Info</div>
+          <div class="form-group">
+            <label class="form-label">Exam Name <span class="req">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. CLAT UG 2025" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Icon (emoji)</label>
+            <input type="text" name="icon" class="form-control" value="📚" placeholder="📚">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Short Description</label>
+            <textarea name="description" class="form-control" rows="2" placeholder="One-line summary shown on homepage"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">SEO Meta Description <span class="form-hint">150–160 chars for Google</span></label>
+            <textarea name="metaDesc" class="form-control" rows="2" placeholder="Appears in Google search results"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Visibility</label>
+            <select name="isActive" class="form-control">
+              <option value="true">Active (visible)</option>
+              <option value="false">Hidden</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sort Order <span class="form-hint">lower = appears first</span></label>
+            <input type="number" name="sortOrder" class="form-control" value="0" min="0">
+          </div>
+        </div>
+
+        <!-- Col 2: Exam Details -->
+        <div class="exam-form-col">
+          <div class="form-section-title">🏛️ Exam Details</div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-control">
+              <option value="">— Select —</option>
+              <option>Judiciary</option><option>Law Entrance</option><option>SSC</option>
+              <option>Banking</option><option>UPSC</option><option>State PSC</option>
+              <option>Railway</option><option>Defence</option><option>Teaching</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Exam Level</label>
+            <select name="examLevel" class="form-control">
+              <option value="">— Select —</option>
+              <option>National</option><option>State</option><option>District</option>
+              <option>University</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Frequency</label>
+            <select name="frequency" class="form-control">
+              <option value="">— Select —</option>
+              <option>Annual</option><option>Bi-Annual</option><option>Quarterly</option>
+              <option>Irregular</option><option>As Notified</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Conducted By</label>
+            <input type="text" name="conductedBy" class="form-control" placeholder="e.g. Bar Council of India">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Eligibility</label>
+            <input type="text" name="eligibility" class="form-control" placeholder="e.g. LLB / Law Graduate">
+          </div>
+        </div>
+
+        <!-- Col 3: Stats + Geo -->
+        <div class="exam-form-col">
+          <div class="form-section-title">📊 Stats &amp; Geo</div>
+          <div class="form-group">
+            <label class="form-label">Total Marks</label>
+            <input type="text" name="totalMarks" class="form-control" placeholder="e.g. 200">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Exam Duration</label>
+            <input type="text" name="examDuration" class="form-control" placeholder="e.g. 2 hours">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total Vacancies / Posts</label>
+            <input type="text" name="totalVacancies" class="form-control" placeholder="e.g. 1,200 posts">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Languages <span class="form-hint">comma-separated</span></label>
+            <input type="text" name="language" class="form-control" placeholder="English, Hindi">
+          </div>
+          <div class="form-group">
+            <label class="form-label">States Applicable <span class="form-hint">geo targeting — comma-separated</span></label>
+            <input type="text" name="statesApplicable" class="form-control" placeholder="All India, or UP, MP, Bihar…">
+          </div>
+        </div>
+
+      </div><!-- /exam-form-grid -->
+
+      <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('addExamModal')">Cancel</button>
         <button type="submit" class="btn btn-primary">Add Exam</button>
       </div>
     </form>
+    </div><!-- /modal-body-scroll -->
   </div>
 </div>
 
-<!-- Edit Exam Modal -->
+<!-- ══════════ EDIT EXAM MODAL ══════════ -->
 <div class="modal-backdrop" id="editExamModal">
-  <div class="modal">
+  <div class="modal modal-lg">
     <div class="modal-header">
-      <h4 style="font-family: 'DM Sans';">Edit Exam</h4>
+      <h4>Edit Exam</h4>
       <button class="modal-close" onclick="closeModal('editExamModal')">✕</button>
     </div>
+    <div class="modal-body-scroll">
     <form method="POST" id="editExamForm">
-      <div class="form-group">
-        <label class="form-label">Exam Name *</label>
-        <input type="text" name="name" id="editExamName" class="form-control" required>
+
+      <div class="exam-form-grid">
+        <!-- Col 1 -->
+        <div class="exam-form-col">
+          <div class="form-section-title">📋 Basic Info</div>
+          <div class="form-group">
+            <label class="form-label">Exam Name <span class="req">*</span></label>
+            <input type="text" name="name" id="eName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Icon (emoji)</label>
+            <input type="text" name="icon" id="eIcon" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Short Description</label>
+            <textarea name="description" id="eDesc" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">SEO Meta Description</label>
+            <textarea name="metaDesc" id="eMeta" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Visibility</label>
+            <select name="isActive" id="eActive" class="form-control">
+              <option value="true">Active (visible)</option>
+              <option value="false">Hidden</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sort Order</label>
+            <input type="number" name="sortOrder" id="eOrder" class="form-control" min="0">
+          </div>
+        </div>
+        <!-- Col 2 -->
+        <div class="exam-form-col">
+          <div class="form-section-title">🏛️ Exam Details</div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select name="category" id="eCat" class="form-control">
+              <option value="">— Select —</option>
+              <option>Judiciary</option><option>Law Entrance</option><option>SSC</option>
+              <option>Banking</option><option>UPSC</option><option>State PSC</option>
+              <option>Railway</option><option>Defence</option><option>Teaching</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Exam Level</label>
+            <select name="examLevel" id="eLevel" class="form-control">
+              <option value="">— Select —</option>
+              <option>National</option><option>State</option><option>District</option>
+              <option>University</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Frequency</label>
+            <select name="frequency" id="eFreq" class="form-control">
+              <option value="">— Select —</option>
+              <option>Annual</option><option>Bi-Annual</option><option>Quarterly</option>
+              <option>Irregular</option><option>As Notified</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Conducted By</label>
+            <input type="text" name="conductedBy" id="eConducted" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Eligibility</label>
+            <input type="text" name="eligibility" id="eElig" class="form-control">
+          </div>
+        </div>
+        <!-- Col 3 -->
+        <div class="exam-form-col">
+          <div class="form-section-title">📊 Stats &amp; Geo</div>
+          <div class="form-group">
+            <label class="form-label">Total Marks</label>
+            <input type="text" name="totalMarks" id="eMarks" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Exam Duration</label>
+            <input type="text" name="examDuration" id="eDuration" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total Vacancies / Posts</label>
+            <input type="text" name="totalVacancies" id="eVacancies" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Languages <span class="form-hint">comma-separated</span></label>
+            <input type="text" name="language" id="eLang" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">States Applicable <span class="form-hint">comma-separated</span></label>
+            <input type="text" name="statesApplicable" id="eStates" class="form-control">
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Icon (Emoji)</label>
-        <input type="text" name="icon" id="editExamIcon" class="form-control">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <input type="text" name="description" id="editExamDesc" class="form-control">
-      </div>
-      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+
+      <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('editExamModal')">Cancel</button>
         <button type="submit" class="btn btn-primary">Save Changes</button>
       </div>
     </form>
+    </div>
   </div>
 </div>
 
 <script>
-function openEditExam(id, name, desc, icon) {
-  document.getElementById('editExamName').value = name;
-  document.getElementById('editExamDesc').value = desc;
-  document.getElementById('editExamIcon').value = icon;
+function openEditExam(id,name,desc,icon,cat,level,freq,conducted,elig,lang,states,marks,duration,vacancies,meta,active,order){
+  const d = decodeURIComponent;
+  document.getElementById('eName').value      = d(name);
+  document.getElementById('eDesc').value      = d(desc);
+  document.getElementById('eIcon').value      = icon;
+  document.getElementById('eMeta').value      = d(meta);
+  document.getElementById('eOrder').value     = order;
+  document.getElementById('eConducted').value = d(conducted);
+  document.getElementById('eElig').value      = d(elig);
+  document.getElementById('eLang').value      = d(lang);
+  document.getElementById('eStates').value    = d(states);
+  document.getElementById('eMarks').value     = d(marks);
+  document.getElementById('eDuration').value  = d(duration);
+  document.getElementById('eVacancies').value = d(vacancies);
+
+  // Selects
+  ['eCat','eLevel','eFreq','eActive'].forEach(id => {
+    const el = document.getElementById(id);
+    const vals = {eCat:cat, eLevel:level, eFreq:freq, eActive:active};
+    for (let o of el.options) if (o.value === vals[id]) { o.selected = true; break; }
+  });
+
   document.getElementById('editExamForm').action = '/admin/exams/' + id + '/update';
   openModal('editExamModal');
 }

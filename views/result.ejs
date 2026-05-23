@@ -63,13 +63,26 @@
     </div>
 
     <!-- Detailed review -->
-    <h3 style="font-family: 'DM Sans'; margin-bottom: 20px;">Detailed Review</h3>
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+      <h3 style="font-family: 'DM Sans'; margin:0;">Detailed Review</h3>
+      <div class="review-filters" style="margin:0;">
+        <button class="review-filter-btn active" onclick="filterReview('all',this)">All (<%= review.length %>)</button>
+        <button class="review-filter-btn correct" onclick="filterReview('correct',this)">✓ Correct (<%= review.filter(r => r.isCorrect).length %>)</button>
+        <button class="review-filter-btn wrong" onclick="filterReview('wrong',this)">✗ Wrong (<%= review.filter(r => !r.isCorrect && r.userAnswer !== -1).length %>)</button>
+        <button class="review-filter-btn skipped" onclick="filterReview('skipped',this)">— Skipped (<%= review.filter(r => r.userAnswer === -1).length %>)</button>
+      </div>
+    </div>
+
+    <div id="reviewList">
     <% review.forEach((q, idx) => { %>
-      <div class="review-q mb-4">
-        <div class="review-q-header <%= q.userAnswer === -1 ? 'skipped' : q.isCorrect ? 'correct' : 'wrong' %>">
+      <%
+        const qStatus = q.userAnswer === -1 ? 'skipped' : q.isCorrect ? 'correct' : 'wrong';
+      %>
+      <div class="review-q mb-4" data-status="<%= qStatus %>">
+        <div class="review-q-header <%= qStatus %>">
           <span class="text-small fw-600">Q<%= idx + 1 %>. <span class="badge badge-blue" style="margin-left: 6px;"><%= q.tag %></span></span>
           <span class="badge <%= q.userAnswer === -1 ? 'badge-warm' : q.isCorrect ? 'badge-green' : '' %>" style="<%= !q.isCorrect && q.userAnswer !== -1 ? 'background: var(--danger-light); color: var(--danger);' : '' %>">
-            <%= q.userAnswer === -1 ? 'Skipped' : q.isCorrect ? 'Correct' : 'Wrong' %>
+            <%= q.userAnswer === -1 ? 'Skipped' : q.isCorrect ? 'Correct ✓' : 'Wrong ✗' %>
           </span>
         </div>
         <div class="review-q-body">
@@ -79,8 +92,8 @@
               <div class="option-btn <%= i === q.correctAnswer ? 'correct' : (i === q.userAnswer && q.userAnswer !== q.correctAnswer) ? 'wrong' : '' %>" style="cursor: default; padding: 10px 14px;">
                 <span class="option-label" style="font-size: 0.7rem; width: 20px; height: 20px;"><%= letter %></span>
                 <span style="font-size: 0.88rem;"><%= q.options[i] %></span>
-                <% if (i === q.correctAnswer) { %><span style="margin-left: auto; font-size: 0.78rem; font-weight: 700;">✓</span><% } %>
-                <% if (i === q.userAnswer && q.userAnswer !== q.correctAnswer) { %><span style="margin-left: auto; font-size: 0.78rem; font-weight: 700;">✗</span><% } %>
+                <% if (i === q.correctAnswer) { %><span style="margin-left: auto; font-size: 0.78rem; font-weight: 700; color:var(--success);">✓</span><% } %>
+                <% if (i === q.userAnswer && q.userAnswer !== q.correctAnswer) { %><span style="margin-left: auto; font-size: 0.78rem; font-weight: 700; color:var(--danger);">✗</span><% } %>
               </div>
             <% }) %>
           </div>
@@ -93,6 +106,17 @@
         </div>
       </div>
     <% }) %>
+    </div>
+
+    <script>
+    function filterReview(filter, btn) {
+      document.querySelectorAll('.review-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('#reviewList .review-q').forEach(q => {
+        q.style.display = (filter === 'all' || q.dataset.status === filter) ? '' : 'none';
+      });
+    }
+    </script>
   </div>
 </section>
 

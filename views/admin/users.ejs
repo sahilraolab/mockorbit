@@ -1,25 +1,32 @@
 <%- include('layout-top', { title: title, currentPath: '/admin/users' }) %>
 
+<% if (success && success.length > 0) { %>
+  <div class="alert alert-success"><%= success[0] %></div>
+<% } %>
+
 <div class="admin-page-header">
-  <h3 style="font-family: 'DM Sans';">Users (<%= users.length %>)</h3>
+  <h3 style="font-family: 'DM Sans';">Students (<%= users.length %>)</h3>
 </div>
 
 <div class="table-wrap">
   <table>
     <thead>
       <tr>
-        <th>Mobile</th>
+        <th>Email</th>
+        <th>Name</th>
         <th>Purchased Tests</th>
         <th>Joined</th>
+        <th><span class="sr-only">Actions</span></th>
       </tr>
     </thead>
     <tbody>
       <% if (users.length === 0) { %>
-        <tr><td colspan="3" class="text-center text-muted" style="padding: 32px;">No users registered yet.</td></tr>
+        <tr><td colspan="5" class="text-center text-muted" style="padding: 32px;">No users registered yet.</td></tr>
       <% } %>
       <% users.forEach(u => { %>
         <tr>
-          <td class="fw-600">+91 <%= u.mobile %></td>
+          <td class="fw-600"><%= u.email || '—' %></td>
+          <td><%= u.name || '—' %></td>
           <td>
             <% if (u.purchasedTests && u.purchasedTests.length > 0) { %>
               <span class="badge badge-green"><%= u.purchasedTests.length %> series</span>
@@ -28,6 +35,11 @@
             <% } %>
           </td>
           <td class="text-muted text-small"><%= new Date(u.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+          <td>
+            <form action="/admin/users/<%= u._id %>/login-as" method="POST" style="display:inline;" onsubmit="return confirm('Login as this student?')">
+              <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--accent);">Login As</button>
+            </form>
+          </td>
         </tr>
       <% }) %>
     </tbody>

@@ -1,0 +1,234 @@
+<%- include('layout-top') %>
+
+<% if (error && error.length > 0) { %>
+  <div class="alert alert-error" role="alert">⚠️ <%= error[0] %></div>
+<% } %>
+<% if (success && success.length > 0) { %>
+  <div class="alert alert-success" role="status">✓ <%= success[0] %></div>
+<% } %>
+
+<div class="org-page-header">
+  <div>
+    <h1 style="font-size:1.5rem; margin-bottom:4px;">Choose a Plan</h1>
+    <p style="font-size:0.88rem; color:var(--ink-muted);">Unlock the Institution Portal — manage students, assign tests, and track results.</p>
+  </div>
+</div>
+
+<!-- Billing toggle -->
+<div class="plan-billing-toggle" role="group" aria-label="Billing period">
+  <button class="plan-toggle-btn active" id="toggle-monthly" onclick="setBilling('monthly')">Monthly</button>
+  <button class="plan-toggle-btn" id="toggle-yearly" onclick="setBilling('yearly')">
+    Yearly <span class="plan-save-badge">Save ~17%</span>
+  </button>
+</div>
+
+<!-- Plan cards -->
+<div class="plan-cards-grid">
+
+  <!-- Starter -->
+  <div class="plan-card">
+    <div class="plan-card-head">
+      <div class="plan-icon">🏫</div>
+      <div class="plan-name">Starter</div>
+      <div class="plan-desc">Perfect for small coaching centres and schools.</div>
+    </div>
+    <div class="plan-price-block">
+      <div class="plan-price monthly-price">
+        <span class="plan-currency">₹</span><span class="plan-amount">5,000</span>
+        <span class="plan-period">/month</span>
+      </div>
+      <div class="plan-price yearly-price" style="display:none;">
+        <span class="plan-currency">₹</span><span class="plan-amount">55,000</span>
+        <span class="plan-period">/year</span>
+        <div class="plan-yearly-note">₹4,583/mo · Save ₹5,000</div>
+      </div>
+    </div>
+    <div class="plan-students-badge">Up to <strong>100 students</strong></div>
+    <ul class="plan-features">
+      <li>✓ Student management dashboard</li>
+      <li>✓ Assign tests to all / select students</li>
+      <li>✓ Live results & rank tracking</li>
+      <li>✓ CSV bulk student upload</li>
+      <li>✓ CSV result export</li>
+      <li>✓ Due-date based assignments</li>
+    </ul>
+    <button class="btn btn-primary btn-block plan-buy-btn"
+      data-monthly-key="starter_monthly"
+      data-yearly-key="starter_yearly"
+      data-monthly-name="Starter Monthly"
+      data-yearly-name="Starter Yearly"
+      data-monthly-amount="500000"
+      data-yearly-amount="5500000"
+      onclick="buyPlan(this)">
+      Get Started
+    </button>
+  </div>
+
+  <!-- Growth -->
+  <div class="plan-card plan-card-featured">
+    <div class="plan-card-head">
+      <div class="plan-badge-popular">Most Popular</div>
+      <div class="plan-icon">🎓</div>
+      <div class="plan-name">Growth</div>
+      <div class="plan-desc">Ideal for growing institutes with multiple batches.</div>
+    </div>
+    <div class="plan-price-block">
+      <div class="plan-price monthly-price">
+        <span class="plan-currency">₹</span><span class="plan-amount">9,000</span>
+        <span class="plan-period">/month</span>
+      </div>
+      <div class="plan-price yearly-price" style="display:none;">
+        <span class="plan-currency">₹</span><span class="plan-amount">99,000</span>
+        <span class="plan-period">/year</span>
+        <div class="plan-yearly-note">₹8,250/mo · Save ₹9,000</div>
+      </div>
+    </div>
+    <div class="plan-students-badge">Up to <strong>200 students</strong></div>
+    <ul class="plan-features">
+      <li>✓ Everything in Starter</li>
+      <li>✓ 200 active students</li>
+      <li>✓ Batch-wise assignment filtering</li>
+      <li>✓ Priority support</li>
+      <li>✓ Weak-area analytics per student</li>
+      <li>✓ Custom assignment instructions</li>
+    </ul>
+    <button class="btn btn-white btn-block plan-buy-btn"
+      data-monthly-key="growth_monthly"
+      data-yearly-key="growth_yearly"
+      data-monthly-name="Growth Monthly"
+      data-yearly-name="Growth Yearly"
+      data-monthly-amount="900000"
+      data-yearly-amount="9900000"
+      onclick="buyPlan(this)">
+      Get Started
+    </button>
+  </div>
+
+  <!-- Pro -->
+  <div class="plan-card">
+    <div class="plan-card-head">
+      <div class="plan-icon">🏛️</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-desc">For universities, law colleges, and large academies.</div>
+    </div>
+    <div class="plan-price-block">
+      <div class="plan-price monthly-price">
+        <span class="plan-currency">₹</span><span class="plan-amount">22,500</span>
+        <span class="plan-period">/month</span>
+      </div>
+      <div class="plan-price yearly-price" style="display:none;">
+        <span class="plan-currency">₹</span><span class="plan-amount">2,47,500</span>
+        <span class="plan-period">/year</span>
+        <div class="plan-yearly-note">₹20,625/mo · Save ₹22,500</div>
+      </div>
+    </div>
+    <div class="plan-students-badge">Up to <strong>500 students</strong></div>
+    <ul class="plan-features">
+      <li>✓ Everything in Growth</li>
+      <li>✓ 500 active students</li>
+      <li>✓ Dedicated account manager</li>
+      <li>✓ Custom branding (coming soon)</li>
+      <li>✓ API access (coming soon)</li>
+      <li>✓ SLA-backed support</li>
+    </ul>
+    <button class="btn btn-primary btn-block plan-buy-btn"
+      data-monthly-key="pro_monthly"
+      data-yearly-key="pro_yearly"
+      data-monthly-name="Pro Monthly"
+      data-yearly-name="Pro Yearly"
+      data-monthly-amount="2250000"
+      data-yearly-amount="24750000"
+      onclick="buyPlan(this)">
+      Get Started
+    </button>
+  </div>
+
+</div>
+
+<p style="text-align:center; font-size:0.82rem; color:var(--ink-muted); margin-top:24px;">
+  🔒 Secure payment · Instant activation · Cancel anytime
+</p>
+
+<!-- Razorpay / mock checkout script -->
+<% if (!useMockPayment) { %>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<% } %>
+
+<script>
+let currentBilling = 'monthly';
+
+function setBilling(type) {
+  currentBilling = type;
+  document.getElementById('toggle-monthly').classList.toggle('active', type === 'monthly');
+  document.getElementById('toggle-yearly').classList.toggle('active', type === 'yearly');
+  document.querySelectorAll('.monthly-price').forEach(el => el.style.display = type === 'monthly' ? '' : 'none');
+  document.querySelectorAll('.yearly-price').forEach(el => el.style.display = type === 'yearly' ? '' : 'none');
+}
+
+async function buyPlan(btn) {
+  const planKey    = currentBilling === 'monthly' ? btn.dataset.monthlyKey    : btn.dataset.yearlyKey;
+  const planName   = currentBilling === 'monthly' ? btn.dataset.monthlyName   : btn.dataset.yearlyName;
+
+  btn.disabled = true;
+  btn.textContent = 'Processing…';
+
+  try {
+    const res = await fetch('/org/plans/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ planKey })
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      alert(data.message || 'Failed to initiate payment. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Get Started';
+      return;
+    }
+
+    if (data.freeAccess || data.redirect) {
+      window.location.href = data.redirect || '/org/dashboard';
+      return;
+    }
+
+    const rzp = new Razorpay({
+      key: '<%= razorpayKeyId %>',
+      order_id: data.orderId,
+      amount: data.amount,
+      currency: data.currency,
+      name: 'MockOrbit',
+      description: planName,
+      theme: { color: '#f97316' },
+      handler: async function(response) {
+        const verifyRes = await fetch('/org/plans/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature
+          })
+        });
+        const verifyData = await verifyRes.json();
+        if (verifyData.success) {
+          window.location.href = verifyData.redirect || '/org/dashboard';
+        } else {
+          alert(verifyData.message || 'Payment verification failed. Contact support.');
+          btn.disabled = false;
+          btn.textContent = 'Get Started';
+        }
+      },
+      modal: { ondismiss: () => { btn.disabled = false; btn.textContent = 'Get Started'; } }
+    });
+    rzp.open();
+  } catch (e) {
+    console.error(e);
+    alert('Something went wrong. Please try again.');
+    btn.disabled = false;
+    btn.textContent = 'Get Started';
+  }
+}
+</script>
+
+<%- include('layout-bottom') %>

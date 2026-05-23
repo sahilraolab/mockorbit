@@ -7,12 +7,43 @@
   <div class="alert alert-success" role="status">✓ <%= success[0] %></div>
 <% } %>
 
+<%
+  const sub = org.subscription;
+  const hasActivePlan = sub && sub.status === 'active' && sub.endDate && new Date(sub.endDate) > new Date();
+  const daysLeft = hasActivePlan ? Math.ceil((new Date(sub.endDate) - new Date()) / (1000*60*60*24)) : 0;
+%>
+
+<% if (!hasActivePlan) { %>
+  <div class="plan-gate-banner" role="alert">
+    <div class="plan-gate-icon">🔒</div>
+    <div class="plan-gate-text">
+      <strong>No active plan</strong>
+      <p>Choose a plan to start managing students, assigning tests, and tracking results.</p>
+    </div>
+    <a href="/org/plans" class="btn btn-primary">View Plans →</a>
+  </div>
+<% } else if (daysLeft <= 7) { %>
+  <div class="plan-expiry-banner" role="alert">
+    ⚠ Your <strong><%= sub.planName %></strong> plan expires in <strong><%= daysLeft %> day<%= daysLeft !== 1 ? 's' : '' %></strong>.
+    <a href="/org/plans" style="color:var(--accent); font-weight:600; margin-left:8px;">Renew Now →</a>
+  </div>
+<% } %>
+
 <div class="org-page-header">
   <div>
     <h1 style="font-size:1.5rem; margin-bottom:4px;">Welcome, <%= org.name %></h1>
-    <p style="font-size:0.88rem; color:var(--ink-muted);">Institution Dashboard — MockOrbit</p>
+    <p style="font-size:0.88rem; color:var(--ink-muted);">Institution Dashboard — MockOrbit
+      <% if (hasActivePlan) { %>
+        &nbsp;·&nbsp; <span style="color:var(--success); font-weight:600;"><%= sub.planName %> Plan</span>
+        &nbsp;·&nbsp; <%= stats.studentCount %>/<%= sub.studentsLimit %> students used
+      <% } %>
+    </p>
   </div>
-  <a href="/org/assignments" class="btn btn-primary">+ New Assignment</a>
+  <% if (hasActivePlan) { %>
+    <a href="/org/assignments" class="btn btn-primary">+ New Assignment</a>
+  <% } else { %>
+    <a href="/org/plans" class="btn btn-primary">Choose a Plan</a>
+  <% } %>
 </div>
 
 <!-- Stats cards -->
@@ -75,20 +106,20 @@
 
 <!-- Quick actions -->
 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:24px;">
-  <a href="/org/students" class="card" style="text-align:center; text-decoration:none; padding:24px 16px;">
-    <div style="font-size:1.8rem; margin-bottom:8px;" aria-hidden="true">👥</div>
+  <a href="<%= hasActivePlan ? '/org/students' : '/org/plans' %>" class="card quick-action-card <%= !hasActivePlan ? 'locked' : '' %>" style="text-align:center; text-decoration:none; padding:24px 16px;">
+    <div style="font-size:1.8rem; margin-bottom:8px;" aria-hidden="true"><%= hasActivePlan ? '👥' : '🔒' %></div>
     <div style="font-weight:600; font-size:0.9rem; color:var(--ink);">Manage Students</div>
-    <p style="font-size:0.8rem; margin-top:4px;">Add, view, and organise your students</p>
+    <p style="font-size:0.8rem; margin-top:4px;"><%= hasActivePlan ? 'Add, view, and organise your students' : 'Requires an active plan' %></p>
   </a>
-  <a href="/org/assignments" class="card" style="text-align:center; text-decoration:none; padding:24px 16px;">
-    <div style="font-size:1.8rem; margin-bottom:8px;" aria-hidden="true">📋</div>
+  <a href="<%= hasActivePlan ? '/org/assignments' : '/org/plans' %>" class="card quick-action-card <%= !hasActivePlan ? 'locked' : '' %>" style="text-align:center; text-decoration:none; padding:24px 16px;">
+    <div style="font-size:1.8rem; margin-bottom:8px;" aria-hidden="true"><%= hasActivePlan ? '📋' : '🔒' %></div>
     <div style="font-weight:600; font-size:0.9rem; color:var(--ink);">Create Assignment</div>
-    <p style="font-size:0.8rem; margin-top:4px;">Assign tests to your students</p>
+    <p style="font-size:0.8rem; margin-top:4px;"><%= hasActivePlan ? 'Assign tests to your students' : 'Requires an active plan' %></p>
   </a>
-  <a href="/org/results" class="card" style="text-align:center; text-decoration:none; padding:24px 16px;">
-    <div style="font-size:1.8rem; margin-bottom:8px;" aria-hidden="true">📈</div>
+  <a href="<%= hasActivePlan ? '/org/results' : '/org/plans' %>" class="card quick-action-card <%= !hasActivePlan ? 'locked' : '' %>" style="text-align:center; text-decoration:none; padding:24px 16px;">
+    <div style="font-size:1.8rem; margin-bottom:8px;" aria-hidden="true"><%= hasActivePlan ? '📈' : '🔒' %></div>
     <div style="font-weight:600; font-size:0.9rem; color:var(--ink);">View Results</div>
-    <p style="font-size:0.8rem; margin-top:4px;">Track all student scores &amp; ranks</p>
+    <p style="font-size:0.8rem; margin-top:4px;"><%= hasActivePlan ? 'Track all student scores &amp; ranks' : 'Requires an active plan' %></p>
   </a>
 </div>
 

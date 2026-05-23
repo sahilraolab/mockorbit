@@ -1,48 +1,164 @@
 <%- include('partials/header') %>
 
-<section style="min-height: calc(100vh - 120px); display: flex; align-items: center; padding: 40px 0;">
-  <div class="container-sm" style="max-width: 420px;">
-    <div class="text-center mb-6">
-      <h2>Welcome back</h2>
-      <p class="mt-2">Login with your mobile number — no password needed.</p>
+<section class="auth-section" aria-labelledby="login-heading">
+  <div class="auth-card-wrap">
+
+    <div class="auth-logo" aria-label="MockOrbit">
+      <img src="/images/logo.png" alt="MockOrbit" style="height:36px; width:auto; object-fit:contain;">
+      <span class="auth-brand"><span class="brand-mock">Mock</span><span class="brand-orbit">Orbit</span></span>
     </div>
+
+    <h1 id="login-heading" class="auth-heading">Welcome back</h1>
+    <p class="auth-sub">Enter your email — we'll send a one-time code to sign you in.</p>
 
     <% if (error && error.length > 0) { %>
-      <div class="alert alert-error">⚠️ <%= error[0] %></div>
+      <div class="alert alert-error" role="alert">⚠️ <%= error[0] %></div>
     <% } %>
 
-    <div class="card">
-      <form id="loginForm" autocomplete="off">
-        <input type="hidden" id="returnTo" value="<%= returnTo || '/dashboard' %>">
+    <div class="auth-card">
+      <input type="hidden" id="returnTo" value="<%= returnTo || '/dashboard' %>">
+      <div id="authMsg" class="alert hidden" role="alert" aria-live="polite"></div>
 
-        <div id="loginMsg" class="alert hidden" style="margin-bottom: 16px;"></div>
-
+      <!-- Step 1: Enter email -->
+      <div id="emailStep1">
         <div class="form-group">
-          <label class="form-label" for="mobile">Mobile Number</label>
-          <div style="display: flex; gap: 10px; align-items: stretch;">
-            <span style="display: flex; align-items: center; padding: 0 12px; background: var(--canvas-soft); border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; color: var(--ink-soft); white-space: nowrap;">+91</span>
-            <input type="tel" id="mobile" name="mobile" class="form-control" placeholder="98765 43210" maxlength="10" pattern="\d{10}" required style="flex: 1;">
-          </div>
+          <label class="form-label" for="emailInput">Email Address</label>
+          <input type="email" id="emailInput" class="form-control"
+                 placeholder="you@example.com"
+                 autocomplete="email" inputmode="email">
         </div>
+        <button type="button" id="sendEmailOtpBtn" class="btn btn-primary btn-block btn-lg">
+          Send OTP →
+        </button>
+        <p class="auth-hint">We'll send a 6-digit code to your inbox.</p>
+      </div>
 
-        <button type="button" id="sendOtpBtn" class="btn btn-primary btn-block btn-lg">Send OTP</button>
-
-        <div id="otpSection" class="hidden" style="margin-top: 20px;">
-          <div class="divider"></div>
-          <div class="form-group">
-            <label class="form-label" for="otp">Enter OTP</label>
-            <input type="text" id="otp" name="otp" class="form-control" placeholder="6-digit OTP" maxlength="6" inputmode="numeric" style="text-align: center; letter-spacing: 0.3em; font-size: 1.4rem; font-weight: 700;">
-            <p class="text-xs text-muted mt-2">OTP is valid for 10 minutes.</p>
-          </div>
-          <button type="button" id="verifyBtn" class="btn btn-primary btn-block btn-lg">Verify & Login</button>
+      <!-- Step 2: Enter OTP -->
+      <div id="emailStep2" class="hidden">
+        <div class="auth-sent-badge" role="status" aria-live="polite">
+          <span aria-hidden="true">✅</span>
+          OTP sent to <strong id="emailSentTo"></strong>
+          <button type="button" class="auth-change-link" id="changeEmailBtn">Change</button>
         </div>
-      </form>
+        <div class="form-group">
+          <label class="form-label" for="emailOtp">Enter OTP</label>
+          <input type="text" id="emailOtp" class="form-control otp-input"
+                 placeholder="• • • • • •" maxlength="6" inputmode="numeric"
+                 autocomplete="one-time-code" aria-describedby="emailOtpHelp">
+          <p id="emailOtpHelp" class="auth-hint">Valid for 10 minutes.
+            <button type="button" class="auth-resend-link" id="resendEmailOtpBtn">Resend OTP</button>
+          </p>
+        </div>
+        <button type="button" id="verifyEmailOtpBtn" class="btn btn-primary btn-block btn-lg">
+          Verify & Login →
+        </button>
+        <div class="auth-countdown" id="emailCountdown" aria-live="polite"></div>
+      </div>
+
     </div>
 
-    <p class="text-center text-small text-muted mt-4">
-      By logging in, you agree to our terms of service.
+    <p class="auth-terms">
+      By logging in, you agree to our
+      <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.
     </p>
+
   </div>
 </section>
 
 <%- include('partials/footer') %>
+
+<script>
+const authMsg  = document.getElementById('authMsg');
+const returnTo = document.getElementById('returnTo').value;
+
+function showMsg(text, type = 'error') {
+  authMsg.className = `alert alert-${type}`;
+  authMsg.textContent = text;
+  authMsg.classList.remove('hidden');
+  authMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function clearMsg() { authMsg.classList.add('hidden'); }
+
+function setLoading(btn, loading) {
+  btn.disabled = loading;
+  btn.dataset.origText = btn.dataset.origText || btn.textContent;
+  btn.textContent = loading ? 'Please wait…' : btn.dataset.origText;
+}
+
+async function apiPost(url, body) {
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+function startCountdown(el, seconds, onEnd) {
+  el.textContent = `Resend available in ${seconds}s`;
+  const t = setInterval(() => {
+    seconds--;
+    if (seconds <= 0) { clearInterval(t); el.textContent = ''; if (onEnd) onEnd(); }
+    else el.textContent = `Resend available in ${seconds}s`;
+  }, 1000);
+}
+
+const emailInput     = document.getElementById('emailInput');
+const sendEmailBtn   = document.getElementById('sendEmailOtpBtn');
+const emailStep1     = document.getElementById('emailStep1');
+const emailStep2     = document.getElementById('emailStep2');
+const emailSentTo    = document.getElementById('emailSentTo');
+const emailOtpInput  = document.getElementById('emailOtp');
+const verifyEmailBtn = document.getElementById('verifyEmailOtpBtn');
+const emailCountdown = document.getElementById('emailCountdown');
+
+async function doSendEmailOTP() {
+  clearMsg();
+  const email = emailInput.value.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return showMsg('Please enter a valid email address.');
+  }
+  setLoading(sendEmailBtn, true);
+  const data = await apiPost('/auth/send-email-otp', { email });
+  setLoading(sendEmailBtn, false);
+  if (!data.success) return showMsg(data.message || 'Failed to send OTP.');
+  emailSentTo.textContent = email;
+  emailStep1.classList.add('hidden');
+  emailStep2.classList.remove('hidden');
+  emailOtpInput.focus();
+  showMsg('OTP sent! Check your inbox (and spam folder).', 'success');
+  startCountdown(emailCountdown, 60);
+}
+
+sendEmailBtn.addEventListener('click', doSendEmailOTP);
+emailInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSendEmailOTP(); });
+document.getElementById('changeEmailBtn').addEventListener('click', () => {
+  emailStep2.classList.add('hidden');
+  emailStep1.classList.remove('hidden');
+  emailInput.focus();
+  clearMsg();
+});
+document.getElementById('resendEmailOtpBtn').addEventListener('click', doSendEmailOTP);
+
+async function doVerifyEmailOTP() {
+  clearMsg();
+  const email = emailInput.value.trim();
+  const otp   = emailOtpInput.value.trim();
+  if (!otp || otp.length !== 6) return showMsg('Please enter the 6-digit OTP.');
+  setLoading(verifyEmailBtn, true);
+  const data = await apiPost('/auth/verify-email-otp', { email, otp });
+  setLoading(verifyEmailBtn, false);
+  if (!data.success) return showMsg(data.message || 'Verification failed.');
+  showMsg('Verified! Redirecting…', 'success');
+  setTimeout(() => { window.location.href = data.redirect || returnTo; }, 600);
+}
+
+verifyEmailBtn.addEventListener('click', doVerifyEmailOTP);
+emailOtpInput.addEventListener('keydown', e => { if (e.key === 'Enter') doVerifyEmailOTP(); });
+emailOtpInput.addEventListener('input', () => {
+  if (emailOtpInput.value.replace(/\D/g,'').length === 6) {
+    emailOtpInput.value = emailOtpInput.value.replace(/\D/g,'');
+    doVerifyEmailOTP();
+  }
+});
+</script>

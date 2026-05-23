@@ -1,13 +1,21 @@
 {
   "name": "MockOrbit — Mock Tests for Competitive Exams",
   "short_name": "MockOrbit",
-  "description": "Full-length mock tests for Judiciary, CLAT, SSC CGL, Banking & 20+ exams",
+  "description": "Full-length mock tests for Judiciary, CLAT, SSC CGL, Banking & 20+ competitive exams. Real-time rank analytics and expert solutions.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1c2b3a",
-  "theme_color": "#1c2b3a",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "categories": ["education"],
+  "lang": "en-IN",
   "icons": [
-    { "src": "/images/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/images/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/images/favicon-16x16.png", "sizes": "16x16",   "type": "image/png" },
+    { "src": "/images/favicon-32x32.png", "sizes": "32x32",   "type": "image/png" },
+    { "src": "/images/icon-192.png",      "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/images/icon-512.png",      "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [
+    { "src": "/images/og-banner.jpg", "sizes": "1200x630", "type": "image/jpeg" }
   ]
 }

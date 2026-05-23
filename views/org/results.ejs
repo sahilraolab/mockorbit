@@ -60,11 +60,11 @@
             <td>
               <div style="display:flex; align-items:center; gap:8px;">
                 <div class="student-avatar" style="width:30px;height:30px;font-size:0.78rem;" aria-hidden="true">
-                  <%= a.studentInfo && a.studentInfo.name ? a.studentInfo.name[0].toUpperCase() : (a.userId && a.userId.mobile ? a.userId.mobile[0] : '?') %>
+                  <%= a.studentInfo && a.studentInfo.name ? a.studentInfo.name[0].toUpperCase() : '?' %>
                 </div>
                 <div>
                   <div style="font-weight:500; color:var(--ink); font-size:0.88rem;"><%= a.studentInfo ? (a.studentInfo.name || 'Unknown') : 'Unknown' %></div>
-                  <div style="font-size:0.75rem; color:var(--ink-muted);"><%= a.userId ? a.userId.mobile : '' %></div>
+                  <div style="font-size:0.75rem; color:var(--ink-muted);"><%= a.userId ? a.userId.email : '' %></div>
                 </div>
               </div>
             </td>

@@ -1,19 +1,41 @@
-const { Exam, TestSeries, Test } = require('../models/Exam');
+const { Exam, TestSeries } = require('../models/Exam');
+const Testimonial = require('../models/Testimonial');
 
 exports.listByExam = async (req, res) => {
   try {
     const exam = await Exam.findOne({ slug: req.params.examSlug }).lean();
-    if (!exam) {
-      req.flash('error', 'Exam not found');
-      return res.redirect('/');
-    }
+    if (!exam) { req.flash('error', 'Exam not found'); return res.redirect('/'); }
 
     const series = await TestSeries.find({ examId: exam._id, isActive: true }).lean();
+    const allSeriesIds = series.map(s => s._id);
+
+    // Approved reviews for any series in this exam
+    const seriesReviews = await Testimonial.find({
+      type: 'series', refId: { $in: allSeriesIds }, status: 'approved'
+    }).sort({ createdAt: -1 }).limit(12).lean();
+
+    // Annotate each review with its series title
+    const seriesMap = {};
+    series.forEach(s => { seriesMap[s._id.toString()] = s.title; });
+    seriesReviews.forEach(r => { r.seriesTitle = seriesMap[r.refId?.toString()] || ''; });
+
+    // Series the logged-in user has purchased for this exam
+    const purchasedSeriesForExam = req.user
+      ? series.filter(s => req.user.hasPurchased(s._id))
+      : [];
+
+    // User's existing reviews for this exam's series, keyed by series id
+    const myReviewsMap = {};
+    if (req.user && allSeriesIds.length > 0) {
+      const myReviews = await Testimonial.find({
+        userId: req.user._id, type: 'series', refId: { $in: allSeriesIds }
+      }).lean();
+      myReviews.forEach(r => { myReviewsMap[r.refId.toString()] = r; });
+    }
 
     res.render('test-series', {
       title: `${exam.name} Test Series — ${process.env.APP_NAME}`,
-      exam,
-      series,
+      exam, series, seriesReviews, purchasedSeriesForExam, myReviewsMap,
       user: req.user || null,
       error: req.flash('error'),
       success: req.flash('success')
@@ -28,17 +50,22 @@ exports.listByExam = async (req, res) => {
 exports.showSeries = async (req, res) => {
   try {
     const series = await TestSeries.findById(req.params.id).populate('examId').lean();
-    if (!series) {
-      req.flash('error', 'Test series not found');
-      return res.redirect('/');
-    }
+    if (!series) { req.flash('error', 'Test series not found'); return res.redirect('/'); }
 
     const hasPurchased = req.user ? req.user.hasPurchased(series._id) : false;
 
+    const seriesReviews = await Testimonial.find({
+      type: 'series', refId: series._id, status: 'approved'
+    }).sort({ createdAt: -1 }).limit(8).lean();
+
+    // Only fetch the user's existing review if they've purchased
+    const mySeriesReview = (req.user && hasPurchased)
+      ? await Testimonial.findOne({ userId: req.user._id, type: 'series', refId: series._id }).lean()
+      : null;
+
     res.render('series-detail', {
       title: `${series.title} — ${process.env.APP_NAME}`,
-      series,
-      hasPurchased,
+      series, hasPurchased, seriesReviews, mySeriesReview,
       user: req.user || null,
       error: req.flash('error'),
       success: req.flash('success')
@@ -48,4 +75,41 @@ exports.showSeries = async (req, res) => {
     req.flash('error', 'Something went wrong');
     res.redirect('/');
   }
+};
+
+exports.submitReview = async (req, res) => {
+  const back = req.get('referer') || '/';
+  try {
+    const { refId, name, role, text, rating } = req.body;
+
+    if (!refId) {
+      req.flash('error', 'Please select a mock test to review.');
+      return res.redirect(back);
+    }
+    if (!name || !text) {
+      req.flash('error', 'Name and review text are required.');
+      return res.redirect(back);
+    }
+    if (!req.user || !req.user.hasPurchased(refId)) {
+      req.flash('error', 'You can only review a mock test you have purchased.');
+      return res.redirect(back);
+    }
+
+    await Testimonial.findOneAndUpdate(
+      { userId: req.user._id, type: 'series', refId },
+      {
+        userId: req.user._id, type: 'series', refId,
+        name: name.trim(), role: role?.trim() || '',
+        text: text.trim().slice(0, 400),
+        rating: parseInt(rating) || 5,
+        status: 'pending'
+      },
+      { upsert: true, new: true }
+    );
+    req.flash('success', 'Review submitted! It will appear once approved.');
+  } catch (err) {
+    console.error('Submit review error:', err);
+    req.flash('error', 'Failed to submit review.');
+  }
+  res.redirect(back);
 };

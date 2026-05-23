@@ -65,7 +65,7 @@
             <div style="width:40px; height:40px; border-radius:50%; background:var(--accent-light); display:flex; align-items:center; justify-content:center; font-size:1rem;" aria-hidden="true">👤</div>
             <div>
               <p style="font-size:0.82rem; color:var(--ink-muted); margin-bottom:2px;">Logged in as</p>
-              <p style="font-weight:600; font-size:0.95rem;">+91 <%= user.mobile %></p>
+              <p style="font-weight:600; font-size:0.95rem;"><%= user.email %></p>
             </div>
           </div>
           <div class="divider"></div>
@@ -117,7 +117,7 @@
 
 <script>
 const seriesId = '<%- series._id.toString() %>';
-const userMobile = '<%= user.mobile %>';
+const userEmail = '<%= user.email %>';
 const isMock = '<%= useMockPayment %>' === 'true';
 const isFree = '<%= allowFreeAccess %>' === 'true' && '<%= useMockPayment %>' !== 'true';
 
@@ -213,7 +213,7 @@ if (!isMock && !isFree) {
       description: order.seriesName,
       order_id: order.orderId,
       prefill: {
-        contact: '+91' + userMobile
+        email: userEmail
       },
       notes: {
         seriesId: seriesId

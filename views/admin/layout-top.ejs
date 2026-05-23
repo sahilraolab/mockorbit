@@ -33,12 +33,21 @@
         <span class="admin-nav-icon">❓</span> Questions
       </a>
 
-      <div class="admin-nav-section">Users</div>
+      <div class="admin-nav-section">Users & Orgs</div>
       <a href="/admin/users" class="admin-nav-link <%= currentPath.startsWith('/admin/users') ? 'active' : '' %>">
-        <span class="admin-nav-icon">👥</span> Users
+        <span class="admin-nav-icon">👥</span> Students
+      </a>
+      <a href="/admin/organizations" class="admin-nav-link <%= currentPath.startsWith('/admin/organizations') ? 'active' : '' %>">
+        <span class="admin-nav-icon">🏛️</span> Organizations
+      </a>
+      <a href="/admin/payments" class="admin-nav-link <%= currentPath.startsWith('/admin/payments') ? 'active' : '' %>">
+        <span class="admin-nav-icon">💰</span> Payments
       </a>
       <a href="/admin/results" class="admin-nav-link <%= currentPath.startsWith('/admin/results') ? 'active' : '' %>">
         <span class="admin-nav-icon">🏆</span> Results
+      </a>
+      <a href="/admin/testimonials" class="admin-nav-link <%= currentPath.startsWith('/admin/testimonials') ? 'active' : '' %>">
+        <span class="admin-nav-icon">⭐</span> Testimonials
       </a>
 
       <div style="padding: 24px 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 16px;">

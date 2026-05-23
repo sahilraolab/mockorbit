@@ -1,0 +1,82 @@
+<%- include('layout-top', { title: title, currentPath: '/admin/testimonials' }) %>
+
+<% if (error && error.length > 0) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
+<% if (success && success.length > 0) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
+
+<div class="admin-page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+  <h3 style="font-family:'DM Sans';">Testimonials</h3>
+  <div style="display:flex; gap:8px;">
+    <a href="/admin/testimonials?status=pending"  class="btn btn-sm <%= filter==='pending'  ? 'btn-primary' : 'btn-outline' %>">
+      Pending <% if (counts.pending) { %>(<%= counts.pending %>)<% } %>
+    </a>
+    <a href="/admin/testimonials?status=approved" class="btn btn-sm <%= filter==='approved' ? 'btn-primary' : 'btn-outline' %>">
+      Approved <% if (counts.approved) { %>(<%= counts.approved %>)<% } %>
+    </a>
+    <a href="/admin/testimonials?status=rejected" class="btn btn-sm <%= filter==='rejected' ? 'btn-primary' : 'btn-outline' %>">
+      Rejected <% if (counts.rejected) { %>(<%= counts.rejected %>)<% } %>
+    </a>
+    <a href="/admin/testimonials?status=all"      class="btn btn-sm <%= filter==='all'      ? 'btn-primary' : 'btn-outline' %>">All</a>
+  </div>
+</div>
+
+<% if (testimonials.length === 0) { %>
+  <div class="card text-center" style="padding:48px;">
+    <div style="font-size:2rem; margin-bottom:12px;">⭐</div>
+    <h4>No <%= filter === 'all' ? '' : filter %> testimonials yet</h4>
+  </div>
+<% } else { %>
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <% testimonials.forEach(t => { %>
+      <div class="card" style="padding:20px 24px;">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:280px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+              <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">
+                <%= t.name[0].toUpperCase() %>
+              </div>
+              <div>
+                <div style="font-weight:600; color:var(--ink); font-size:0.95rem;"><%= t.name %></div>
+                <% if (t.role) { %><div style="font-size:0.78rem; color:var(--ink-muted);"><%= t.role %></div><% } %>
+              </div>
+              <div style="margin-left:8px; color:#f59e0b; font-size:0.85rem; letter-spacing:2px;">
+                <%= '★'.repeat(t.rating) %><%= '☆'.repeat(5 - t.rating) %>
+              </div>
+              <span class="badge <%= t.status === 'approved' ? 'badge-green' : t.status === 'rejected' ? '' : 'badge-warm' %>"
+                style="<%= t.status === 'rejected' ? 'background:var(--danger-light);color:var(--danger);' : '' %>; margin-left:4px;">
+                <%= t.status %>
+              </span>
+            </div>
+            <p style="font-size:0.9rem; color:var(--ink-soft); line-height:1.65; font-style:italic;">"<%= t.text %>"</p>
+            <p style="font-size:0.75rem; color:var(--ink-muted); margin-top:8px;">
+              Submitted <%= new Date(t.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+            </p>
+          </div>
+          <% if (t.status === 'pending') { %>
+          <div style="display:flex; gap:8px; flex-shrink:0;">
+            <form action="/admin/testimonials/<%= t._id %>/approve" method="POST">
+              <button type="submit" class="btn btn-success btn-sm">✓ Approve</button>
+            </form>
+            <form action="/admin/testimonials/<%= t._id %>/reject" method="POST">
+              <button type="submit" class="btn btn-danger btn-sm">✗ Reject</button>
+            </form>
+          </div>
+          <% } else if (t.status === 'approved') { %>
+          <div style="display:flex; gap:8px; flex-shrink:0;">
+            <form action="/admin/testimonials/<%= t._id %>/reject" method="POST">
+              <button type="submit" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);">Remove</button>
+            </form>
+          </div>
+          <% } else { %>
+          <div style="display:flex; gap:8px; flex-shrink:0;">
+            <form action="/admin/testimonials/<%= t._id %>/approve" method="POST">
+              <button type="submit" class="btn btn-outline btn-sm">Re-approve</button>
+            </form>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('layout-bottom') %>

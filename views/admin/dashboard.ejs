@@ -1,9 +1,17 @@
 <%- include('layout-top', { title: title, currentPath: '/admin/dashboard' }) %>
 
-<div class="stats-cards-grid">
+<div class="stats-cards-grid" style="grid-template-columns:repeat(3,1fr);">
   <div class="stat-card">
     <div class="stat-card-value"><%= stats.users %></div>
-    <div class="stat-card-label">Total Users</div>
+    <div class="stat-card-label">Students</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-value"><%= stats.orgs %></div>
+    <div class="stat-card-label">Organizations</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-value">₹<%= (stats.totalRevenue/100).toLocaleString('en-IN') %></div>
+    <div class="stat-card-label">Total Revenue</div>
   </div>
   <div class="stat-card">
     <div class="stat-card-value"><%= stats.exams %></div>
@@ -15,7 +23,7 @@
   </div>
   <div class="stat-card">
     <div class="stat-card-value"><%= stats.attempts %></div>
-    <div class="stat-card-label">Tests Attempted</div>
+    <div class="stat-card-label">Attempts</div>
   </div>
 </div>
 

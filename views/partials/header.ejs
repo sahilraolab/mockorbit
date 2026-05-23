@@ -30,8 +30,9 @@
   <meta name="twitter:image" content="<%= appUrl %>/images/og-banner.jpg">
 
   <!-- Theme color -->
-  <meta name="theme-color" content="#1c2b3a">
-  <meta name="msapplication-TileColor" content="#1c2b3a">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="msapplication-TileColor" content="#2563eb">
+  <meta name="msapplication-TileImage" content="/images/icon-192.png">
 
   <!-- JSON-LD: Organization + WebSite -->
   <script type="application/ld+json">
@@ -45,6 +46,12 @@
         "url": "<%= appUrl %>",
         "logo": {
           "@type": "ImageObject",
+          "url": "<%= appUrl %>/images/logo.png",
+          "width": 652,
+          "height": 383
+        },
+        "image": {
+          "@type": "ImageObject",
           "url": "<%= appUrl %>/images/og-banner.jpg",
           "width": 1200,
           "height": 630
@@ -52,16 +59,13 @@
         "description": "MockOrbit — Mission for Academic Rank & Success. India's focused mock test platform for competitive exam aspirants.",
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": "Plot No.-462, Shakti Khand-4",
-          "addressLocality": "Indirapuram",
-          "addressRegion": "Ghaziabad, Uttar Pradesh",
-          "postalCode": "201014",
+          "addressLocality": "New Delhi",
           "addressCountry": "IN"
         },
         "contactPoint": {
           "@type": "ContactPoint",
           "contactType": "customer support",
-          "email": "i.mockorbit@gmail.com",
+          "email": "hello@mockorbit.in",
           "availableLanguage": ["English", "Hindi"]
         },
         "sameAs": [
@@ -107,9 +111,12 @@
   <% } %>
 
   <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
+  <meta name="application-name" content="MockOrbit">
 
   <!-- Preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -127,9 +134,9 @@
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="container">
     <div class="navbar-inner">
-      <!-- CSS Text Logo — no image dependency -->
-      <a href="/" class="navbar-brand" aria-label="MockOrbit home">
-        <span class="footer-logo-text header-logo-text"><span class="logo-mock">Mock</span><span class="logo-orbit">Orbit</span></span>
+      <a href="/" class="navbar-brand" aria-label="MockOrbit — Go to homepage">
+        <img src="/images/logo.png" alt="MockOrbit logo" class="navbar-logo-img">
+        <span class="brand-text"><span class="brand-mock">Mock</span><span class="brand-orbit">Orbit</span></span>
       </a>
 
       <!-- Desktop nav -->
@@ -160,7 +167,10 @@
 <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Navigation menu" aria-hidden="true">
   <div class="mobile-menu-inner">
     <div class="mobile-menu-header">
-      <span class="footer-logo-text mobile-menu-logo"><span class="logo-mock">Mock</span><span class="logo-orbit">Orbit</span></span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <img src="/images/logo.png" alt="MockOrbit" style="height:28px;width:auto;object-fit:contain;">
+        <span class="brand-text"><span class="brand-mock">Mock</span><span class="brand-orbit">Orbit</span></span>
+      </div>
       <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Close navigation menu">✕</button>
     </div>
     <nav class="mobile-nav">
@@ -181,4 +191,10 @@
 <div class="mobile-overlay" id="mobileOverlay"></div>
 </header>
 
+<% if (isAdminImpersonating) { %>
+<div class="impersonate-banner">
+  <span>⚠️ Admin view — you are impersonating a user/org</span>
+  <a href="/admin/stop-impersonation" class="btn btn-sm" style="background:#f59e0b;color:white;padding:6px 14px;">Return to Admin →</a>
+</div>
+<% } %>
 <main id="main-content" role="main">

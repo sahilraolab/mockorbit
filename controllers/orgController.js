@@ -1,7 +1,37 @@
 const { Organization, OrgStudent, OrgAssignment } = require('../models/Organization');
 const { Attempt } = require('../models/Attempt');
-const { Test, TestSeries } = require('../models/Exam');
+const { Test, TestSeries, Question } = require('../models/Exam');
 const User = require('../models/User');
+const paymentService = require('../services/paymentService');
+
+// ─── Plans ────────────────────────────────────────────────────────────────
+const PLANS = {
+  starter_monthly: { key: 'starter_monthly', name: 'Starter', billing: 'monthly', studentsLimit: 100,  amount: 5000 },
+  starter_yearly:  { key: 'starter_yearly',  name: 'Starter', billing: 'yearly',  studentsLimit: 100,  amount: 55000 },
+  growth_monthly:  { key: 'growth_monthly',  name: 'Growth',  billing: 'monthly', studentsLimit: 200,  amount: 9000 },
+  growth_yearly:   { key: 'growth_yearly',   name: 'Growth',  billing: 'yearly',  studentsLimit: 200,  amount: 99000 },
+  pro_monthly:     { key: 'pro_monthly',     name: 'Pro',     billing: 'monthly', studentsLimit: 500,  amount: 22500 },
+  pro_yearly:      { key: 'pro_yearly',      name: 'Pro',     billing: 'yearly',  studentsLimit: 500,  amount: 247500 },
+};
+
+// ─── CSV helper ────────────────────────────────────────────────────────────
+function parseCSVLine(line) {
+  const cols = [];
+  let cur = '';
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === '"') { inQ = !inQ; }
+    else if (line[i] === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+    else { cur += line[i]; }
+  }
+  cols.push(cur.trim());
+  return cols;
+}
+
+function parseCSV(buffer) {
+  const lines = buffer.toString('utf8').replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
+  return lines.map(parseCSVLine);
+}
 
 // ─── Auth ──────────────────────────────────────────────────────────────────
 
@@ -126,7 +156,7 @@ exports.listStudents = async (req, res) => {
     const orgId = req.session.orgId;
     const org = await Organization.findById(orgId).lean();
     const students = await OrgStudent.find({ orgId })
-      .populate('userId', 'mobile createdAt')
+      .populate('userId', 'email createdAt')
       .lean();
 
     res.render('org/students', {
@@ -145,17 +175,25 @@ exports.listStudents = async (req, res) => {
 exports.addStudent = async (req, res) => {
   try {
     const orgId = req.session.orgId;
-    const { mobile, name, rollNumber, batch } = req.body;
-    if (!mobile || !/^\d{10}$/.test(mobile)) {
-      req.flash('error', 'Please enter a valid 10-digit mobile number.');
+    const { email, name, rollNumber, batch } = req.body;
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      req.flash('error', 'Please enter a valid email address.');
       return res.redirect('/org/students');
     }
-    // Find or create the User
-    let user = await User.findOne({ mobile });
-    if (!user) {
-      user = await User.create({ mobile });
+    const normalEmail = email.trim().toLowerCase();
+
+    // Enforce plan student limit
+    const org = await Organization.findById(orgId).lean();
+    const limit = org.subscription?.studentsLimit || 0;
+    const currentCount = await OrgStudent.countDocuments({ orgId, isActive: true });
+    if (currentCount >= limit) {
+      req.flash('error', `Your plan allows up to ${limit} students. Upgrade to add more.`);
+      return res.redirect('/org/students');
     }
-    // Avoid duplicates
+
+    let user = await User.findOne({ email: normalEmail });
+    if (!user) user = await User.create({ email: normalEmail });
+
     const existing = await OrgStudent.findOne({ orgId, userId: user._id });
     if (existing) {
       if (!existing.isActive) {
@@ -166,7 +204,7 @@ exports.addStudent = async (req, res) => {
         await existing.save();
         req.flash('success', 'Student re-activated successfully.');
       } else {
-        req.flash('error', 'Student with this mobile is already in your organisation.');
+        req.flash('error', 'Student with this email is already in your organisation.');
       }
       return res.redirect('/org/students');
     }
@@ -191,6 +229,74 @@ exports.removeStudent = async (req, res) => {
     res.redirect('/org/students');
   } catch (err) {
     req.flash('error', 'Could not remove student.');
+    res.redirect('/org/students');
+  }
+};
+
+exports.bulkAddStudents = async (req, res) => {
+  try {
+    const orgId = req.session.orgId;
+    if (!req.file) {
+      req.flash('error', 'Please upload a CSV file.');
+      return res.redirect('/org/students');
+    }
+    const org = await Organization.findById(orgId).lean();
+    const limit = org.subscription?.studentsLimit || 0;
+    const currentCount = await OrgStudent.countDocuments({ orgId, isActive: true });
+
+    const rows = parseCSV(req.file.buffer);
+    const header = rows[0].map(h => h.toLowerCase());
+    const nameIdx  = header.indexOf('name');
+    const emailIdx = header.indexOf('email');
+    const rollIdx  = header.indexOf('rollnumber');
+    const batchIdx = header.indexOf('batch');
+
+    if (emailIdx === -1) {
+      req.flash('error', 'CSV must have an "email" column.');
+      return res.redirect('/org/students');
+    }
+
+    const dataRows = rows.slice(1);
+    let added = 0, skipped = 0, failed = 0;
+
+    for (const row of dataRows) {
+      const rawEmail = row[emailIdx]?.trim().toLowerCase();
+      if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) { failed++; continue; }
+
+      if (currentCount + added >= limit) { skipped++; continue; }
+
+      try {
+        let user = await User.findOne({ email: rawEmail });
+        if (!user) user = await User.create({ email: rawEmail });
+
+        const existing = await OrgStudent.findOne({ orgId, userId: user._id });
+        if (existing) {
+          if (!existing.isActive) {
+            existing.isActive = true;
+            if (nameIdx !== -1 && row[nameIdx]) existing.name = row[nameIdx];
+            if (rollIdx !== -1 && row[rollIdx]) existing.rollNumber = row[rollIdx];
+            if (batchIdx !== -1 && row[batchIdx]) existing.batch = row[batchIdx];
+            await existing.save();
+            added++;
+          } else { skipped++; }
+        } else {
+          await OrgStudent.create({
+            orgId,
+            userId: user._id,
+            name: nameIdx !== -1 ? row[nameIdx] : undefined,
+            rollNumber: rollIdx !== -1 ? row[rollIdx] : undefined,
+            batch: batchIdx !== -1 ? row[batchIdx] : undefined,
+          });
+          added++;
+        }
+      } catch { failed++; }
+    }
+
+    req.flash('success', `Bulk upload complete — ${added} added, ${skipped} skipped, ${failed} failed.`);
+    res.redirect('/org/students');
+  } catch (err) {
+    console.error('Bulk add students error:', err);
+    req.flash('error', 'Bulk upload failed. Please check your CSV format.');
     res.redirect('/org/students');
   }
 };
@@ -276,7 +382,7 @@ exports.results = async (req, res) => {
 
     // Get all active students in this org
     const students = await OrgStudent.find({ orgId, isActive: true })
-      .populate('userId', 'mobile')
+      .populate('userId', 'email')
       .lean();
     const studentUserIds = students.map(s => s.userId?._id || s.userId);
     const studentMap = {};
@@ -302,7 +408,7 @@ exports.results = async (req, res) => {
     const attempts = await Attempt.find(query)
       .sort({ submittedAt: -1 })
       .populate('testId', 'title duration totalQuestions')
-      .populate('userId', 'mobile')
+      .populate('userId', 'email')
       .lean();
 
     // Attach student name/roll to each attempt
@@ -331,3 +437,105 @@ exports.results = async (req, res) => {
     res.redirect('/org/dashboard');
   }
 };
+
+// ─── Plans ────────────────────────────────────────────────────────────────
+
+exports.showPlans = async (req, res) => {
+  try {
+    const orgId = req.session.orgId;
+    const org = await Organization.findById(orgId).lean();
+    res.render('org/plans', {
+      title: 'Choose a Plan — MockOrbit Institution Portal',
+      org,
+      plans: PLANS,
+      razorpayKeyId: paymentService.getRazorpayKeyId(),
+      useMockPayment: paymentService.isMock(),
+      error: req.flash('error'),
+      success: req.flash('success')
+    });
+  } catch (err) {
+    console.error('Show plans error:', err);
+    res.redirect('/org/dashboard');
+  }
+};
+
+exports.createPlanOrder = async (req, res) => {
+  try {
+    const orgId = req.session.orgId;
+    const { planKey } = req.body;
+    const plan = PLANS[planKey];
+    if (!plan) return res.status(400).json({ success: false, message: 'Invalid plan selected.' });
+
+    if (paymentService.isMock()) {
+      await activatePlan(orgId, plan, 'mock_order_' + Date.now(), 'mock_pay_' + Date.now());
+      return res.json({ success: true, redirect: '/org/dashboard', freeAccess: true });
+    }
+
+    const amount = plan.amount * 100;
+    const receipt = `org_${orgId}_${Date.now()}`.slice(0, 40);
+    const order = await paymentService.createOrder(amount, 'INR', receipt);
+
+    await Organization.findByIdAndUpdate(orgId, {
+      'subscription.planKey': planKey,
+      'subscription.planName': plan.name,
+      'subscription.billing': plan.billing,
+      'subscription.studentsLimit': plan.studentsLimit,
+      'subscription.amount': plan.amount,
+      'subscription.razorpayOrderId': order.id,
+      'subscription.status': 'pending'
+    });
+
+    res.json({ success: true, orderId: order.id, amount: order.amount, currency: order.currency, planName: plan.name });
+  } catch (err) {
+    console.error('Create plan order error:', err);
+    res.status(500).json({ success: false, message: 'Payment initiation failed. Please try again.' });
+  }
+};
+
+exports.verifyPlanPayment = async (req, res) => {
+  try {
+    const orgId = req.session.orgId;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ success: false, message: 'Missing payment details.' });
+    }
+
+    const isValid = paymentService.verifySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+    if (!isValid) {
+      return res.status(400).json({ success: false, message: 'Payment verification failed. Contact support.' });
+    }
+
+    const org = await Organization.findById(orgId).lean();
+    const plan = PLANS[org.subscription?.planKey];
+    if (!plan) return res.status(400).json({ success: false, message: 'Plan not found.' });
+
+    await activatePlan(orgId, plan, razorpay_order_id, razorpay_payment_id);
+    res.json({ success: true, redirect: '/org/dashboard' });
+  } catch (err) {
+    console.error('Verify plan payment error:', err);
+    res.status(500).json({ success: false, message: 'Verification failed. Contact support.' });
+  }
+};
+
+async function activatePlan(orgId, plan, orderId, paymentId) {
+  const now = new Date();
+  const endDate = new Date(now);
+  if (plan.billing === 'yearly') {
+    endDate.setFullYear(endDate.getFullYear() + 1);
+  } else {
+    endDate.setMonth(endDate.getMonth() + 1);
+  }
+  await Organization.findByIdAndUpdate(orgId, {
+    'subscription.planKey': plan.key,
+    'subscription.planName': plan.name,
+    'subscription.billing': plan.billing,
+    'subscription.studentsLimit': plan.studentsLimit,
+    'subscription.amount': plan.amount,
+    'subscription.startDate': now,
+    'subscription.endDate': endDate,
+    'subscription.razorpayOrderId': orderId,
+    'subscription.razorpayPaymentId': paymentId,
+    'subscription.status': 'active'
+  });
+}

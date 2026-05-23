@@ -3,33 +3,47 @@ const express = require('express');
 // Org routes
 const orgRouter = express.Router();
 const orgController = require('../controllers/orgController');
-const { requireOrg } = require('../middlewares/auth');
+const { requireOrg, requireOrgPlan } = require('../middlewares/auth');
+const multer = require('multer');
+const csvUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024 }, fileFilter: (req, file, cb) => {
+  cb(null, file.mimetype === 'text/csv' || file.originalname.endsWith('.csv'));
+}});
+
 orgRouter.get('/register', orgController.showRegister);
 orgRouter.post('/register', orgController.register);
 orgRouter.get('/login', orgController.showLogin);
 orgRouter.post('/login', orgController.login);
 orgRouter.get('/logout', orgController.logout);
-orgRouter.get('/dashboard', requireOrg, orgController.dashboard);
-orgRouter.get('/students', requireOrg, orgController.listStudents);
-orgRouter.post('/students/add', requireOrg, orgController.addStudent);
-orgRouter.post('/students/:id/remove', requireOrg, orgController.removeStudent);
-orgRouter.get('/assignments', requireOrg, orgController.listAssignments);
-orgRouter.post('/assignments', requireOrg, orgController.createAssignment);
-orgRouter.post('/assignments/:id/delete', requireOrg, orgController.deleteAssignment);
-orgRouter.get('/results', requireOrg, orgController.results);
+
+// Plans (no plan gate — this IS the gate destination)
+orgRouter.get('/plans', requireOrg, orgController.showPlans);
+orgRouter.post('/plans/order', requireOrg, orgController.createPlanOrder);
+orgRouter.post('/plans/verify', requireOrg, orgController.verifyPlanPayment);
+
+// Gated routes — require active plan
+orgRouter.get('/dashboard',  requireOrg, orgController.dashboard);
+orgRouter.get('/students',   requireOrg, requireOrgPlan, orgController.listStudents);
+orgRouter.post('/students/add',       requireOrg, requireOrgPlan, orgController.addStudent);
+orgRouter.post('/students/bulk',      requireOrg, requireOrgPlan, csvUpload.single('csvFile'), orgController.bulkAddStudents);
+orgRouter.post('/students/:id/remove',requireOrg, requireOrgPlan, orgController.removeStudent);
+orgRouter.get('/assignments',           requireOrg, requireOrgPlan, orgController.listAssignments);
+orgRouter.post('/assignments',          requireOrg, requireOrgPlan, orgController.createAssignment);
+orgRouter.post('/assignments/:id/delete', requireOrg, requireOrgPlan, orgController.deleteAssignment);
+orgRouter.get('/results', requireOrg, requireOrgPlan, orgController.results);
 
 // Auth routes
 const authRouter = express.Router();
 const authController = require('../controllers/authController');
 authRouter.get('/login', authController.showLogin);
-authRouter.post('/send-otp', authController.sendOTP);
-authRouter.post('/verify-otp', authController.verifyOTP);
+authRouter.post('/send-email-otp',   authController.sendEmailOTP);
+authRouter.post('/verify-email-otp', authController.verifyEmailOTP);
 authRouter.get('/logout', authController.logout);
 
 // Series routes
 const seriesRouter = express.Router();
 const seriesController = require('../controllers/seriesController');
 seriesRouter.get('/exam/:examSlug', seriesController.listByExam);
+seriesRouter.post('/review', require('../middlewares/auth').requireAuth, seriesController.submitReview);
 seriesRouter.get('/:id', seriesController.showSeries);
 
 // Payment routes
@@ -55,6 +69,7 @@ testRouter.get('/result/:attemptId', requireAuth, testController.showResult);
 const dashboardRouter = express.Router();
 const dashboardController = require('../controllers/dashboardController');
 dashboardRouter.get('/', requireAuth, dashboardController.showDashboard);
+dashboardRouter.post('/testimonial', requireAuth, dashboardController.submitTestimonial);
 
 // Admin routes
 const adminRouter = express.Router();
@@ -79,8 +94,45 @@ adminRouter.post('/tests', requireAdmin, adminController.createTest);
 adminRouter.post('/tests/:id/delete', requireAdmin, adminController.deleteTest);
 adminRouter.get('/questions', requireAdmin, adminController.listQuestions);
 adminRouter.post('/questions', requireAdmin, adminController.createQuestion);
+adminRouter.post('/questions/bulk-import', requireAdmin, csvUpload.single('csvFile'), adminController.bulkImportQuestions);
 adminRouter.post('/questions/:id/delete', requireAdmin, adminController.deleteQuestion);
 adminRouter.get('/users', requireAdmin, adminController.listUsers);
+adminRouter.post('/users/:id/login-as', requireAdmin, adminController.loginAsUser);
+adminRouter.get('/organizations', requireAdmin, adminController.listOrgs);
+adminRouter.post('/organizations/:id/login-as', requireAdmin, adminController.loginAsOrg);
+adminRouter.get('/stop-impersonation', adminController.stopImpersonation);
+adminRouter.get('/payments', requireAdmin, adminController.listPayments);
+adminRouter.get('/testimonials', requireAdmin, adminController.listTestimonials);
+adminRouter.post('/testimonials/:id/approve', requireAdmin, adminController.approveTestimonial);
+adminRouter.post('/testimonials/:id/reject', requireAdmin, adminController.rejectTestimonial);
 adminRouter.get('/results', requireAdmin, adminController.listResults);
 
-module.exports = { authRouter, seriesRouter, paymentRouter, testRouter, dashboardRouter, adminRouter, orgRouter };
+// API routes (public, JSON)
+const apiRouter = express.Router();
+const Testimonial = require('../models/Testimonial');
+const { TestSeries } = require('../models/Exam');
+
+apiRouter.get('/reviews', async (req, res) => {
+  try {
+    const { type = 'site', refId } = req.query;
+    const filter = { status: 'approved', type };
+    if (refId) filter.refId = refId;
+    const reviews = await Testimonial.find(filter).sort({ createdAt: -1 }).limit(6).lean();
+    res.json({ success: true, reviews });
+  } catch (e) {
+    res.json({ success: false, reviews: [] });
+  }
+});
+
+apiRouter.get('/series-by-exam', async (req, res) => {
+  try {
+    const { examId } = req.query;
+    if (!examId) return res.json({ success: true, series: [] });
+    const series = await TestSeries.find({ examId, isActive: true }).select('_id title').lean();
+    res.json({ success: true, series });
+  } catch (e) {
+    res.json({ success: false, series: [] });
+  }
+});
+
+module.exports = { authRouter, seriesRouter, paymentRouter, testRouter, dashboardRouter, adminRouter, orgRouter, apiRouter };

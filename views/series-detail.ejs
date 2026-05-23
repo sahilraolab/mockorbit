@@ -66,7 +66,52 @@
     <% } %>
 
     <p class="trust-text">⭐ Trusted by thousands of students preparing for <%= series.examId.name %></p>
+
+    <!-- Reviews: accordion like sample questions -->
+    <% if (seriesReviews && seriesReviews.length > 0) { %>
+    <div class="mb-6">
+      <div class="sample-accord">
+        <button class="sample-accord-btn" onclick="toggleSampleAccord(this)">
+          <span>Student Reviews (<%= seriesReviews.length %>)</span>
+          <span class="sample-accord-chevron">▼</span>
+        </button>
+        <div class="sample-accord-body">
+          <div style="display:flex; flex-direction:column; gap:12px; padding:4px 0 8px;">
+            <% seriesReviews.forEach(r => { %>
+              <div style="padding:14px 16px; background:var(--canvas-soft); border-radius:var(--radius); border:1px solid var(--border);">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+                  <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.78rem;flex-shrink:0;"><%= r.name[0].toUpperCase() %></div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600; font-size:0.88rem; color:var(--ink);"><%= r.name %></div>
+                    <% if (r.role) { %><div style="font-size:0.7rem; color:var(--ink-muted);"><%= r.role %></div><% } %>
+                  </div>
+                  <div style="color:#f59e0b; font-size:0.8rem;"><%= '★'.repeat(r.rating) %></div>
+                </div>
+                <p style="font-size:0.85rem; color:var(--ink-soft); line-height:1.55; font-style:italic; margin:0;">"<%= r.text %>"</p>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (hasPurchased) { %>
+      <p class="trust-text" style="margin-top:4px;">
+        ✍️ Reviewed this series?
+        <a href="/dashboard#reviewSection" style="color:var(--accent);">Go to Dashboard to leave a review →</a>
+      </p>
+    <% } %>
   </div>
 </section>
 
 <%- include('partials/footer') %>
+
+<script>
+function toggleSampleAccord(btn) {
+  const body = btn.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+}
+</script>

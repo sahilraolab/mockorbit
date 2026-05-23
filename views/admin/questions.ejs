@@ -25,7 +25,10 @@
       <h3 style="font-family: 'DM Sans';"><%= selectedTest.title %></h3>
       <p class="text-small text-muted"><%= questions.length %> questions · <%= selectedTest.duration %> minutes</p>
     </div>
-    <button class="btn btn-primary" onclick="openModal('addQModal')">+ Add Question</button>
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-outline btn-sm" onclick="openModal('bulkQModal')">⬆ Bulk Import</button>
+      <button class="btn btn-primary" onclick="openModal('addQModal')">+ Add Question</button>
+    </div>
   </div>
 
   <% if (questions.length === 0) { %>
@@ -138,5 +141,41 @@
     <p>Choose a test from the dropdown to view and manage its questions.</p>
   </div>
 <% } %>
+
+<!-- Bulk Import Questions Modal -->
+<div class="modal-backdrop" id="bulkQModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h4 style="font-family:'DM Sans';">Bulk Import Questions</h4>
+      <button class="modal-close" onclick="closeModal('bulkQModal')">✕</button>
+    </div>
+    <div style="padding:20px 24px;">
+      <div class="alert" style="background:var(--canvas-soft); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:16px;">
+        <p style="font-size:0.82rem; font-weight:600; color:var(--ink); margin-bottom:6px;">Required CSV columns</p>
+        <code style="font-size:0.72rem; color:var(--ink-soft); display:block; background:var(--canvas); padding:8px 10px; border-radius:6px; border:1px solid var(--border); word-break:break-all;">question,optionA,optionB,optionC,optionD,correctAnswer,explanation,tag</code>
+        <p style="font-size:0.73rem; color:var(--ink-muted); margin-top:6px;"><strong>correctAnswer</strong>: A / B / C / D (or 0 / 1 / 2 / 3)</p>
+      </div>
+      <a href="data:text/csv;charset=utf-8,question%2CoptionA%2CoptionB%2CoptionC%2CoptionD%2CcorrectAnswer%2Cexplanation%2Ctag%0ASample+question%3F%2COption+1%2COption+2%2COption+3%2COption+4%2CA%2CBecause...%2CGeneral"
+         download="questions_template.csv"
+         class="btn btn-outline btn-sm btn-block" style="margin-bottom:16px;">
+        ⬇ Download Template
+      </a>
+      <form action="/admin/questions/bulk-import" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="testId" value="<%= testId || '' %>">
+        <div class="form-group">
+          <label class="form-label" for="qCsvFile">Select CSV File <span style="color:var(--danger)">*</span></label>
+          <input type="file" id="qCsvFile" name="csvFile" class="form-control" accept=".csv,text/csv" required>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:8px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;" <%= !testId ? 'disabled title="Select a test first"' : '' %>>
+            Import Questions
+          </button>
+          <button type="button" class="btn btn-outline" onclick="closeModal('bulkQModal')">Cancel</button>
+        </div>
+        <% if (!testId) { %><p style="font-size:0.76rem; color:var(--warning); margin-top:8px;">⚠ Select a test from the dropdown first.</p><% } %>
+      </form>
+    </div>
+  </div>
+</div>
 
 <%- include('layout-bottom') %>

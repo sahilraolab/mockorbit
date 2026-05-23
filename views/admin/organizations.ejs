@@ -1,0 +1,72 @@
+<%- include('layout-top', { title: title, currentPath: '/admin/organizations' }) %>
+
+<% if (error && error.length > 0) { %>
+  <div class="alert alert-error"><%= error[0] %></div>
+<% } %>
+<% if (success && success.length > 0) { %>
+  <div class="alert alert-success"><%= success[0] %></div>
+<% } %>
+
+<div class="admin-page-header">
+  <h3 style="font-family: 'DM Sans';">Organizations (<%= orgs.length %>)</h3>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Organization</th>
+        <th>Type</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Students</th>
+        <th>Plan</th>
+        <th>Expires</th>
+        <th>Joined</th>
+        <th><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (orgs.length === 0) { %>
+        <tr><td colspan="9" class="text-center text-muted" style="padding:32px;">No organizations registered yet.</td></tr>
+      <% } %>
+      <% orgs.forEach(o => { %>
+        <%
+          const sub = o.subscription;
+          const isActive = sub && sub.status === 'active' && sub.endDate && new Date(sub.endDate) > new Date();
+          const planLabel = isActive ? sub.planName : (sub && sub.status === 'expired' ? 'Expired' : 'No Plan');
+          const planClass = isActive ? 'org-plan-active' : (sub && sub.status === 'expired' ? 'org-plan-expired' : 'org-plan-none');
+        %>
+        <tr>
+          <td>
+            <div style="font-weight:600; color:var(--ink);"><%= o.name %></div>
+            <% if (o.website) { %><div style="font-size:0.75rem; color:var(--ink-muted);"><%= o.website %></div><% } %>
+          </td>
+          <td><span class="badge badge-navy" style="font-size:0.72rem;"><%= o.orgType %></span></td>
+          <td style="font-size:0.85rem;"><%= o.email %></td>
+          <td style="font-size:0.85rem;"><%= o.phone || '—' %></td>
+          <td style="text-align:center;">
+            <strong><%= o.studentCount %></strong>
+            <% if (sub && sub.studentsLimit) { %>
+              <span style="color:var(--ink-muted); font-size:0.78rem;">/ <%= sub.studentsLimit %></span>
+            <% } %>
+          </td>
+          <td><span class="org-plan-pill <%= planClass %>"><%= planLabel %></span></td>
+          <td style="font-size:0.8rem; color:var(--ink-muted);">
+            <% if (isActive && sub.endDate) { %>
+              <%= new Date(sub.endDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+            <% } else { %>—<% } %>
+          </td>
+          <td style="font-size:0.8rem; color:var(--ink-muted);"><%= new Date(o.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %></td>
+          <td>
+            <form action="/admin/organizations/<%= o._id %>/login-as" method="POST" style="display:inline;" onsubmit="return confirm('Login as this organization?')">
+              <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--accent); white-space:nowrap;">Login As →</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('layout-bottom') %>

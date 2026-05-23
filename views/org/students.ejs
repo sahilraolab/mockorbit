@@ -12,7 +12,10 @@
     <h1 style="font-size:1.5rem; margin-bottom:4px;">Students</h1>
     <p style="font-size:0.88rem; color:var(--ink-muted);"><%= students.filter(s=>s.isActive).length %> active students</p>
   </div>
-  <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.add('open')" aria-haspopup="dialog">+ Add Student</button>
+  <div style="display:flex; gap:10px;">
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('bulk-modal').classList.add('open')" aria-haspopup="dialog">⬆ Bulk Upload</button>
+    <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.add('open')" aria-haspopup="dialog">+ Add Student</button>
+  </div>
 </div>
 
 <!-- Students table -->
@@ -21,7 +24,7 @@
     <div class="empty-state">
       <div class="empty-state-icon" aria-hidden="true">👥</div>
       <h3>No students yet</h3>
-      <p>Add students by their mobile number to start assigning tests.</p>
+      <p>Add students by their email address to start assigning tests.</p>
       <button class="btn btn-primary" style="margin-top:16px;" onclick="document.getElementById('add-modal').classList.add('open')">Add First Student</button>
     </div>
   <% } else { %>
@@ -29,7 +32,7 @@
       <thead>
         <tr>
           <th scope="col">Student</th>
-          <th scope="col">Mobile</th>
+          <th scope="col">Email</th>
           <th scope="col">Roll No.</th>
           <th scope="col">Batch</th>
           <th scope="col">Status</th>
@@ -42,11 +45,11 @@
           <tr>
             <td>
               <div style="display:flex; align-items:center; gap:10px;">
-                <div class="student-avatar" aria-hidden="true"><%= s.name ? s.name[0].toUpperCase() : (s.userId && s.userId.mobile ? s.userId.mobile[0] : '?') %></div>
+                <div class="student-avatar" aria-hidden="true"><%= s.name ? s.name[0].toUpperCase() : '?' %></div>
                 <span style="font-weight:500; color:var(--ink);"><%= s.name || 'Unknown' %></span>
               </div>
             </td>
-            <td><code style="font-size:0.85rem;"><%= s.userId ? s.userId.mobile : '—' %></code></td>
+            <td><code style="font-size:0.85rem;"><%= s.userId ? s.userId.email : '—' %></code></td>
             <td><%= s.rollNumber || '—' %></td>
             <td><%= s.batch || '—' %></td>
             <td>
@@ -78,9 +81,9 @@
     </div>
     <form action="/org/students/add" method="POST" novalidate aria-label="Add student form">
       <div class="form-group">
-        <label class="form-label" for="mobile">Mobile Number <span aria-hidden="true" style="color:var(--danger)">*</span></label>
-        <input type="tel" id="mobile" name="mobile" class="form-control" placeholder="10-digit mobile number" required pattern="[0-9]{10}" maxlength="10" aria-required="true">
-        <p class="form-hint">Student will receive an OTP on this number to login.</p>
+        <label class="form-label" for="studentEmail">Email Address <span aria-hidden="true" style="color:var(--danger)">*</span></label>
+        <input type="email" id="studentEmail" name="email" class="form-control" placeholder="student@example.com" required aria-required="true">
+        <p class="form-hint">Student will receive an OTP on this email to login.</p>
       </div>
       <div class="form-group">
         <label class="form-label" for="sname">Student Name</label>
@@ -99,6 +102,38 @@
         <button type="button" class="btn btn-outline" onclick="document.getElementById('add-modal').classList.remove('open')">Cancel</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- Bulk upload modal -->
+<div class="modal-backdrop" id="bulk-modal" role="dialog" aria-modal="true" aria-labelledby="bulk-modal-title">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h2 id="bulk-modal-title" style="font-size:1.1rem; font-family:'DM Sans',sans-serif;">Bulk Upload Students</h2>
+      <button class="modal-close" onclick="document.getElementById('bulk-modal').classList.remove('open')" aria-label="Close bulk upload dialog">✕</button>
+    </div>
+    <div style="padding:20px 24px;">
+      <div class="alert" style="background:var(--canvas-soft); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:20px;">
+        <p style="font-size:0.82rem; font-weight:600; color:var(--ink); margin-bottom:6px;">CSV Format</p>
+        <code style="font-size:0.75rem; color:var(--ink-soft); display:block; background:var(--canvas); padding:8px 10px; border-radius:6px; border:1px solid var(--border);">name,email,rollNumber,batch</code>
+        <p style="font-size:0.75rem; color:var(--ink-muted); margin-top:6px;">First row must be the header. Only "email" is required. Max 2MB.</p>
+      </div>
+      <a href="data:text/csv;charset=utf-8,name%2Cemail%2CrollNumber%2Cbatch%0ARavi%20Kumar%2Cravi%40example.com%2CBL001%2CBatch%20A"
+         download="students_template.csv"
+         class="btn btn-outline btn-sm btn-block" style="margin-bottom:16px;">
+        ⬇ Download Template
+      </a>
+      <form action="/org/students/bulk" method="POST" enctype="multipart/form-data" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="csvFile">Select CSV File <span style="color:var(--danger)">*</span></label>
+          <input type="file" id="csvFile" name="csvFile" class="form-control" accept=".csv,text/csv" required aria-required="true">
+        </div>
+        <div style="display:flex; gap:12px; margin-top:8px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;">Upload & Import</button>
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('bulk-modal').classList.remove('open')">Cancel</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 

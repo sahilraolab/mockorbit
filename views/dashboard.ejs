@@ -5,7 +5,7 @@
     <div class="flex-between mb-6">
       <div>
         <h2>My Dashboard</h2>
-        <p class="mt-1">+91 <%= user.mobile %></p>
+        <p class="mt-1" style="font-size:0.88rem; color:var(--ink-muted);"><%= user.email %></p>
       </div>
       <div>
         <span class="badge badge-blue"><%= totalAttempts %> Tests Attempted</span>
@@ -45,10 +45,13 @@
                   <p class="fw-600 text-small"><%= test.title %></p>
                   <p class="text-xs text-muted mt-1">⏱ <%= test.duration %> min · <%= test.totalQuestions %> questions</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap:wrap;">
                   <% if (test.attempted && test.latestAttempt) { %>
                     <span class="badge badge-green">Score: <%= test.latestAttempt.score %>/<%= test.latestAttempt.totalMarks %></span>
                     <a href="/test/result/<%= test.latestAttempt._id %>" class="btn btn-outline btn-sm">View Result</a>
+                    <button type="button" class="btn btn-outline btn-sm"
+                      onclick="openReviewFor('<%= series.examId._id %>','<%= series._id %>')"
+                      title="Write a review for this mock test">✍️ Review</button>
                   <% } %>
                   <a href="/test/start/<%= test._id %>" class="btn btn-primary btn-sm">
                     <%= test.attempted ? 'Reattempt' : 'Start Test' %>
@@ -62,5 +65,172 @@
     <% } %>
   </div>
 </section>
+
+<!-- Write a Review -->
+<section class="section-sm" style="background:var(--canvas-soft); border-top:1px solid var(--border);" id="reviewSection">
+  <div class="container" style="max-width:680px;">
+    <h3 style="font-family:'DM Sans'; font-size:1.1rem; margin-bottom:4px;">Write a Review</h3>
+    <p style="font-size:0.85rem; color:var(--ink-muted); margin-bottom:20px;">Select a mock test you've taken and share your experience. Approved reviews appear publicly.</p>
+
+    <script id="dbExamsData"  type="application/json"><%- JSON.stringify(reviewableExams.map(e => ({ _id: e._id, name: e.name, icon: e.icon || '📚' }))) %></script>
+    <script id="dbSeriesData" type="application/json"><%- JSON.stringify(reviewableSeries.map(s => ({ _id: s._id, title: s.title, examId: s.examId ? s.examId.toString() : '' }))) %></script>
+    <script id="dbReviewsData" type="application/json"><%- JSON.stringify(myReviewsMap) %></script>
+
+    <div class="card" style="padding:22px 24px;">
+      <% if (reviewableExams.length === 0) { %>
+        <p style="font-size:0.88rem; color:var(--ink-muted);">
+          Purchase a mock test to leave a review.
+          <a href="/#exams" style="color:var(--accent);">Browse exams →</a>
+        </p>
+      <% } else { %>
+
+        <div id="dbStatus" style="display:none; margin-bottom:14px;"></div>
+
+        <form action="/dashboard/testimonial" method="POST" id="dbForm">
+          <input type="hidden" name="type"  value="series">
+          <input type="hidden" name="refId" id="dbRefId" value="">
+
+          <!-- Step 1: Exam -->
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" for="dbExamSel">Exam *</label>
+            <select id="dbExamSel" class="form-control">
+              <option value="">— Select an exam —</option>
+              <% reviewableExams.forEach(e => { %>
+                <option value="<%= e._id %>"><%= e.icon || '📚' %> &nbsp;<%= e.name %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Step 2: Mock test (filtered by exam) -->
+          <div class="form-group" style="margin-bottom:14px; display:none;" id="dbMockWrap">
+            <label class="form-label" for="dbMockSel">Mock Test *</label>
+            <select id="dbMockSel" class="form-control">
+              <option value="">— Select a mock test —</option>
+            </select>
+          </div>
+
+          <!-- Steps 3-5 (shown after mock selected) -->
+          <div id="dbFields" style="display:none;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Your Name *</label>
+                <input type="text" name="name" id="dbName" class="form-control" required
+                  value="<%= user.name || '' %>">
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Achievement</label>
+                <input type="text" name="role" id="dbRole" class="form-control"
+                  placeholder="e.g. CLAT AIR 42">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label class="form-label">Review * <span style="font-size:0.76rem;color:var(--ink-muted);font-weight:400;">(max 400 chars)</span></label>
+              <textarea name="text" id="dbText" class="form-control" rows="3" maxlength="400"
+                required placeholder="How was this mock test?"></textarea>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+              <div class="star-picker" id="dbPicker" data-value="5">
+                <% [1,2,3,4,5].forEach(n => { %>
+                  <button type="button" class="star-btn">★</button>
+                <% }) %>
+                <input type="hidden" name="rating" value="5">
+                <span class="star-picker-hint"></span>
+              </div>
+              <button type="submit" id="dbSubmitBtn" class="btn btn-primary">Submit Review</button>
+            </div>
+          </div>
+        </form>
+
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  const allSeries = JSON.parse(document.getElementById('dbSeriesData').textContent  || '[]');
+  const myReviews = JSON.parse(document.getElementById('dbReviewsData').textContent || '{}');
+
+  const examSel   = document.getElementById('dbExamSel');
+  const mockWrap  = document.getElementById('dbMockWrap');
+  const mockSel   = document.getElementById('dbMockSel');
+  const refIdInp  = document.getElementById('dbRefId');
+  const fields    = document.getElementById('dbFields');
+  const statusEl  = document.getElementById('dbStatus');
+  const nameI     = document.getElementById('dbName');
+  const roleI     = document.getElementById('dbRole');
+  const textA     = document.getElementById('dbText');
+  const submitBtn = document.getElementById('dbSubmitBtn');
+  const picker    = document.getElementById('dbPicker');
+  const defName   = '<%= (user.name || "").replace(/'/g, "\\'") %>';
+
+  if (!examSel) return;
+
+  const sLabels = { approved: '✓ Approved — visible publicly', pending: '⏳ Pending admin approval', rejected: '✗ Not approved' };
+  const sBadge  = { approved: 'badge-green', pending: 'badge-warm', rejected: '' };
+
+  examSel.addEventListener('change', function () {
+    const examId = this.value;
+    mockSel.innerHTML = '<option value="">— Select a mock test —</option>';
+    mockWrap.style.display = examId ? 'block' : 'none';
+    fields.style.display = 'none';
+    statusEl.style.display = 'none';
+    refIdInp.value = '';
+
+    if (!examId) return;
+    allSeries.filter(s => s.examId === examId).forEach(s => {
+      const o = document.createElement('option');
+      o.value = s._id; o.textContent = s.title;
+      mockSel.appendChild(o);
+    });
+  });
+
+  mockSel.addEventListener('change', function () {
+    const id = this.value;
+    refIdInp.value = id;
+    if (!id) { fields.style.display = 'none'; statusEl.style.display = 'none'; return; }
+    fields.style.display = 'block';
+
+    const r = myReviews[id];
+    if (r) {
+      const sty = r.status === 'rejected' ? 'background:var(--danger-light);color:var(--danger);' : '';
+      statusEl.style.display = 'block';
+      statusEl.innerHTML = `<span class="badge ${sBadge[r.status] || ''}" style="${sty}">${sLabels[r.status] || r.status}</span>`;
+      nameI.value = r.name  || defName;
+      roleI.value = r.role  || '';
+      textA.value = r.text  || '';
+      setPickerValue(picker, r.rating || 5);
+      submitBtn.textContent = 'Update Review';
+    } else {
+      statusEl.style.display = 'none';
+      nameI.value = defName;
+      roleI.value = '';
+      textA.value = '';
+      setPickerValue(picker, 5);
+      submitBtn.textContent = 'Submit Review';
+    }
+  });
+})();
+
+// Called by "✍️ Review" button on each test row
+function openReviewFor(examId, seriesId) {
+  const examSel  = document.getElementById('dbExamSel');
+  const mockWrap = document.getElementById('dbMockWrap');
+  const mockSel  = document.getElementById('dbMockSel');
+  if (!examSel) return;
+
+  // Select exam
+  examSel.value = examId;
+  examSel.dispatchEvent(new Event('change'));
+
+  // After change handler runs, set mock and dispatch
+  setTimeout(() => {
+    mockSel.value = seriesId;
+    mockSel.dispatchEvent(new Event('change'));
+    // Scroll to review section
+    document.getElementById('reviewSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+</script>
 
 <%- include('partials/footer') %>

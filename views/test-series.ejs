@@ -26,10 +26,18 @@
     <% } else { %>
       <div class="card-grid">
         <% series.forEach(s => { %>
-          <div class="card">
+          <%
+            const isPurchased = user && purchasedSeriesForExam &&
+              purchasedSeriesForExam.some(ps => ps._id.toString() === s._id.toString());
+          %>
+          <div class="card" style="<%= isPurchased ? 'border-color:#a7f3d0;' : '' %>">
             <div class="flex-between mb-4">
               <span class="badge badge-blue"><%= s.totalMocks %> Mocks</span>
-              <div class="price"><span class="price-currency">₹</span><%= s.price.toLocaleString('en-IN') %></div>
+              <% if (isPurchased) { %>
+                <span class="purchased-tag">✓ Purchased</span>
+              <% } else { %>
+                <div class="price"><span class="price-currency">₹</span><%= s.price.toLocaleString('en-IN') %></div>
+              <% } %>
             </div>
 
             <h3 style="font-family: 'DM Sans', sans-serif; font-size: 1.1rem; margin-bottom: 8px;"><%= s.title %></h3>
@@ -38,13 +46,46 @@
             <% } %>
 
             <% const featureList = s.features && s.features.length > 0 ? s.features : ['Latest pattern', 'Detailed solutions', 'Rank analysis']; %>
-            <ul class="feature-list mb-6">
+            <ul class="feature-list mb-4">
               <% featureList.forEach(f => { %>
                 <li><%= f %></li>
               <% }) %>
             </ul>
 
-            <a href="/series/<%= s._id %>" class="btn btn-primary btn-block">View Details</a>
+            <% if (s.previewQuestions && s.previewQuestions.length > 0) { %>
+              <div class="sample-accord mb-4">
+                <button class="sample-accord-btn" onclick="toggleSampleAccord(this)">
+                  <span>Sample Questions (<%= Math.min(s.previewQuestions.length, 3) %>)</span>
+                  <span class="sample-accord-chevron">▼</span>
+                </button>
+                <div class="sample-accord-body">
+                  <% s.previewQuestions.slice(0, 3).forEach((pq, idx) => { %>
+                    <div class="sample-q-item">
+                      <div class="sample-q-text">Q<%= idx + 1 %>. <%= pq.question %></div>
+                      <div class="sample-opts">
+                        <% ['A','B','C','D'].forEach((letter, i) => { %>
+                          <div class="sample-opt <%= i === pq.correctAnswer ? 'is-correct' : '' %>">
+                            <span class="sample-opt-lbl"><%= letter %></span>
+                            <span><%= pq.options[i] %></span>
+                          </div>
+                        <% }) %>
+                      </div>
+                      <% if (pq.explanation) { %>
+                        <div class="sample-expl">💡 <%= pq.explanation %></div>
+                      <% } %>
+                    </div>
+                  <% }) %>
+                </div>
+              </div>
+            <% } %>
+
+            <% if (isPurchased) { %>
+              <a href="/dashboard" class="btn btn-success btn-block">Access Tests →</a>
+            <% } else if (s.price === 0) { %>
+              <a href="/payment/free-access/<%= s._id %>" class="btn btn-primary btn-block">Get Free Access →</a>
+            <% } else { %>
+              <a href="/payment/checkout/<%= s._id %>" class="btn btn-primary btn-block">Buy Now — ₹<%= s.price.toLocaleString('en-IN') %></a>
+            <% } %>
           </div>
         <% }) %>
       </div>
@@ -52,4 +93,45 @@
   </div>
 </section>
 
+  <!-- Reviews: shown as accordion (like sample questions) -->
+  <% if (seriesReviews && seriesReviews.length > 0) { %>
+  <div class="container" style="padding-bottom:48px;">
+    <div class="sample-accord">
+      <button class="sample-accord-btn" onclick="toggleSampleAccord(this)">
+        <span>Student Reviews (<%= seriesReviews.length %>)</span>
+        <span class="sample-accord-chevron">▼</span>
+      </button>
+      <div class="sample-accord-body">
+        <div style="display:flex; flex-direction:column; gap:12px; padding:4px 0 8px;">
+          <% seriesReviews.forEach(r => { %>
+            <div style="padding:14px 16px; background:var(--canvas-soft); border-radius:var(--radius); border:1px solid var(--border);">
+              <% if (r.seriesTitle) { %>
+                <div class="review-meta-badge" style="margin-bottom:8px;">📋 <%= r.seriesTitle %></div>
+              <% } %>
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.78rem;flex-shrink:0;"><%= r.name[0].toUpperCase() %></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-weight:600; font-size:0.85rem; color:var(--ink);"><%= r.name %></div>
+                  <% if (r.role) { %><div style="font-size:0.7rem; color:var(--ink-muted);"><%= r.role %></div><% } %>
+                </div>
+                <div style="color:#f59e0b; font-size:0.78rem; flex-shrink:0;"><%= '★'.repeat(r.rating) %></div>
+              </div>
+              <p style="font-size:0.83rem; color:var(--ink-soft); line-height:1.55; font-style:italic; margin:0;">"<%= r.text %>"</p>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
 <%- include('partials/footer') %>
+
+<script>
+function toggleSampleAccord(btn) {
+  const body = btn.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+}
+</script>

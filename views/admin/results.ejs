@@ -22,7 +22,7 @@
       <% } %>
       <% attempts.forEach(a => { %>
         <tr>
-          <td class="fw-600">+91 <%= a.userId ? a.userId.mobile : '—' %></td>
+          <td class="fw-600"><%= a.userId ? a.userId.email : '—' %></td>
           <td><%= a.testId ? a.testId.title : '—' %></td>
           <td>
             <span class="badge badge-blue"><%= a.score %>/<%= a.totalMarks %></span>

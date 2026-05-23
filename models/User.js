@@ -1,25 +1,26 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  mobile: {
+  name: { type: String, trim: true },
+  email: {
     type: String,
-    required: true,
     unique: true,
+    sparse: true,
     trim: true,
-    match: [/^\d{10}$/, 'Please enter a valid 10-digit mobile number']
+    lowercase: true,
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please enter a valid email address']
   },
-  purchasedTests: [{
-    testSeriesId: { type: mongoose.Schema.Types.ObjectId, ref: 'TestSeries' },
-    purchasedAt: { type: Date, default: Date.now }
-  }],
   otp: {
-    code: String,
+    code:      String,
     expiresAt: Date
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+
+  purchasedTests: [{
+    testSeriesId: { type: mongoose.Schema.Types.ObjectId, ref: 'TestSeries' },
+    purchasedAt:  { type: Date, default: Date.now }
+  }],
+
+  createdAt: { type: Date, default: Date.now }
 });
 
 userSchema.methods.hasPurchased = function(testSeriesId) {
