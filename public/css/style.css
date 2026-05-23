@@ -349,7 +349,7 @@ textarea.form-control { resize: vertical; min-height: 100px; }
 .hero-course-arrow { margin-left: auto; color: var(--accent); font-size: 0.85rem; flex-shrink: 0; }
 .hero-float-badge {
   position: absolute;
-  bottom: -14px; right: 12px;
+  bottom: -50px; right: 12px;
   background: var(--navy);
   color: white;
   padding: 9px 16px;
