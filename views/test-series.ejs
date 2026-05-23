@@ -1,129 +1,222 @@
 <%- include('partials/header') %>
 
+<!-- Exam header -->
+<section class="ts-exam-hero">
+  <div class="container">
+    <a href="/" class="ts-back">← All Exams</a>
+    <div class="ts-exam-meta">
+      <div class="ts-exam-icon"><%= exam.icon || '📚' %></div>
+      <div>
+        <h1 class="ts-exam-title"><%= exam.name %> — Test Series</h1>
+        <p class="ts-exam-sub">
+          <% if (exam.conductedBy) { %><span><%= exam.conductedBy %></span><span class="ts-dot">·</span><% } %>
+          <% if (exam.examLevel) { %><span><%= exam.examLevel %></span><span class="ts-dot">·</span><% } %>
+          <% if (exam.examDuration) { %><span><%= exam.examDuration %></span><% } %>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section">
   <div class="container">
-    <div class="mb-6">
-      <a href="/" class="text-small text-muted">← All Exams</a>
-      <div class="flex-between mt-3">
-        <div>
-          <span class="exam-icon" style="font-size: 2rem;"><%= exam.icon %></span>
-          <h2 style="display: inline; margin-left: 12px;"><%= exam.name %> Test Series</h2>
-        </div>
-      </div>
-      <p class="mt-2">Comprehensive mock tests designed for <%= exam.name %> aspirants.</p>
-    </div>
 
     <% if (error && error.length > 0) { %>
       <div class="alert alert-error mb-4">⚠️ <%= error[0] %></div>
+    <% } %>
+    <% if (success && success.length > 0) { %>
+      <div class="alert alert-success mb-4">✓ <%= success[0] %></div>
     <% } %>
 
     <% if (series.length === 0) { %>
       <div class="empty-state">
         <div class="empty-state-icon">📋</div>
-        <h3>No test series available</h3>
-        <p>We're adding content soon. Check back shortly!</p>
+        <h3>No test series available yet</h3>
+        <p>We're adding content for <%= exam.name %> soon. Check back shortly!</p>
+        <a href="/" class="btn btn-primary" style="margin-top:20px;">Browse Other Exams →</a>
       </div>
     <% } else { %>
-      <div class="card-grid">
+
+      <%
+        const isSingle = series.length === 1;
+        const isDouble = series.length === 2;
+        const gridClass = isSingle ? 'ts-series-single' : isDouble ? 'ts-series-double' : 'ts-series-grid';
+      %>
+      <div class="<%= gridClass %>">
         <% series.forEach(s => { %>
           <%
             const isPurchased = user && purchasedSeriesForExam &&
               purchasedSeriesForExam.some(ps => ps._id.toString() === s._id.toString());
+            const featureList = s.features && s.features.length > 0
+              ? s.features
+              : ['Exam-pattern questions', 'Detailed explanations', 'All-India rank analytics'];
           %>
-          <div class="card" style="<%= isPurchased ? 'border-color:#a7f3d0;' : '' %>">
-            <div class="flex-between mb-4">
-              <span class="badge badge-blue"><%= s.totalMocks %> Mocks</span>
-              <% if (isPurchased) { %>
-                <span class="purchased-tag">✓ Purchased</span>
-              <% } else { %>
-                <div class="price"><span class="price-currency">₹</span><%= s.price.toLocaleString('en-IN') %></div>
+
+          <div class="ts-card <%= isPurchased ? 'ts-card-owned' : '' %>">
+
+            <!-- Card header -->
+            <div class="ts-card-header">
+              <div class="ts-card-header-left">
+                <div class="ts-card-badges">
+                  <span class="ts-badge ts-badge-blue">
+                    📝 <%= s.totalMocks %> Mock<%= s.totalMocks > 1 ? 's' : '' %>
+                  </span>
+                  <% if (exam.totalMarks) { %>
+                    <span class="ts-badge ts-badge-gray"><%= exam.totalMarks %> Marks</span>
+                  <% } %>
+                  <% if (exam.examDuration) { %>
+                    <span class="ts-badge ts-badge-gray">⏱ <%= exam.examDuration %></span>
+                  <% } %>
+                </div>
+                <h2 class="ts-card-title"><%= s.title %></h2>
+                <% if (s.description) { %>
+                  <p class="ts-card-desc"><%= s.description %></p>
+                <% } %>
+              </div>
+              <div class="ts-card-header-right">
+                <% if (isPurchased) { %>
+                  <div class="ts-price-block">
+                    <span class="ts-purchased-tag">✓ Purchased</span>
+                  </div>
+                <% } else { %>
+                  <div class="ts-price-block">
+                    <span class="ts-price">
+                      <% if (s.price === 0) { %>
+                        <span class="ts-price-label">Access Now</span>
+                      <% } else { %>
+                        <span class="ts-price-currency">₹</span><span class="ts-price-amount"><%= s.price.toLocaleString('en-IN') %></span>
+                        <span class="ts-price-label">one-time</span>
+                      <% } %>
+                    </span>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Features + body -->
+            <div class="ts-card-body">
+              <div class="ts-card-cols">
+                <!-- Features -->
+                <div class="ts-features">
+                  <p class="ts-section-label">What's included</p>
+                  <ul class="ts-feature-list">
+                    <% featureList.forEach(f => { %>
+                      <li><span class="ts-check" aria-hidden="true">✓</span><%= f %></li>
+                    <% }) %>
+                  </ul>
+                </div>
+
+                <!-- Exam info panel (only on single card layout) -->
+                <% if (isSingle) { %>
+                <div class="ts-exam-info-panel">
+                  <p class="ts-section-label">Exam Details</p>
+                  <div class="ts-info-rows">
+                    <% if (exam.conductedBy) { %>
+                      <div class="ts-info-row"><span>Conducted by</span><strong><%= exam.conductedBy %></strong></div>
+                    <% } %>
+                    <% if (exam.eligibility) { %>
+                      <div class="ts-info-row"><span>Eligibility</span><strong><%= exam.eligibility %></strong></div>
+                    <% } %>
+                    <% if (exam.examDuration) { %>
+                      <div class="ts-info-row"><span>Duration</span><strong><%= exam.examDuration %></strong></div>
+                    <% } %>
+                    <% if (exam.totalMarks) { %>
+                      <div class="ts-info-row"><span>Total Marks</span><strong><%= exam.totalMarks %></strong></div>
+                    <% } %>
+                    <% if (exam.frequency) { %>
+                      <div class="ts-info-row"><span>Frequency</span><strong><%= exam.frequency %></strong></div>
+                    <% } %>
+                    <% if (exam.language && exam.language.length > 0) { %>
+                      <div class="ts-info-row"><span>Languages</span><strong><%= exam.language.join(', ') %></strong></div>
+                    <% } %>
+                  </div>
+                </div>
+                <% } %>
+              </div>
+
+              <!-- Sample Questions -->
+              <% if (s.previewQuestions && s.previewQuestions.length > 0) { %>
+                <div class="sample-accord" style="margin-top:20px;">
+                  <button class="sample-accord-btn" onclick="toggleSampleAccord(this)">
+                    <span>Sample Questions (<%= Math.min(s.previewQuestions.length, 3) %>)</span>
+                    <span class="sample-accord-chevron">▼</span>
+                  </button>
+                  <div class="sample-accord-body">
+                    <% s.previewQuestions.slice(0, 3).forEach((pq, idx) => { %>
+                      <div class="sample-q-item">
+                        <div class="sample-q-text">Q<%= idx + 1 %>. <%= pq.question %></div>
+                        <div class="sample-opts">
+                          <% ['A','B','C','D'].forEach((letter, i) => { %>
+                            <div class="sample-opt <%= i === pq.correctAnswer ? 'is-correct' : '' %>">
+                              <span class="sample-opt-lbl"><%= letter %></span>
+                              <span><%= pq.options[i] %></span>
+                            </div>
+                          <% }) %>
+                        </div>
+                        <% if (pq.explanation) { %>
+                          <div class="sample-expl">💡 <%= pq.explanation %></div>
+                        <% } %>
+                      </div>
+                    <% }) %>
+                  </div>
+                </div>
               <% } %>
             </div>
 
-            <h3 style="font-family: 'DM Sans', sans-serif; font-size: 1.1rem; margin-bottom: 8px;"><%= s.title %></h3>
-            <% if (s.description) { %>
-              <p class="text-small mb-4"><%= s.description %></p>
-            <% } %>
+            <!-- Card footer: CTA -->
+            <div class="ts-card-footer">
+              <% if (isPurchased) { %>
+                <a href="/dashboard" class="btn btn-success ts-cta-btn">Go to My Tests →</a>
+              <% } else if (s.price === 0) { %>
+                <form method="POST" action="/payment/free-access/<%= s._id %>" style="margin:0; flex:1;">
+                  <button type="submit" class="btn btn-primary ts-cta-btn">Start Mock Test →</button>
+                </form>
+              <% } else { %>
+                <a href="/payment/checkout/<%= s._id %>" class="btn btn-primary ts-cta-btn">
+                  Buy Now — ₹<%= s.price.toLocaleString('en-IN') %> →
+                </a>
+              <% } %>
+              <% if (!user) { %>
+                <p class="ts-login-note">
+                  <a href="/auth/login">Login</a> to track your progress and rank.
+                </p>
+              <% } %>
+            </div>
 
-            <% const featureList = s.features && s.features.length > 0 ? s.features : ['Latest pattern', 'Detailed solutions', 'Rank analysis']; %>
-            <ul class="feature-list mb-4">
-              <% featureList.forEach(f => { %>
-                <li><%= f %></li>
-              <% }) %>
-            </ul>
-
-            <% if (s.previewQuestions && s.previewQuestions.length > 0) { %>
-              <div class="sample-accord mb-4">
-                <button class="sample-accord-btn" onclick="toggleSampleAccord(this)">
-                  <span>Sample Questions (<%= Math.min(s.previewQuestions.length, 3) %>)</span>
-                  <span class="sample-accord-chevron">▼</span>
-                </button>
-                <div class="sample-accord-body">
-                  <% s.previewQuestions.slice(0, 3).forEach((pq, idx) => { %>
-                    <div class="sample-q-item">
-                      <div class="sample-q-text">Q<%= idx + 1 %>. <%= pq.question %></div>
-                      <div class="sample-opts">
-                        <% ['A','B','C','D'].forEach((letter, i) => { %>
-                          <div class="sample-opt <%= i === pq.correctAnswer ? 'is-correct' : '' %>">
-                            <span class="sample-opt-lbl"><%= letter %></span>
-                            <span><%= pq.options[i] %></span>
-                          </div>
-                        <% }) %>
-                      </div>
-                      <% if (pq.explanation) { %>
-                        <div class="sample-expl">💡 <%= pq.explanation %></div>
-                      <% } %>
-                    </div>
-                  <% }) %>
-                </div>
-              </div>
-            <% } %>
-
-            <% if (isPurchased) { %>
-              <a href="/dashboard" class="btn btn-success btn-block">Access Tests →</a>
-            <% } else if (s.price === 0) { %>
-              <a href="/payment/free-access/<%= s._id %>" class="btn btn-primary btn-block">Get Free Access →</a>
-            <% } else { %>
-              <a href="/payment/checkout/<%= s._id %>" class="btn btn-primary btn-block">Buy Now — ₹<%= s.price.toLocaleString('en-IN') %></a>
-            <% } %>
           </div>
         <% }) %>
       </div>
+
     <% } %>
   </div>
 </section>
 
-  <!-- Reviews: shown as accordion (like sample questions) -->
-  <% if (seriesReviews && seriesReviews.length > 0) { %>
-  <div class="container" style="padding-bottom:48px;">
-    <div class="sample-accord">
-      <button class="sample-accord-btn" onclick="toggleSampleAccord(this)">
-        <span>Student Reviews (<%= seriesReviews.length %>)</span>
-        <span class="sample-accord-chevron">▼</span>
-      </button>
-      <div class="sample-accord-body">
-        <div style="display:flex; flex-direction:column; gap:12px; padding:4px 0 8px;">
-          <% seriesReviews.forEach(r => { %>
-            <div style="padding:14px 16px; background:var(--canvas-soft); border-radius:var(--radius); border:1px solid var(--border);">
-              <% if (r.seriesTitle) { %>
-                <div class="review-meta-badge" style="margin-bottom:8px;">📋 <%= r.seriesTitle %></div>
-              <% } %>
-              <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-                <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.78rem;flex-shrink:0;"><%= r.name[0].toUpperCase() %></div>
-                <div style="flex:1; min-width:0;">
-                  <div style="font-weight:600; font-size:0.85rem; color:var(--ink);"><%= r.name %></div>
-                  <% if (r.role) { %><div style="font-size:0.7rem; color:var(--ink-muted);"><%= r.role %></div><% } %>
-                </div>
-                <div style="color:#f59e0b; font-size:0.78rem; flex-shrink:0;"><%= '★'.repeat(r.rating) %></div>
-              </div>
-              <p style="font-size:0.83rem; color:var(--ink-soft); line-height:1.55; font-style:italic; margin:0;">"<%= r.text %>"</p>
+<!-- Student Reviews -->
+<% if (seriesReviews && seriesReviews.length > 0) { %>
+<section class="section" style="background:var(--canvas-soft); border-top:1px solid var(--border); padding-top:40px; padding-bottom:48px;">
+  <div class="container container-sm">
+    <div class="section-heading" style="margin-bottom:28px;">
+      <span class="section-label">Student Reviews</span>
+      <h2 style="font-size:1.4rem;">What Students Are Saying</h2>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <% seriesReviews.forEach(r => { %>
+        <div class="ts-review-card">
+          <div class="ts-review-top">
+            <div class="ts-review-avatar"><%= r.name[0].toUpperCase() %></div>
+            <div class="ts-review-author">
+              <strong><%= r.name %></strong>
+              <% if (r.role) { %><span><%= r.role %></span><% } %>
             </div>
-          <% }) %>
+            <div class="ts-review-stars"><%= '★'.repeat(r.rating) %></div>
+          </div>
+          <p class="ts-review-text">"<%= r.text %>"</p>
         </div>
-      </div>
+      <% }) %>
     </div>
   </div>
-  <% } %>
+</section>
+<% } %>
 
 <%- include('partials/footer') %>
 

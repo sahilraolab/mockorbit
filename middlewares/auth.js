@@ -3,7 +3,10 @@ const { Organization } = require('../models/Organization');
 
 const requireAuth = (req, res, next) => {
   if (!req.session.userId) {
-    req.session.returnTo = req.originalUrl;
+    // Only store returnTo for GET requests — POST URLs would 404 on redirect-back
+    if (req.method === 'GET') {
+      req.session.returnTo = req.originalUrl;
+    }
     req.flash('error', 'Please login to continue');
     return res.redirect('/auth/login');
   }

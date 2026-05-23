@@ -169,25 +169,34 @@ exports.webhook = async (req, res) => {
   }
 };
 
-// ─── Free access (ALLOW_FREE_ACCESS=true only) ─────────────────────────────
+// ─── Free access ─────────────────────────────────────────────────────────────
+// Allowed when: series.price === 0  OR  ALLOW_FREE_ACCESS=true  OR  mock mode
 exports.freeAccess = async (req, res) => {
   try {
-    if (!isFreeAccessEnabled()) {
-      return res.status(403).json({ success: false, message: 'Free access is disabled' });
+    const series = await TestSeries.findById(req.params.seriesId);
+    if (!series) {
+      req.flash('error', 'Test series not found');
+      return res.redirect('/');
     }
 
-    const series = await TestSeries.findById(req.params.seriesId);
-    if (!series) return res.status(404).json({ success: false, message: 'Series not found' });
+    const isFree = series.price === 0;
+    if (!isFree && !isFreeAccessEnabled()) {
+      req.flash('error', 'This test series requires purchase');
+      return res.redirect(`/series/exam/${series.examId}`);
+    }
 
     if (req.user.hasPurchased(series._id)) {
-      return res.json({ success: true, redirect: '/dashboard' });
+      req.flash('success', 'You already have access to this series');
+      return res.redirect('/dashboard');
     }
 
     await grantAccess(req.user._id, series._id, series.price, 'free_' + Date.now(), 'free_' + Date.now());
-    res.json({ success: true, redirect: '/dashboard' });
+    req.flash('success', 'Access granted! Your mock tests are ready.');
+    res.redirect('/dashboard');
   } catch (err) {
     console.error('Free access error:', err);
-    res.status(500).json({ success: false, message: 'Could not grant free access' });
+    req.flash('error', 'Something went wrong. Please try again.');
+    res.redirect('/');
   }
 };
 

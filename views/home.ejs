@@ -12,22 +12,106 @@
   </div>
 <% } %>
 
+<!-- ===== MOCK SHOWCASE ===== -->
+<% if (tickerSeries && tickerSeries.length > 0) { %>
+<section class="mock-showcase" aria-label="Available mock test series">
+  <div class="mock-showcase-layout">
+
+    <!-- Left: heading + info + nav -->
+    <div class="mock-showcase-left">
+      <span class="mock-showcase-live"><span class="mock-live-dot"></span>Live Now</span>
+      <h2 class="mock-showcase-title">Available<br>Mock Tests</h2>
+      <p class="mock-showcase-sub">Full-length mocks matching the exact exam pattern — attempt and get your All-India rank instantly.</p>
+      <div class="mock-showcase-meta">
+        <div class="mock-meta-item"><span class="mock-meta-val"><%= tickerSeries.length %></span><span class="mock-meta-lbl">Series Live</span></div>
+        <div class="mock-meta-divider"></div>
+        <div class="mock-meta-item"><span class="mock-meta-val">All-India</span><span class="mock-meta-lbl">Rank After Test</span></div>
+      </div>
+      <div class="mock-showcase-nav" aria-label="Carousel navigation">
+        <button class="mock-nav-btn" id="mockPrev" aria-label="Previous">&#8592;</button>
+        <button class="mock-nav-btn" id="mockNext" aria-label="Next">&#8594;</button>
+      </div>
+    </div>
+
+    <!-- Right: scrollable cards -->
+    <div class="mock-showcase-right">
+      <div class="mock-showcase-track" id="mockTrack">
+        <% tickerSeries.forEach(s => {
+             const exam = s.examId || {};
+             const examSlug = exam.slug || '';
+             const href = examSlug ? '/series/exam/' + examSlug : '/series/' + s._id;
+        %>
+        <a href="<%= href %>" class="mock-card" aria-label="<%= s.title %>">
+          <div class="mock-card-top">
+            <div class="mock-card-icon-wrap">
+              <span><%= exam.icon || '📚' %></span>
+            </div>
+            <div>
+              <div class="mock-card-exam-name"><%= exam.name || s.title %></div>
+              <% if (exam.conductedBy) { %><div class="mock-card-by"><%= exam.conductedBy %></div><% } %>
+            </div>
+          </div>
+
+          <div class="mock-card-mid">
+            <div class="mock-card-series-title"><%= s.title %></div>
+            <% if (s.description) { %>
+              <p class="mock-card-desc"><%= s.description %></p>
+            <% } %>
+          </div>
+
+          <div class="mock-card-stats">
+            <% if (s.totalMocks) { %>
+            <div class="mock-stat">
+              <span class="mock-stat-val"><%= s.totalMocks %></span>
+              <span class="mock-stat-lbl">Mock<%= s.totalMocks > 1 ? 's' : '' %></span>
+            </div>
+            <% } %>
+            <% if (exam.totalMarks) { %>
+            <div class="mock-stat">
+              <span class="mock-stat-val"><%= exam.totalMarks %></span>
+              <span class="mock-stat-lbl">Marks</span>
+            </div>
+            <% } %>
+            <% if (exam.examDuration) { %>
+            <div class="mock-stat">
+              <span class="mock-stat-val"><%= exam.examDuration %></span>
+              <span class="mock-stat-lbl">Duration</span>
+            </div>
+            <% } %>
+          </div>
+
+          <div class="mock-card-footer">
+            <% if (s.price === 0) { %>
+              <div class="mock-card-price-tag mock-card-price-free">Start Now</div>
+            <% } else { %>
+              <div class="mock-card-price-tag">₹<%= s.price.toLocaleString('en-IN') %></div>
+            <% } %>
+            <span class="mock-card-cta">Explore →</span>
+          </div>
+        </a>
+        <% }) %>
+      </div>
+    </div>
+
+  </div>
+</section>
+<% } %>
+
 <!-- ===== HERO ===== -->
 <section class="hero" aria-labelledby="hero-heading">
   <div class="container">
     <div class="hero-layout">
 
-      <!-- Left: Text + CTAs -->
       <div class="hero-left">
-        <div class="hero-badge" aria-label="Platform highlight">
-          🚀 India's Most Focused Mock Test Platform
+        <div class="hero-badge" aria-label="Platform tagline">
+          ⚖️ Mission for Academic Rank &amp; Success
         </div>
         <h1 id="hero-heading">
           Prepare Smarter.<br>
           <span class="highlight">Rank Higher.</span>
         </h1>
         <p class="hero-sub">
-          Full-length mock tests for Judiciary, CLAT, SSC, Banking &amp; 20+ competitive exams — real-time rank analytics, AI weak-area reports, expert solutions.
+          Full-length mock tests for AIBE XXI and upcoming competitive exams — topic-wise analytics, detailed explanations, and an all-India rank among fellow aspirants.
         </p>
         <div class="hero-cta">
           <a href="#exams" class="btn btn-primary btn-lg" aria-label="Browse all exam test series">Explore Tests →</a>
@@ -37,43 +121,44 @@
             <a href="/auth/login" class="btn btn-outline btn-lg">Login Free</a>
           <% } %>
         </div>
-        <div class="hero-trust" aria-label="Trust indicators">
-          <div class="hero-trust-item"><strong>50K+</strong><span>Students</span></div>
+        <div class="hero-trust" aria-label="Platform highlights">
+          <div class="hero-trust-item"><strong>AIBE XXI</strong><span>June 2026</span></div>
           <div class="hero-trust-sep">·</div>
-          <div class="hero-trust-item"><strong>200+</strong><span>Mock Tests</span></div>
+          <div class="hero-trust-item"><strong>380 Qs</strong><span>Full-Length Mock</span></div>
           <div class="hero-trust-sep">·</div>
-          <div class="hero-trust-item"><strong>150+</strong><span>Institutes</span></div>
+          <div class="hero-trust-item"><strong>19 Topics</strong><span>Complete Syllabus</span></div>
           <div class="hero-trust-sep">·</div>
-          <div class="hero-trust-item"><strong>95%</strong><span>Selection Rate</span></div>
+          <div class="hero-trust-item"><strong>Open Book</strong><span>Format</span></div>
         </div>
       </div>
 
-      <!-- Right: Featured exam cards -->
+      <!-- Right: Live exam cards from DB only -->
       <div class="hero-right" aria-hidden="true">
         <div class="hero-course-grid">
-          <%
-            const heroExams = exams.slice(0, 4);
-            const heroFallback = [
-              { name: 'CLAT', icon: '⚖️', category: 'Law Entrance', slug: '#' },
-              { name: 'Judiciary', icon: '🏛️', category: 'Judiciary', slug: '#' },
-              { name: 'SSC CGL', icon: '📝', category: 'SSC', slug: '#' },
-              { name: 'SBI PO', icon: '🏦', category: 'Banking', slug: '#' }
-            ];
-            const displayExams = heroExams.length >= 4 ? heroExams : heroFallback;
-          %>
-          <% displayExams.forEach(exam => { %>
-            <a href="/series/exam/<%= exam.slug %>" class="hero-course-card">
-              <div class="hero-course-icon"><%= exam.icon || '📚' %></div>
+          <% if (exams.length > 0) { %>
+            <% exams.slice(0, 4).forEach(exam => { %>
+              <a href="/series/exam/<%= exam.slug %>" class="hero-course-card">
+                <div class="hero-course-icon"><%= exam.icon || '📚' %></div>
+                <div>
+                  <div class="hero-course-name"><%= exam.name %></div>
+                  <div class="hero-course-meta"><%= exam.category || 'Mock Tests' %></div>
+                </div>
+                <div class="hero-course-arrow">→</div>
+              </a>
+            <% }) %>
+          <% } else { %>
+            <a href="/series/exam/aibe-xxi" class="hero-course-card">
+              <div class="hero-course-icon">⚖️</div>
               <div>
-                <div class="hero-course-name"><%= exam.name %></div>
-                <div class="hero-course-meta"><%= exam.category || 'Mock Tests' %></div>
+                <div class="hero-course-name">AIBE XXI</div>
+                <div class="hero-course-meta">Law — Bar Exam</div>
               </div>
               <div class="hero-course-arrow">→</div>
             </a>
-          <% }) %>
+          <% } %>
         </div>
         <div class="hero-float-badge">
-          ⭐ <strong>95%</strong> Selection Rate
+          ⚖️ AIBE XXI — June 2026
         </div>
       </div>
 
@@ -81,29 +166,34 @@
   </div>
 </section>
 
-<!-- ===== STATS ===== -->
-<section class="stats-bar" aria-label="Platform statistics">
+<!-- ===== STATS BAR ===== -->
+<section class="stats-bar" aria-label="Platform highlights">
   <div class="container">
     <div class="stats-grid" role="list">
       <div class="stat-item" role="listitem">
-        <div class="stat-number"><span>50K</span>+</div>
-        <div class="stat-label">Students Enrolled</div>
+        <span class="stat-icon">📝</span>
+        <div class="stat-number">Full-<span>Length</span></div>
+        <div class="stat-label">Exam-Pattern Mocks</div>
       </div>
       <div class="stat-item" role="listitem">
-        <div class="stat-number"><span>200</span>+</div>
-        <div class="stat-label">Mock Tests</div>
+        <span class="stat-icon">📊</span>
+        <div class="stat-number">Live <span>Rank</span></div>
+        <div class="stat-label">After Every Test</div>
       </div>
       <div class="stat-item" role="listitem">
-        <div class="stat-number"><span>95</span>%</div>
-        <div class="stat-label">Selection Rate</div>
+        <span class="stat-icon">🧠</span>
+        <div class="stat-number">Topic <span>Analysis</span></div>
+        <div class="stat-label">Know Where to Improve</div>
       </div>
       <div class="stat-item" role="listitem">
-        <div class="stat-number"><span>150</span>+</div>
-        <div class="stat-label">Partner Institutes</div>
+        <span class="stat-icon">💡</span>
+        <div class="stat-number">Detailed <span>Solutions</span></div>
+        <div class="stat-label">For Every Question</div>
       </div>
       <div class="stat-item" role="listitem">
-        <div class="stat-number"><span>10K</span>+</div>
-        <div class="stat-label">Questions in Bank</div>
+        <span class="stat-icon">📱</span>
+        <div class="stat-number">Mobile <span>Ready</span></div>
+        <div class="stat-label">Attempt Anywhere</div>
       </div>
     </div>
   </div>
@@ -115,7 +205,7 @@
     <div class="section-heading">
       <span class="section-label">Test Series</span>
       <h2 id="exams-heading">Choose Your Exam</h2>
-      <p>Curated mock tests crafted by subject matter experts, aligned with the latest exam patterns and syllabi.</p>
+      <p>We currently offer full-length mock tests for AIBE XXI. More series — CLAT, Judiciary, UPSC, SSC CGL, and Current Affairs — are coming soon.</p>
     </div>
 
     <% if (exams.length === 0) { %>
@@ -125,17 +215,16 @@
         <p>Check back soon — we're adding new test series.</p>
       </div>
     <% } else { %>
-
       <%
-        // Group exams by category
         const grouped = {};
         exams.forEach(exam => {
           const cat = exam.category || 'Other';
           if (!grouped[cat]) grouped[cat] = [];
           grouped[cat].push(exam);
         });
-        const categoryOrder = ['Judiciary','Law Entrance','SSC','Banking','UPSC','State PSC','Railway','Defence','Teaching','Other'];
+        const categoryOrder = ['Law Entrance','Judiciary','SSC','Banking','UPSC','State PSC','Railway','Defence','Teaching','Other'];
         const sortedCategories = categoryOrder.filter(c => grouped[c]);
+        Object.keys(grouped).forEach(c => { if (!sortedCategories.includes(c)) sortedCategories.push(c); });
       %>
 
       <div class="exam-categories-wrap">
@@ -152,47 +241,74 @@
                    class="exam-card-item"
                    aria-label="<%= exam.name %> mock test series"
                    itemscope itemtype="https://schema.org/Course">
-                  <div class="exam-ci-top">
+
+                  <!-- Header band -->
+                  <div class="exam-ci-header">
                     <div class="exam-ci-icon-wrap" aria-hidden="true"><%= exam.icon || '📚' %></div>
-                    <div class="exam-ci-title" itemprop="name"><%= exam.name %></div>
+                    <div class="exam-ci-headtext">
+                      <div class="exam-ci-title" itemprop="name"><%= exam.name %></div>
+                      <% if (exam.conductedBy) { %>
+                        <div class="exam-ci-by">by <%= exam.conductedBy %></div>
+                      <% } %>
+                    </div>
                   </div>
-                  <% if (exam.description) { %>
-                    <div class="exam-ci-desc" itemprop="description"><%= exam.description %></div>
-                  <% } %>
-                  <div class="exam-ci-tags">
-                    <% if (exam.examLevel) { %>
-                      <span class="exam-tag-pill exam-tag-level"><%= exam.examLevel === 'National' ? '🇮🇳' : exam.examLevel === 'State' ? '📍' : '🏛️' %> <%= exam.examLevel %></span>
+
+                  <!-- Body -->
+                  <div class="exam-ci-body">
+                    <% if (exam.description) { %>
+                      <div class="exam-ci-desc" itemprop="description"><%= exam.description %></div>
                     <% } %>
-                    <% if (exam.language && exam.language.length > 0) { %>
-                      <span class="exam-tag-pill exam-tag-lang">🌐 <%= exam.language[0] %></span>
-                    <% } %>
-                    <% if (exam.frequency) { %>
-                      <span class="exam-tag-pill exam-tag-freq">🔄 <%= exam.frequency %></span>
+
+                    <!-- All tag pills -->
+                    <div class="exam-ci-tags">
+                      <% if (exam.examLevel) { %>
+                        <span class="exam-tag-pill exam-tag-level">
+                          <%= exam.examLevel === 'National' ? '🇮🇳' : exam.examLevel === 'State' ? '📍' : '🏛️' %>
+                          <%= exam.examLevel %>
+                        </span>
+                      <% } %>
+                      <% if (exam.language && exam.language.length > 0) { %>
+                        <% exam.language.forEach(lang => { %>
+                          <span class="exam-tag-pill exam-tag-lang">🌐 <%= lang %></span>
+                        <% }) %>
+                      <% } %>
+                      <% if (exam.frequency) { %>
+                        <span class="exam-tag-pill exam-tag-freq">🔄 <%= exam.frequency %></span>
+                      <% } %>
+                    </div>
+
+                    <% if (exam.eligibility) { %>
+                      <div class="exam-ci-elig">
+                        <strong>Eligibility:</strong> <%= exam.eligibility %>
+                      </div>
                     <% } %>
                   </div>
+
+                  <!-- Footer -->
                   <div class="exam-ci-footer">
                     <div class="exam-ci-stats">
                       <% if (exam.totalMarks) { %>
                         <div class="exam-ci-stat">
                           <span class="exam-ci-stat-val"><%= exam.totalMarks %></span>
-                          <span class="exam-ci-stat-key">marks</span>
+                          <span class="exam-ci-stat-key">Marks</span>
                         </div>
                       <% } %>
                       <% if (exam.examDuration) { %>
                         <div class="exam-ci-stat">
                           <span class="exam-ci-stat-val"><%= exam.examDuration %></span>
+                          <span class="exam-ci-stat-key">Duration</span>
                         </div>
                       <% } %>
                     </div>
-                    <span class="exam-ci-cta">View Tests →</span>
+                    <span class="exam-ci-cta">Explore Tests →</span>
                   </div>
+
                 </a>
               <% }) %>
             </div>
           </div>
         <% }) %>
       </div>
-
     <% } %>
   </div>
 </section>
@@ -203,66 +319,66 @@
     <div class="section-heading">
       <span class="section-label">How It Works</span>
       <h2 id="how-heading">Your Path to Success in 3 Steps</h2>
-      <p>From choosing your exam to cracking it — MockOrbit guides every step of your preparation journey.</p>
+      <p>From choosing your exam to analysing your performance — MockOrbit guides every step of your preparation.</p>
     </div>
     <div class="how-steps">
       <div class="how-step">
         <div class="how-step-num" aria-hidden="true">1</div>
         <h4>Pick Your Exam</h4>
-        <p>Browse from Judiciary, CLAT, SSC CGL, and 20+ competitive exams. Choose a test series tailored to your target.</p>
+        <p>Browse our available test series. We currently offer AIBE XXI mock tests, with CLAT, Judiciary, UPSC, SSC CGL, and Current Affairs series coming soon.</p>
       </div>
       <div class="how-step">
         <div class="how-step-num" aria-hidden="true">2</div>
         <h4>Take Mock Tests</h4>
-        <p>Attempt full-length tests under real exam conditions — timed, auto-saved, with a live question palette.</p>
+        <p>Attempt full-length timed tests under real exam conditions — auto-saved, with a live question palette just like the actual exam.</p>
       </div>
       <div class="how-step">
         <div class="how-step-num" aria-hidden="true">3</div>
-        <h4>Analyse & Improve</h4>
-        <p>Review your rank, percentile, weak areas, and detailed solutions. Know exactly where to improve.</p>
+        <h4>Analyse &amp; Improve</h4>
+        <p>Review your rank, topic-wise scores, and detailed answer explanations. Know exactly which areas need more focus before exam day.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===== WHY MOCKORBIT ===== -->
+<!-- ===== PLATFORM FEATURES ===== -->
 <section class="section" aria-labelledby="features-heading">
   <div class="container">
     <div class="section-heading">
       <span class="section-label">Platform Features</span>
-      <h2 id="features-heading">Everything You Need to Crack Your Exam</h2>
-      <p>Built specifically for serious competitive exam aspirants who want more than just practice questions.</p>
+      <h2 id="features-heading">Everything You Need to Prepare</h2>
+      <p>Built for serious exam aspirants who want structured, data-driven preparation.</p>
     </div>
     <div class="features-grid" role="list">
       <div class="feature-card" role="listitem">
         <div class="feature-icon" aria-hidden="true">🎯</div>
         <h4>Exam-Pattern Questions</h4>
-        <p>Every question is crafted by domain experts to match the latest exam pattern, syllabus, and difficulty level — no generic filler content.</p>
+        <p>Questions are crafted to match the structure, syllabus, and difficulty of the actual exam — so your practice closely mirrors what you'll face on test day.</p>
       </div>
       <div class="feature-card" role="listitem">
         <div class="feature-icon" aria-hidden="true">📊</div>
-        <h4>Live Rank & Percentile</h4>
-        <p>See where you stand among thousands of aspirants with real-time rank updates, percentile score, and performance benchmarks.</p>
+        <h4>Rank &amp; Percentile</h4>
+        <p>See where you stand among all aspirants who have attempted the same test. Your rank updates as more students submit — a real preparation benchmark.</p>
       </div>
       <div class="feature-card" role="listitem">
         <div class="feature-icon" aria-hidden="true">💡</div>
-        <h4>Expert-Explained Solutions</h4>
-        <p>Each question includes a detailed solution with legal reasoning, references, or methodology — learn as you review your test.</p>
+        <h4>Detailed Explanations</h4>
+        <p>Every question comes with a clear explanation of the correct answer — the relevant provision, case law, or reasoning — so you learn as you review.</p>
       </div>
       <div class="feature-card" role="listitem">
         <div class="feature-icon" aria-hidden="true">🧠</div>
-        <h4>Weak-Area Diagnostics</h4>
-        <p>Our analytics engine identifies your weak topics and recommends focused practice areas after every test attempt.</p>
+        <h4>Topic-Wise Analytics</h4>
+        <p>After every attempt, see your score broken down by topic. Identify where you're losing marks and focus your revision where it matters most.</p>
       </div>
       <div class="feature-card" role="listitem">
         <div class="feature-icon" aria-hidden="true">⏱️</div>
         <h4>Real Exam Simulation</h4>
-        <p>Full-length tests with countdown timer, negative marking, auto-submit, and question navigation — exactly like the real exam.</p>
+        <p>Full-length timed tests with auto-submit and question navigation — formatted to match the actual exam experience as closely as possible.</p>
       </div>
       <div class="feature-card" role="listitem">
         <div class="feature-icon" aria-hidden="true">🏛️</div>
         <h4>Institute Dashboard</h4>
-        <p>Schools, coaching centres, and colleges can assign tests, track every student's performance, and export reports in one click.</p>
+        <p>Any educational institution can assign tests, track student performance across batches, and download result reports — all from one dashboard.</p>
       </div>
     </div>
   </div>
@@ -275,47 +391,44 @@
       <div class="org-text">
         <span class="section-label" style="color: var(--accent);">For Institutions</span>
         <h2 id="org-heading" style="color:white; margin-top:8px;">Empower Your Students with MockOrbit</h2>
-        <p>Join 150+ schools, coaching centres, and colleges already using MockOrbit to assign tests, track student progress, and generate performance reports — all from a single dashboard.</p>
+        <p>Partner with MockOrbit to assign tests to your students, track their progress, and generate detailed performance reports — all from a single dashboard.</p>
         <div class="org-features">
           <div class="org-feature-item">
             <div class="org-feature-icon" aria-hidden="true">👥</div>
             <div>
               <strong>Manage Students</strong>
-              <p>Add students by mobile number, organise them into batches, and view individual progress in real time.</p>
+              <p>Add students, organise them into batches, and view individual progress in real time.</p>
             </div>
           </div>
           <div class="org-feature-item">
             <div class="org-feature-icon" aria-hidden="true">📋</div>
             <div>
-              <strong>Assign Tests & Set Deadlines</strong>
-              <p>Assign any test from our library to all students or a specific batch — with optional due date and instructions.</p>
+              <strong>Assign Tests &amp; Set Deadlines</strong>
+              <p>Assign any test from our library to your students — with optional due dates and instructions.</p>
             </div>
           </div>
           <div class="org-feature-item">
             <div class="org-feature-icon" aria-hidden="true">📈</div>
             <div>
-              <strong>Track Results & Export Reports</strong>
-              <p>View rank, score, time taken, and weak areas for every student. Download CSV reports for parent-teacher meetings.</p>
+              <strong>Track Results &amp; Export Reports</strong>
+              <p>View rank, score, and topic-wise performance for every student. Download CSV reports easily.</p>
             </div>
           </div>
         </div>
         <div class="hero-cta" style="justify-content:flex-start;">
           <a href="/org/register" class="btn btn-primary btn-lg" aria-label="Register your institution on MockOrbit">Register Institution</a>
-          <a href="/org/login" class="btn btn-outline-white btn-lg" aria-label="Login to your institution dashboard" style="color:rgba(255,255,255,0.8);border-color:rgba(255,255,255,0.3);">Login</a>
+          <a href="/org/login" class="btn btn-outline-white btn-lg" style="color:rgba(255,255,255,0.8);border-color:rgba(255,255,255,0.3);">Login</a>
         </div>
       </div>
       <div class="org-card">
-        <p class="org-card-title" aria-label="Institution types we support">🏛️ Who Can Join MockOrbit?</p>
+        <p class="org-card-title">🏛️ Who Can Join MockOrbit?</p>
         <div class="org-types" role="list">
-          <div class="org-type-item" role="listitem">🏫 Schools & Colleges</div>
+          <div class="org-type-item" role="listitem">🏫 Schools &amp; Colleges</div>
           <div class="org-type-item" role="listitem">📚 Coaching Centres</div>
-          <div class="org-type-item" role="listitem">⚖️ Law Academies</div>
-          <div class="org-type-item" role="listitem">🏛️ Judiciary Institutes</div>
-          <div class="org-type-item" role="listitem">📝 SSC / Banking Academies</div>
-          <div class="org-type-item" role="listitem">🎓 Universities</div>
+          <div class="org-type-item" role="listitem">🎓 Universities &amp; Departments</div>
+          <div class="org-type-item" role="listitem">🏢 Any Educational Institution</div>
         </div>
         <div style="margin-top:24px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.12);">
-          <p style="color:rgba(255,255,255,0.6); font-size:0.82rem; margin-bottom:10px;">Already trusted by:</p>
           <div style="display:flex; flex-direction:column; gap:8px;">
             <div style="color:rgba(255,255,255,0.75); font-size:0.85rem;">✓ &nbsp;Free to join — no setup fee</div>
             <div style="color:rgba(255,255,255,0.75); font-size:0.85rem;">✓ &nbsp;Unlimited student accounts</div>
@@ -328,26 +441,17 @@
   </div>
 </section>
 
-<!-- ===== TESTIMONIALS ===== -->
-<%
-  const fallbackTestimonials = [
-    { name: 'Aditya Sharma', role: 'PCS-J Qualifier, 2024 · Allahabad', rating: 5, text: "MockOrbit's Judiciary mock tests are the closest to the real exam. The weak-area reports helped me focus on Constitutional Law — cleared PCS-J in my first attempt!" },
-    { name: 'Priya Menon', role: 'CLAT AIR 42 · NLS Bangalore', rating: 5, text: "I attempted 40+ mocks on MockOrbit before CLAT. The live ranking after every test gave me a realistic picture of where I stood. Scored 98th percentile!" },
-    { name: 'Rohit Verma', role: 'SSC CGL Qualifier · Inspector Post', rating: 5, text: "The SSC CGL series on MockOrbit is phenomenal — detailed solutions, exact negative marking, and a dashboard that shows progress over time. Scored 178/200 in Tier I." }
-  ];
-  const displayTestimonials = (testimonials && testimonials.length >= 3) ? testimonials.slice(0,6) : fallbackTestimonials;
-%>
+<!-- ===== TESTIMONIALS (only if real data exists) ===== -->
+<% if (testimonials && testimonials.length > 0) { %>
 <section class="section" style="background:var(--canvas-soft); border-top:1px solid var(--border);" aria-labelledby="testimonials-heading">
   <div class="container">
     <div class="section-heading">
-      <span class="section-label">Student Stories</span>
-      <h2 id="testimonials-heading">What Toppers Are Saying</h2>
-      <p>Real results from students who prepared with MockOrbit and cracked their target exams.</p>
+      <span class="section-label">Student Feedback</span>
+      <h2 id="testimonials-heading">What Students Are Saying</h2>
+      <p>Feedback from students who have used MockOrbit to prepare for their exams.</p>
     </div>
-
-    <!-- Slider -->
     <div class="testimonials-slider" id="testimonialSlider" aria-label="Student reviews">
-      <% displayTestimonials.forEach(t => { %>
+      <% testimonials.slice(0, 6).forEach(t => { %>
         <article class="testimonial-card">
           <div class="testimonial-stars" aria-label="<%= t.rating %> star rating">
             <%= '★'.repeat(t.rating) %><%= '☆'.repeat(5 - t.rating) %>
@@ -363,8 +467,6 @@
         </article>
       <% }) %>
     </div>
-
-    <!-- Slider controls -->
     <div class="slider-nav" aria-label="Slider navigation">
       <button class="slider-arrow" id="sliderPrev" aria-label="Previous reviews">‹</button>
       <div id="sliderDots" style="display:flex;gap:6px;align-items:center;"></div>
@@ -372,6 +474,7 @@
     </div>
   </div>
 </section>
+<% } %>
 
 <!-- ===== FAQ ===== -->
 <section class="section" aria-labelledby="faq-heading">
@@ -381,35 +484,35 @@
       <h2 id="faq-heading">Frequently Asked Questions</h2>
       <p>Everything you need to know about MockOrbit before you get started.</p>
     </div>
-
     <div class="faq-list" role="list" itemscope itemtype="https://schema.org/FAQPage">
+
       <div class="faq-item" role="listitem" itemscope itemtype="https://schema.org/Question" itemprop="mainEntity">
         <button class="faq-question" aria-expanded="false" aria-controls="faq-1" itemprop="name">
           Is MockOrbit free to use?
           <span class="faq-icon" aria-hidden="true">+</span>
         </button>
         <div class="faq-answer" id="faq-1" role="region" itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer">
-          <p itemprop="text">Yes! Creating an account and browsing all exam categories is completely free. We offer both free preview questions and paid full-length test series. Individual test series are available at affordable one-time prices with no subscription required.</p>
+          <p itemprop="text">Creating an account and browsing exam categories is completely free. We offer both free preview questions and paid full-length test series at a one-time price — no subscription required.</p>
         </div>
       </div>
 
       <div class="faq-item" role="listitem" itemscope itemtype="https://schema.org/Question" itemprop="mainEntity">
         <button class="faq-question" aria-expanded="false" aria-controls="faq-2" itemprop="name">
-          How is MockOrbit different from other mock test platforms?
+          Which exams does MockOrbit currently cover?
           <span class="faq-icon" aria-hidden="true">+</span>
         </button>
         <div class="faq-answer" id="faq-2" role="region" itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer">
-          <p itemprop="text">MockOrbit is purpose-built for focused exam preparation. Every question is curated by subject experts, not scraped or AI-generated. We provide live rank among all test takers, detailed weak-area analytics, and an Institute Portal for coaching centres to manage their students — features most platforms don't offer together.</p>
+          <p itemprop="text">MockOrbit currently offers full-length mock tests for AIBE XXI (All India Bar Examination). We are actively working on adding CLAT, Judiciary (PCS-J / HJS), UPSC, SSC CGL, and Current Affairs series. Contact us to be notified when your exam is added.</p>
         </div>
       </div>
 
       <div class="faq-item" role="listitem" itemscope itemtype="https://schema.org/Question" itemprop="mainEntity">
         <button class="faq-question" aria-expanded="false" aria-controls="faq-3" itemprop="name">
-          Which exams does MockOrbit cover?
+          What is AIBE and who should take this mock test?
           <span class="faq-icon" aria-hidden="true">+</span>
         </button>
         <div class="faq-answer" id="faq-3" role="region" itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer">
-          <p itemprop="text">MockOrbit currently covers Judiciary (PCS-J, HJS), CLAT, SSC CGL, SSC CHSL, Banking (IBPS PO/Clerk), UPSC prelims preparation, and more. We are continuously adding new exam categories. If your target exam is not listed, contact us and we'll prioritise it.</p>
+          <p itemprop="text">AIBE (All India Bar Examination) is a mandatory qualifying exam conducted by the Bar Council of India Trust for advocates who wish to practise law in India. If you are an LLB or BA LLB graduate enrolled with a State Bar Council and appearing in AIBE XXI (June 2026), our mock covers all 19 law topics across 380 questions — matching the actual exam pattern with open-book format and no negative marking.</p>
         </div>
       </div>
 
@@ -419,17 +522,17 @@
           <span class="faq-icon" aria-hidden="true">+</span>
         </button>
         <div class="faq-answer" id="faq-4" role="region" itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer">
-          <p itemprop="text">After you submit a test, MockOrbit instantly calculates your rank compared to every student who has attempted that test. Your rank updates in real-time as more students submit. You also get your percentile score, which shows what percentage of students you scored higher than — a strong indicator of your exam readiness.</p>
+          <p itemprop="text">After submitting a test, MockOrbit instantly calculates your rank compared to all other students who have attempted the same test. You also get your percentile score — showing what percentage of students you scored higher than.</p>
         </div>
       </div>
 
       <div class="faq-item" role="listitem" itemscope itemtype="https://schema.org/Question" itemprop="mainEntity">
         <button class="faq-question" aria-expanded="false" aria-controls="faq-5" itemprop="name">
-          Can coaching centres use MockOrbit for their students?
+          Can coaching centres and institutions use MockOrbit?
           <span class="faq-icon" aria-hidden="true">+</span>
         </button>
         <div class="faq-answer" id="faq-5" role="region" itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer">
-          <p itemprop="text">Absolutely. MockOrbit's Institute Portal is designed for coaching centres, schools, and colleges. You can register your institution, add students, assign specific tests to batches, set deadlines, and track every student's score, rank, and weak areas from a dedicated dashboard — all at no additional cost.</p>
+          <p itemprop="text">Yes. Any educational institution — coaching centres, schools, colleges, or universities — can register on MockOrbit for free. You get a dedicated dashboard to add students, assign tests, set deadlines, and track performance across your entire batch.</p>
         </div>
       </div>
 
@@ -442,6 +545,7 @@
           <p itemprop="text">MockOrbit uses email OTP-based login — enter your email address, receive a 6-digit OTP in your inbox, and you're in. No passwords to remember. Sessions remain active for 7 days on trusted devices.</p>
         </div>
       </div>
+
     </div>
   </div>
 </section>
@@ -450,35 +554,43 @@
 <section class="cta-banner" aria-labelledby="cta-heading">
   <div class="container">
     <h2 id="cta-heading">Your Rank Awaits.<br>Start Preparing Today.</h2>
-    <p>Join 50,000+ students already on their <em>Mission for Academic Rank & Success</em>.</p>
+    <p><em>Mission for Academic Rank &amp; Success</em> — take your first full-length mock test free.</p>
     <div class="cta-actions">
       <% if (!user) { %>
         <a href="/auth/login" class="btn btn-white btn-lg" aria-label="Create a free MockOrbit account">Start Free Today</a>
       <% } else { %>
-        <a href="/dashboard" class="btn btn-white btn-lg" aria-label="Go to your test dashboard">Go to Dashboard</a>
+        <a href="/dashboard" class="btn btn-white btn-lg">Go to Dashboard</a>
       <% } %>
-      <a href="/org/register" class="btn btn-outline-white btn-lg" aria-label="Register institution on MockOrbit">Register Your Institute</a>
+      <a href="/org/register" class="btn btn-outline-white btn-lg">Register Your Institute</a>
     </div>
   </div>
 </section>
 
 <%- include('partials/footer') %>
 
-<!-- FAQ Accordion Script -->
 <script>
 document.querySelectorAll('.faq-question').forEach(btn => {
   btn.addEventListener('click', () => {
     const expanded = btn.getAttribute('aria-expanded') === 'true';
-    // Close all
     document.querySelectorAll('.faq-question').forEach(b => {
       b.setAttribute('aria-expanded', 'false');
       document.getElementById(b.getAttribute('aria-controls')).classList.remove('open');
     });
-    // Open clicked if it was closed
     if (!expanded) {
       btn.setAttribute('aria-expanded', 'true');
       document.getElementById(btn.getAttribute('aria-controls')).classList.add('open');
     }
   });
 });
+
+// Mock showcase carousel arrows
+(function() {
+  const track = document.getElementById('mockTrack');
+  const prev  = document.getElementById('mockPrev');
+  const next  = document.getElementById('mockNext');
+  if (!track || !prev || !next) return;
+  const scrollBy = 318;
+  prev.addEventListener('click', () => track.scrollBy({ left: -scrollBy, behavior: 'smooth' }));
+  next.addEventListener('click', () => track.scrollBy({ left:  scrollBy, behavior: 'smooth' }));
+})();
 </script>
