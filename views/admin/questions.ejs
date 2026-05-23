@@ -144,38 +144,108 @@
 
 <!-- Bulk Import Questions Modal -->
 <div class="modal-backdrop" id="bulkQModal">
-  <div class="modal" style="max-width:520px;">
+  <div class="modal" style="max-width:540px;">
     <div class="modal-header">
       <h4 style="font-family:'DM Sans';">Bulk Import Questions</h4>
       <button class="modal-close" onclick="closeModal('bulkQModal')">✕</button>
     </div>
     <div style="padding:20px 24px;">
-      <div class="alert" style="background:var(--canvas-soft); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:16px;">
-        <p style="font-size:0.82rem; font-weight:600; color:var(--ink); margin-bottom:6px;">Required CSV columns</p>
-        <code style="font-size:0.72rem; color:var(--ink-soft); display:block; background:var(--canvas); padding:8px 10px; border-radius:6px; border:1px solid var(--border); word-break:break-all;">question,optionA,optionB,optionC,optionD,correctAnswer,explanation,tag</code>
-        <p style="font-size:0.73rem; color:var(--ink-muted); margin-top:6px;"><strong>correctAnswer</strong>: A / B / C / D (or 0 / 1 / 2 / 3)</p>
+
+      <!-- Tabs -->
+      <div style="display:flex; gap:0; border-bottom:2px solid var(--border); margin-bottom:20px;">
+        <button id="tabExcel" onclick="switchImportTab('excel')" style="padding:8px 18px; font-size:0.85rem; font-weight:600; border:none; background:none; cursor:pointer; border-bottom:2px solid var(--primary); margin-bottom:-2px; color:var(--primary);">📊 Excel (.xlsx)</button>
+        <button id="tabCsv" onclick="switchImportTab('csv')" style="padding:8px 18px; font-size:0.85rem; font-weight:600; border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; color:var(--ink-muted);">📄 CSV</button>
       </div>
-      <a href="data:text/csv;charset=utf-8,question%2CoptionA%2CoptionB%2CoptionC%2CoptionD%2CcorrectAnswer%2Cexplanation%2Ctag%0ASample+question%3F%2COption+1%2COption+2%2COption+3%2COption+4%2CA%2CBecause...%2CGeneral"
-         download="questions_template.csv"
-         class="btn btn-outline btn-sm btn-block" style="margin-bottom:16px;">
-        ⬇ Download Template
-      </a>
-      <form action="/admin/questions/bulk-import" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="testId" value="<%= testId || '' %>">
-        <div class="form-group">
-          <label class="form-label" for="qCsvFile">Select CSV File <span style="color:var(--danger)">*</span></label>
-          <input type="file" id="qCsvFile" name="csvFile" class="form-control" accept=".csv,text/csv" required>
+
+      <!-- Excel Panel -->
+      <div id="panelExcel">
+        <div class="alert" style="background:var(--canvas-soft); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:16px;">
+          <p style="font-size:0.82rem; font-weight:600; color:var(--ink); margin-bottom:6px;">Required Excel columns (row 1 = headers)</p>
+          <code style="font-size:0.72rem; color:var(--ink-soft); display:block; background:var(--canvas); padding:8px 10px; border-radius:6px; border:1px solid var(--border); word-break:break-all;">question | optionA | optionB | optionC | optionD | correctAnswer | explanation | tag</code>
+          <p style="font-size:0.73rem; color:var(--ink-muted); margin-top:6px;"><strong>correctAnswer</strong>: A / B / C / D (or 0 / 1 / 2 / 3)</p>
         </div>
-        <div style="display:flex; gap:12px; margin-top:8px;">
-          <button type="submit" class="btn btn-primary" style="flex:1;" <%= !testId ? 'disabled title="Select a test first"' : '' %>>
-            Import Questions
-          </button>
-          <button type="button" class="btn btn-outline" onclick="closeModal('bulkQModal')">Cancel</button>
+        <a id="excelTemplateLink" href="#" download="questions_template.xlsx" onclick="downloadExcelTemplate(event)"
+           class="btn btn-outline btn-sm btn-block" style="margin-bottom:16px;">
+          ⬇ Download Excel Template
+        </a>
+        <form action="/admin/questions/excel-import" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="testId" value="<%= testId || '' %>">
+          <div class="form-group">
+            <label class="form-label" for="qExcelFile">Select Excel File (.xlsx) <span style="color:var(--danger)">*</span></label>
+            <input type="file" id="qExcelFile" name="excelFile" class="form-control" accept=".xlsx,.xls" required>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:8px;">
+            <button type="submit" class="btn btn-primary" style="flex:1;" <%= !testId ? 'disabled title="Select a test first"' : '' %>>
+              Import from Excel
+            </button>
+            <button type="button" class="btn btn-outline" onclick="closeModal('bulkQModal')">Cancel</button>
+          </div>
+          <% if (!testId) { %><p style="font-size:0.76rem; color:var(--warning); margin-top:8px;">⚠ Select a test from the dropdown first.</p><% } %>
+        </form>
+      </div>
+
+      <!-- CSV Panel -->
+      <div id="panelCsv" style="display:none;">
+        <div class="alert" style="background:var(--canvas-soft); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:16px;">
+          <p style="font-size:0.82rem; font-weight:600; color:var(--ink); margin-bottom:6px;">Required CSV columns</p>
+          <code style="font-size:0.72rem; color:var(--ink-soft); display:block; background:var(--canvas); padding:8px 10px; border-radius:6px; border:1px solid var(--border); word-break:break-all;">question,optionA,optionB,optionC,optionD,correctAnswer,explanation,tag</code>
+          <p style="font-size:0.73rem; color:var(--ink-muted); margin-top:6px;"><strong>correctAnswer</strong>: A / B / C / D (or 0 / 1 / 2 / 3)</p>
         </div>
-        <% if (!testId) { %><p style="font-size:0.76rem; color:var(--warning); margin-top:8px;">⚠ Select a test from the dropdown first.</p><% } %>
-      </form>
+        <a href="data:text/csv;charset=utf-8,question%2CoptionA%2CoptionB%2CoptionC%2CoptionD%2CcorrectAnswer%2Cexplanation%2Ctag%0ASample+question%3F%2COption+1%2COption+2%2COption+3%2COption+4%2CA%2CBecause...%2CGeneral"
+           download="questions_template.csv"
+           class="btn btn-outline btn-sm btn-block" style="margin-bottom:16px;">
+          ⬇ Download CSV Template
+        </a>
+        <form action="/admin/questions/bulk-import" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="testId" value="<%= testId || '' %>">
+          <div class="form-group">
+            <label class="form-label" for="qCsvFile">Select CSV File <span style="color:var(--danger)">*</span></label>
+            <input type="file" id="qCsvFile" name="csvFile" class="form-control" accept=".csv,text/csv" required>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:8px;">
+            <button type="submit" class="btn btn-primary" style="flex:1;" <%= !testId ? 'disabled title="Select a test first"' : '' %>>
+              Import from CSV
+            </button>
+            <button type="button" class="btn btn-outline" onclick="closeModal('bulkQModal')">Cancel</button>
+          </div>
+          <% if (!testId) { %><p style="font-size:0.76rem; color:var(--warning); margin-top:8px;">⚠ Select a test from the dropdown first.</p><% } %>
+        </form>
+      </div>
+
     </div>
   </div>
 </div>
+
+<script>
+function switchImportTab(tab) {
+  document.getElementById('panelExcel').style.display = tab === 'excel' ? '' : 'none';
+  document.getElementById('panelCsv').style.display   = tab === 'csv'   ? '' : 'none';
+  document.getElementById('tabExcel').style.borderBottomColor = tab === 'excel' ? 'var(--primary)' : 'transparent';
+  document.getElementById('tabExcel').style.color = tab === 'excel' ? 'var(--primary)' : 'var(--ink-muted)';
+  document.getElementById('tabCsv').style.borderBottomColor = tab === 'csv' ? 'var(--primary)' : 'transparent';
+  document.getElementById('tabCsv').style.color = tab === 'csv' ? 'var(--primary)' : 'var(--ink-muted)';
+}
+
+function downloadExcelTemplate(e) {
+  e.preventDefault();
+  // Build a minimal xlsx using SheetJS CDN (loaded below) or fall back to CSV
+  if (typeof XLSX !== 'undefined') {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['question','optionA','optionB','optionC','optionD','correctAnswer','explanation','tag'],
+      ['Sample question text?','Option 1','Option 2','Option 3','Option 4','A','Because option A is correct.','Constitutional Law'],
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Questions');
+    XLSX.writeFile(wb, 'questions_template.xlsx');
+  } else {
+    // Fallback: download CSV
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,question%2CoptionA%2CoptionB%2CoptionC%2CoptionD%2CcorrectAnswer%2Cexplanation%2Ctag%0ASample+question%3F%2COption+1%2COption+2%2COption+3%2COption+4%2CA%2CBecause...%2CConstitutional+Law';
+    a.download = 'questions_template.csv';
+    a.click();
+  }
+}
+</script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
 <%- include('layout-bottom') %>

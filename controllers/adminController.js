@@ -322,6 +322,89 @@ exports.bulkImportQuestions = async (req, res) => {
   res.redirect(`/admin/questions?testId=${testId}`);
 };
 
+exports.bulkImportExcel = async (req, res) => {
+  const testId = req.body.testId || req.query.testId;
+  try {
+    if (!req.file) {
+      req.flash('error', 'Please upload an Excel file (.xlsx).');
+      return res.redirect(`/admin/questions?testId=${testId}`);
+    }
+    if (!testId) {
+      req.flash('error', 'Please select a test first.');
+      return res.redirect('/admin/questions');
+    }
+
+    const XLSX = require('xlsx');
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+
+    if (!rows.length) {
+      req.flash('error', 'Excel file is empty or has no data rows.');
+      return res.redirect(`/admin/questions?testId=${testId}`);
+    }
+
+    // Normalise header names (case-insensitive, strip spaces)
+    const normalise = str => String(str).toLowerCase().replace(/\s+/g, '');
+    const headers = Object.keys(rows[0]).reduce((map, key) => {
+      map[normalise(key)] = key;
+      return map;
+    }, {});
+
+    const col = name => headers[name] || headers[normalise(name)];
+
+    const qCol   = col('question');
+    const aCol   = col('optiona');
+    const bCol   = col('optionb');
+    const cCol   = col('optionc');
+    const dCol   = col('optiond');
+    const ansCol = col('correctanswer');
+    const expCol = col('explanation');
+    const tagCol = col('tag');
+
+    if (!qCol || !aCol || !ansCol) {
+      req.flash('error', 'Excel must have columns: question, optionA, optionB, optionC, optionD, correctAnswer');
+      return res.redirect(`/admin/questions?testId=${testId}`);
+    }
+
+    let added = 0, failed = 0;
+    for (const row of rows) {
+      try {
+        const rawAns = String(row[ansCol] || '').trim().toUpperCase();
+        const correctAnswer = ['A', 'B', 'C', 'D'].includes(rawAns)
+          ? ['A', 'B', 'C', 'D'].indexOf(rawAns)
+          : parseInt(rawAns);
+        if (isNaN(correctAnswer) || correctAnswer < 0 || correctAnswer > 3) { failed++; continue; }
+
+        const questionText = String(row[qCol] || '').trim();
+        if (!questionText) { failed++; continue; }
+
+        await Question.create({
+          testId,
+          question: questionText,
+          options: [
+            String(row[aCol] || '').trim(),
+            String(row[bCol] || '').trim(),
+            String(row[cCol] || '').trim(),
+            String(row[dCol] || '').trim(),
+          ],
+          correctAnswer,
+          explanation: expCol ? String(row[expCol] || '').trim() : '',
+          tag: tagCol ? (String(row[tagCol] || '').trim() || 'General') : 'General',
+        });
+        added++;
+      } catch { failed++; }
+    }
+
+    await Test.findByIdAndUpdate(testId, { $inc: { totalQuestions: added } });
+    req.flash('success', `Excel import complete — ${added} added, ${failed} failed.`);
+  } catch (err) {
+    console.error('Excel import error:', err);
+    req.flash('error', 'Excel import failed. Ensure the file is a valid .xlsx.');
+  }
+  res.redirect(`/admin/questions?testId=${testId}`);
+};
+
 // Users
 exports.listUsers = async (req, res) => {
   const users = await User.find().sort({ createdAt: -1 }).lean();

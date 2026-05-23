@@ -9,6 +9,13 @@ const csvUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 
   cb(null, file.mimetype === 'text/csv' || file.originalname.endsWith('.csv'));
 }});
 
+const excelUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => {
+  const ok = file.originalname.endsWith('.xlsx') || file.originalname.endsWith('.xls') ||
+              file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+              file.mimetype === 'application/vnd.ms-excel';
+  cb(null, ok);
+}});
+
 orgRouter.get('/register', orgController.showRegister);
 orgRouter.post('/register', orgController.register);
 orgRouter.get('/login', orgController.showLogin);
@@ -95,6 +102,7 @@ adminRouter.post('/tests/:id/delete', requireAdmin, adminController.deleteTest);
 adminRouter.get('/questions', requireAdmin, adminController.listQuestions);
 adminRouter.post('/questions', requireAdmin, adminController.createQuestion);
 adminRouter.post('/questions/bulk-import', requireAdmin, csvUpload.single('csvFile'), adminController.bulkImportQuestions);
+adminRouter.post('/questions/excel-import', requireAdmin, excelUpload.single('excelFile'), adminController.bulkImportExcel);
 adminRouter.post('/questions/:id/delete', requireAdmin, adminController.deleteQuestion);
 adminRouter.get('/users', requireAdmin, adminController.listUsers);
 adminRouter.post('/users/:id/login-as', requireAdmin, adminController.loginAsUser);
