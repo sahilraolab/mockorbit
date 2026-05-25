@@ -68,7 +68,11 @@ exports.createExam = async (req, res) => {
 
     await Exam.create({
       name, slug, description, icon: icon || '📚',
-      category, conductedBy, examLevel, eligibility, frequency,
+      category: category || undefined,
+      conductedBy,
+      examLevel: examLevel || undefined,
+      eligibility,
+      frequency: frequency || undefined,
       language, statesApplicable,
       totalVacancies, examDuration, totalMarks, metaDesc,
       isActive: isActive !== 'false',
@@ -95,7 +99,11 @@ exports.updateExam = async (req, res) => {
 
     await Exam.findByIdAndUpdate(req.params.id, {
       name, slug, description, icon,
-      category, conductedBy, examLevel, eligibility, frequency,
+      category: category || undefined,
+      conductedBy,
+      examLevel: examLevel || undefined,
+      eligibility,
+      frequency: frequency || undefined,
       language, statesApplicable,
       totalVacancies, examDuration, totalMarks, metaDesc,
       isActive: isActive !== 'false',

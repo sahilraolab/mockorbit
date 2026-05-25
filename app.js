@@ -29,6 +29,7 @@ app.use(helmet({
         "https://www.google-analytics.com",
         "https://checkout.razorpay.com",
         "https://cdn.razorpay.com",
+        "https://cdn.sheetjs.com",
       ],
       styleSrc:  ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc:   ["'self'", "https://fonts.gstatic.com"],
