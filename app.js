@@ -36,6 +36,7 @@ app.use(helmet({
       imgSrc:    ["'self'", "data:", "https://www.google-analytics.com", "https://www.googletagmanager.com"],
       connectSrc:["'self'", "https://www.google-analytics.com", "https://api.razorpay.com"],
       frameSrc:  ["https://api.razorpay.com"],
+      scriptSrcAttr: ["'unsafe-inline'"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
     }
