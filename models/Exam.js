@@ -42,6 +42,7 @@ const testSeriesSchema = new mongoose.Schema({
   totalMocks: { type: Number, required: true, min: 1 },
   description: { type: String, trim: true },
   features: [{ type: String }],
+  mockLanguages: [{ type: String, trim: true }],  // languages this mock is available in
   previewQuestions: [{
     question: String,
     options: [String],

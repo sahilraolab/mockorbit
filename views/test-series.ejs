@@ -1,18 +1,16 @@
 <%- include('partials/header') %>
 
-<!-- Exam header -->
+<!-- Exam header — kept for SEO (exam name in h1, schema markup) -->
 <section class="ts-exam-hero">
   <div class="container">
-    <a href="/" class="ts-back">← All Exams</a>
+    <a href="/" class="ts-back">← All Series</a>
     <div class="ts-exam-meta">
-      <div class="ts-exam-icon"><%= exam.icon || '📚' %></div>
+      <div class="ts-exam-icon" aria-hidden="true"><%= exam.icon || '📚' %></div>
       <div>
-        <h1 class="ts-exam-title"><%= exam.name %> — Test Series</h1>
-        <p class="ts-exam-sub">
-          <% if (exam.conductedBy) { %><span><%= exam.conductedBy %></span><span class="ts-dot">·</span><% } %>
-          <% if (exam.examLevel) { %><span><%= exam.examLevel %></span><span class="ts-dot">·</span><% } %>
-          <% if (exam.examDuration) { %><span><%= exam.examDuration %></span><% } %>
-        </p>
+        <h1 class="ts-exam-title"><%= exam.name %> — Mock Test Series</h1>
+        <% if (exam.category) { %>
+          <p class="ts-exam-sub"><%= exam.category %> Exam</p>
+        <% } %>
       </div>
     </div>
   </div>
@@ -47,9 +45,7 @@
           <%
             const isPurchased = user && purchasedSeriesForExam &&
               purchasedSeriesForExam.some(ps => ps._id.toString() === s._id.toString());
-            const featureList = s.features && s.features.length > 0
-              ? s.features
-              : ['Exam-pattern questions', 'Detailed explanations', 'All-India rank analytics'];
+            const mockLangsCard = s.mockLanguages && s.mockLanguages.length > 0 ? s.mockLanguages : [];
           %>
 
           <div class="ts-card <%= isPurchased ? 'ts-card-owned' : '' %>">
@@ -59,18 +55,21 @@
               <div class="ts-card-header-left">
                 <div class="ts-card-badges">
                   <span class="ts-badge ts-badge-blue">
-                    📝 <%= s.totalMocks %> Mock<%= s.totalMocks > 1 ? 's' : '' %>
+                    📝 <%= s.totalMocks %> Full-Length Mock<%= s.totalMocks > 1 ? 's' : '' %>
                   </span>
-                  <% if (exam.totalMarks) { %>
-                    <span class="ts-badge ts-badge-gray"><%= exam.totalMarks %> Marks</span>
-                  <% } %>
-                  <% if (exam.examDuration) { %>
-                    <span class="ts-badge ts-badge-gray">⏱ <%= exam.examDuration %></span>
+                  <% if (s.price === 0) { %>
+                    <span class="ts-badge ts-badge-green">Free Access</span>
                   <% } %>
                 </div>
                 <h2 class="ts-card-title"><%= s.title %></h2>
                 <% if (s.description) { %>
                   <p class="ts-card-desc"><%= s.description %></p>
+                <% } %>
+                <% if (mockLangsCard.length > 0) { %>
+                  <div class="ts-mock-langs">
+                    <span class="ts-mock-langs-label">Mock available in</span>
+                    <% mockLangsCard.forEach(l => { %><span class="ts-mock-lang-pill"><%= l %></span><% }) %>
+                  </div>
                 <% } %>
               </div>
               <div class="ts-card-header-right">
@@ -80,14 +79,14 @@
                   </div>
                 <% } else { %>
                   <div class="ts-price-block">
-                    <span class="ts-price">
-                      <% if (s.price === 0) { %>
-                        <span class="ts-price-label">Access Now</span>
-                      <% } else { %>
+                    <% if (s.price === 0) { %>
+                      <span class="ts-price-free-label">Free</span>
+                    <% } else { %>
+                      <span class="ts-price">
                         <span class="ts-price-currency">₹</span><span class="ts-price-amount"><%= s.price.toLocaleString('en-IN') %></span>
                         <span class="ts-price-label">one-time</span>
-                      <% } %>
-                    </span>
+                      </span>
+                    <% } %>
                   </div>
                 <% } %>
               </div>
@@ -96,40 +95,15 @@
             <!-- Features + body -->
             <div class="ts-card-body">
               <div class="ts-card-cols">
-                <!-- Features -->
+                <!-- What's included — from admin input only -->
+                <% if (s.features && s.features.length > 0) { %>
                 <div class="ts-features">
                   <p class="ts-section-label">What's included</p>
                   <ul class="ts-feature-list">
-                    <% featureList.forEach(f => { %>
+                    <% s.features.forEach(f => { %>
                       <li><span class="ts-check" aria-hidden="true">✓</span><%= f %></li>
                     <% }) %>
                   </ul>
-                </div>
-
-                <!-- Exam info panel (only on single card layout) -->
-                <% if (isSingle) { %>
-                <div class="ts-exam-info-panel">
-                  <p class="ts-section-label">Exam Details</p>
-                  <div class="ts-info-rows">
-                    <% if (exam.conductedBy) { %>
-                      <div class="ts-info-row"><span>Conducted by</span><strong><%= exam.conductedBy %></strong></div>
-                    <% } %>
-                    <% if (exam.eligibility) { %>
-                      <div class="ts-info-row"><span>Eligibility</span><strong><%= exam.eligibility %></strong></div>
-                    <% } %>
-                    <% if (exam.examDuration) { %>
-                      <div class="ts-info-row"><span>Duration</span><strong><%= exam.examDuration %></strong></div>
-                    <% } %>
-                    <% if (exam.totalMarks) { %>
-                      <div class="ts-info-row"><span>Total Marks</span><strong><%= exam.totalMarks %></strong></div>
-                    <% } %>
-                    <% if (exam.frequency) { %>
-                      <div class="ts-info-row"><span>Frequency</span><strong><%= exam.frequency %></strong></div>
-                    <% } %>
-                    <% if (exam.language && exam.language.length > 0) { %>
-                      <div class="ts-info-row"><span>Languages</span><strong><%= exam.language.join(', ') %></strong></div>
-                    <% } %>
-                  </div>
                 </div>
                 <% } %>
               </div>

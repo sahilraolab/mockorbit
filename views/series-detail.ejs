@@ -21,19 +21,36 @@
     <div class="card mb-6">
       <div class="flex-between mb-4">
         <div>
-          <div class="price"><span class="price-currency">₹</span><%= series.price.toLocaleString('en-IN') %></div>
-          <div class="price-note">One-time payment · Lifetime access</div>
+          <% if (series.price === 0) { %>
+            <div class="price" style="color:var(--success);">Free</div>
+            <div class="price-note">Full access — no payment needed</div>
+          <% } else { %>
+            <div class="price"><span class="price-currency">₹</span><%= series.price.toLocaleString('en-IN') %></div>
+            <div class="price-note">One-time payment · Lifetime access</div>
+          <% } %>
         </div>
-        <span class="badge badge-green"><%= series.totalMocks %> Mock Tests</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <span class="badge badge-green"><%= series.totalMocks %> Full-Length Mock<%= series.totalMocks > 1 ? 's' : '' %></span>
+          <% if (series.mockLanguages && series.mockLanguages.length > 0) { %>
+            <span style="font-size:0.75rem;color:var(--ink-muted);">
+              🌐 Available in <%= series.mockLanguages.join(' · ') %>
+            </span>
+          <% } %>
+        </div>
       </div>
 
-      <% const featureList = series.features && series.features.length > 0 ? series.features : ['Latest pattern', 'Detailed solutions', 'Rank analysis']; %>
+      <% if (series.features && series.features.length > 0) { %>
       <ul class="feature-list mb-6">
-        <% featureList.forEach(f => { %><li><%= f %></li><% }) %>
+        <% series.features.forEach(f => { %><li><%= f %></li><% }) %>
       </ul>
+      <% } %>
 
       <% if (hasPurchased) { %>
         <a href="/dashboard" class="btn btn-success btn-lg btn-block">Go to Dashboard →</a>
+      <% } else if (series.price === 0) { %>
+        <form method="POST" action="/payment/free-access/<%= series._id %>" style="margin:0;">
+          <button type="submit" class="btn btn-success btn-lg btn-block">Access Now — Free →</button>
+        </form>
       <% } else { %>
         <a href="/payment/checkout/<%= series._id %>" class="btn btn-primary btn-lg btn-block">Buy Now — ₹<%= series.price.toLocaleString('en-IN') %></a>
         <p class="trust-text mt-3">🔒 Secure payment · Instant access</p>

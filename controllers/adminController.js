@@ -134,42 +134,93 @@ exports.listSeries = async (req, res) => {
 };
 
 exports.showCreateSeries = async (req, res) => {
-  const exams = await Exam.find().lean();
+  const exams = await Exam.find().sort({ sortOrder: 1 }).lean();
   res.render('admin/series-form', { title: 'Create Test Series', series: null, exams, error: req.flash('error') });
 };
 
+// Helper: resolve examId — uses existing or creates a new Exam from inline fields
+async function resolveExamId(body) {
+  if (body.examId) return body.examId;
+
+  const ne = body.newExam || {};
+  if (!ne.name) throw new Error('Exam name is required when creating a new exam.');
+
+  const slug = ne.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const language         = ne.language         ? ne.language.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const statesApplicable = ne.statesApplicable ? ne.statesApplicable.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  // Reuse if exam with same slug already exists
+  let exam = await Exam.findOne({ slug });
+  if (!exam) {
+    exam = await Exam.create({
+      name: ne.name, slug,
+      description: ne.description || undefined,
+      icon: ne.icon || '📚',
+      category: ne.category || undefined,
+      examLevel: ne.examLevel || undefined,
+      frequency: ne.frequency || undefined,
+      conductedBy: ne.conductedBy || undefined,
+      eligibility: ne.eligibility || undefined,
+      language, statesApplicable,
+      totalMarks: ne.totalMarks || undefined,
+      examDuration: ne.examDuration || undefined,
+      totalVacancies: ne.totalVacancies || undefined,
+      metaDesc: ne.metaDesc || undefined,
+      isActive: ne.isActive !== 'false',
+      sortOrder: parseInt(ne.sortOrder) || 0
+    });
+  }
+  return exam._id;
+}
+
 exports.createSeries = async (req, res) => {
   try {
-    const { examId, title, price, totalMocks, description, features } = req.body;
+    const { title, price, totalMocks, description, features } = req.body;
+    const examId = await resolveExamId(req.body);
     const featuresArr = features
       ? features.split('\n').map(f => f.trim()).filter(Boolean)
       : ['Latest pattern', 'Detailed solutions', 'Rank analysis'];
-    await TestSeries.create({ examId, title, price: parseFloat(price), totalMocks: parseInt(totalMocks), description, features: featuresArr });
+    const mockLanguages = req.body.mockLanguages
+      ? req.body.mockLanguages.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    await TestSeries.create({
+      examId, title, price: parseFloat(price), totalMocks: parseInt(totalMocks),
+      description, features: featuresArr, mockLanguages
+    });
     req.flash('success', 'Test series created');
     res.redirect('/admin/series');
   } catch (err) {
-    req.flash('error', 'Failed to create series');
+    console.error('createSeries error:', err);
+    req.flash('error', err.message || 'Failed to create series');
     res.redirect('/admin/series/new');
   }
 };
 
 exports.showEditSeries = async (req, res) => {
   const series = await TestSeries.findById(req.params.id).lean();
-  const exams = await Exam.find().lean();
+  const exams = await Exam.find().sort({ sortOrder: 1 }).lean();
   res.render('admin/series-form', { title: 'Edit Test Series', series, exams, error: req.flash('error') });
 };
 
 exports.updateSeries = async (req, res) => {
   try {
-    const { examId, title, price, totalMocks, description, features } = req.body;
+    const { title, price, totalMocks, description, features } = req.body;
+    const examId = await resolveExamId(req.body);
     const featuresArr = features
       ? features.split('\n').map(f => f.trim()).filter(Boolean)
       : [];
-    await TestSeries.findByIdAndUpdate(req.params.id, { examId, title, price: parseFloat(price), totalMocks: parseInt(totalMocks), description, features: featuresArr });
+    const mockLanguages = req.body.mockLanguages
+      ? req.body.mockLanguages.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    await TestSeries.findByIdAndUpdate(req.params.id, {
+      examId, title, price: parseFloat(price), totalMocks: parseInt(totalMocks),
+      description, features: featuresArr, mockLanguages
+    });
     req.flash('success', 'Test series updated');
     res.redirect('/admin/series');
   } catch (err) {
-    req.flash('error', 'Failed to update series');
+    console.error('updateSeries error:', err);
+    req.flash('error', err.message || 'Failed to update series');
     res.redirect('/admin/series');
   }
 };

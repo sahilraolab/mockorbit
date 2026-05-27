@@ -41,57 +41,53 @@
              const examSlug = exam.slug || '';
              const href = examSlug ? '/series/exam/' + examSlug : '/series/' + s._id;
         %>
+        <%
+          const mockLangsSlider = s.mockLanguages && s.mockLanguages.length > 0
+            ? s.mockLanguages : (exam.language || []);
+        %>
         <a href="<%= href %>" class="mock-card" aria-label="<%= s.title %>">
+
+          <!-- Exam context — tiny -->
           <div class="mock-card-top">
-            <div class="mock-card-icon-wrap">
+            <div class="mock-card-icon-wrap" aria-hidden="true">
               <span><%= exam.icon || '📚' %></span>
             </div>
             <div>
               <div class="mock-card-exam-name"><%= exam.name || s.title %></div>
-              <% if (exam.conductedBy) { %><div class="mock-card-by"><%= exam.conductedBy %></div><% } %>
+              <div class="mock-card-series-sub"><%= s.totalMocks %> Full-Length Mock<%= s.totalMocks > 1 ? 's' : '' %></div>
             </div>
+            <% if (s.price === 0) { %><span class="mock-card-free-badge">Free</span><% } %>
           </div>
 
+          <!-- Product info -->
           <div class="mock-card-mid">
             <div class="mock-card-series-title"><%= s.title %></div>
             <% if (s.description) { %>
               <p class="mock-card-desc"><%= s.description %></p>
             <% } %>
-            <% if (exam.language && exam.language.length > 0) { %>
-              <div class="mock-card-langs">
-                <% exam.language.forEach(lang => { %><span class="mock-card-lang">🌐 <%= lang %></span><% }) %>
+
+            <!-- Mock languages — only show if available -->
+            <% if (mockLangsSlider.length > 0) { %>
+              <div class="mock-card-lang-row">
+                <span class="mock-card-lang-label">Mock available in</span>
+                <div class="mock-card-langs">
+                  <% mockLangsSlider.forEach(lang => { %>
+                    <span class="mock-card-lang"><%= lang %></span>
+                  <% }) %>
+                </div>
               </div>
             <% } %>
           </div>
 
-          <div class="mock-card-stats">
-            <% if (s.totalMocks) { %>
-            <div class="mock-stat">
-              <span class="mock-stat-val"><%= s.totalMocks %></span>
-              <span class="mock-stat-lbl">Mock<%= s.totalMocks > 1 ? 's' : '' %></span>
-            </div>
-            <% } %>
-            <% if (exam.totalMarks) { %>
-            <div class="mock-stat">
-              <span class="mock-stat-val"><%= exam.totalMarks %></span>
-              <span class="mock-stat-lbl">Marks</span>
-            </div>
-            <% } %>
-            <% if (exam.examDuration) { %>
-            <div class="mock-stat">
-              <span class="mock-stat-val"><%= exam.examDuration %></span>
-              <span class="mock-stat-lbl">Duration</span>
-            </div>
-            <% } %>
-          </div>
-
+          <!-- CTA -->
           <div class="mock-card-footer">
             <% if (s.price === 0) { %>
-              <span class="mock-card-cta-btn mock-card-cta-free">Access Now — Free →</span>
+              <span class="mock-card-cta-btn mock-card-cta-free">Access Free →</span>
             <% } else { %>
               <span class="mock-card-cta-btn">Buy Now — ₹<%= s.price.toLocaleString('en-IN') %> →</span>
             <% } %>
           </div>
+
         </a>
         <% }) %>
       </div>
@@ -203,116 +199,141 @@
   </div>
 </section>
 
-<!-- ===== EXAM CATEGORIES ===== -->
-<section class="section exam-section" id="exams" aria-labelledby="exams-heading">
+<!-- ===== TEST SERIES ===== -->
+<section class="section ts-section" id="exams" aria-labelledby="ts-heading">
   <div class="container">
     <div class="section-heading">
-      <span class="section-label">Test Series</span>
-      <h2 id="exams-heading">Choose Your Exam</h2>
-      <p>We currently offer full-length mock tests for AIBE XXI. More series — CLAT, Judiciary, UPSC, SSC CGL, and Current Affairs — are coming soon.</p>
+      <span class="section-label">Mock Test Series</span>
+      <h2 id="ts-heading">Find Your Test Series</h2>
+      <p>Full-length mock tests built for the exact pattern of each exam — attempt, rank, and improve.</p>
     </div>
 
-    <% if (exams.length === 0) { %>
+    <% if (series.length === 0) { %>
       <div class="empty-state" role="status">
         <div class="empty-state-icon" aria-hidden="true">📚</div>
-        <h3>No exams yet</h3>
-        <p>Check back soon — we're adding new test series.</p>
+        <h3>No test series yet</h3>
+        <p>Check back soon — we're adding new series.</p>
       </div>
     <% } else { %>
-      <%
-        const grouped = {};
-        exams.forEach(exam => {
-          const cat = exam.category || 'Other';
-          if (!grouped[cat]) grouped[cat] = [];
-          grouped[cat].push(exam);
-        });
-        const categoryOrder = ['Law Entrance','Judiciary','SSC','Banking','UPSC','State PSC','Railway','Defence','Teaching','Other'];
-        const sortedCategories = categoryOrder.filter(c => grouped[c]);
-        Object.keys(grouped).forEach(c => { if (!sortedCategories.includes(c)) sortedCategories.push(c); });
-      %>
 
-      <div class="exam-categories-wrap">
-        <% sortedCategories.forEach(cat => { %>
-          <div class="exam-cat-block">
-            <div class="exam-cat-header">
-              <span class="exam-cat-dot"></span>
-              <span class="exam-cat-name"><%= cat %></span>
-              <span class="exam-cat-count"><%= grouped[cat].length %> exam<%= grouped[cat].length > 1 ? 's' : '' %></span>
-            </div>
-            <div class="exam-card-grid">
-              <% grouped[cat].forEach(exam => { %>
-                <a href="/series/exam/<%= exam.slug %>"
-                   class="exam-card-item"
-                   aria-label="<%= exam.name %> mock test series"
-                   itemscope itemtype="https://schema.org/Course">
+      <!-- Filter bar -->
+      <div class="ts-filter-bar" role="search" aria-label="Filter test series">
 
-                  <!-- Header band -->
-                  <div class="exam-ci-header">
-                    <div class="exam-ci-icon-wrap" aria-hidden="true"><%= exam.icon || '📚' %></div>
-                    <div class="exam-ci-headtext">
-                      <div class="exam-ci-title" itemprop="name"><%= exam.name %></div>
-                      <% if (exam.conductedBy) { %>
-                        <div class="exam-ci-by">by <%= exam.conductedBy %></div>
-                      <% } %>
-                    </div>
-                  </div>
+        <!-- Row 1: Category tabs -->
+        <div class="ts-filter-row">
+          <span class="ts-filter-label" id="catFilterLabel">Category</span>
+          <div class="ts-cat-pills" id="tsCatPills" role="group" aria-labelledby="catFilterLabel">
+            <button class="ts-cat-pill active" data-cat="" aria-pressed="true">All</button>
+            <% categories.forEach(cat => { %>
+              <button class="ts-cat-pill" data-cat="<%= cat %>" aria-pressed="false"><%= cat %></button>
+            <% }) %>
+          </div>
+        </div>
 
-                  <!-- Body -->
-                  <div class="exam-ci-body">
-                    <% if (exam.description) { %>
-                      <div class="exam-ci-desc" itemprop="description"><%= exam.description %></div>
-                    <% } %>
-
-                    <!-- All tag pills -->
-                    <div class="exam-ci-tags">
-                      <% if (exam.examLevel) { %>
-                        <span class="exam-tag-pill exam-tag-level">
-                          <%= exam.examLevel === 'National' ? '🇮🇳' : exam.examLevel === 'State' ? '📍' : '🏛️' %>
-                          <%= exam.examLevel %>
-                        </span>
-                      <% } %>
-                      <% if (exam.language && exam.language.length > 0) { %>
-                        <% exam.language.forEach(lang => { %>
-                          <span class="exam-tag-pill exam-tag-lang">🌐 <%= lang %></span>
-                        <% }) %>
-                      <% } %>
-                      <% if (exam.frequency) { %>
-                        <span class="exam-tag-pill exam-tag-freq">🔄 <%= exam.frequency %></span>
-                      <% } %>
-                    </div>
-
-                    <% if (exam.eligibility) { %>
-                      <div class="exam-ci-elig">
-                        <strong>Eligibility:</strong> <%= exam.eligibility %>
-                      </div>
-                    <% } %>
-                  </div>
-
-                  <!-- Footer -->
-                  <div class="exam-ci-footer">
-                    <div class="exam-ci-stats">
-                      <% if (exam.totalMarks) { %>
-                        <div class="exam-ci-stat">
-                          <span class="exam-ci-stat-val"><%= exam.totalMarks %></span>
-                          <span class="exam-ci-stat-key">Marks</span>
-                        </div>
-                      <% } %>
-                      <% if (exam.examDuration) { %>
-                        <div class="exam-ci-stat">
-                          <span class="exam-ci-stat-val"><%= exam.examDuration %></span>
-                          <span class="exam-ci-stat-key">Duration</span>
-                        </div>
-                      <% } %>
-                    </div>
-                    <span class="exam-ci-cta">Explore Tests →</span>
-                  </div>
-
-                </a>
-              <% }) %>
+        <!-- Row 2: Language + Price -->
+        <div class="ts-filter-row ts-filter-row-secondary">
+          <% if (languages.length > 0) { %>
+          <div class="ts-filter-group">
+            <label class="ts-filter-label" for="tsLangFilter">Language</label>
+            <div class="ts-select-wrap">
+              <select id="tsLangFilter" class="ts-filter-select" aria-label="Filter by mock language">
+                <option value="">All Languages</option>
+                <% languages.forEach(l => { %><option value="<%= l %>"><%= l %></option><% }) %>
+              </select>
             </div>
           </div>
+          <% } %>
+
+          <div class="ts-filter-group">
+            <span class="ts-filter-label" id="priceFilterLabel">Price</span>
+            <div class="ts-price-pills" role="group" aria-labelledby="priceFilterLabel">
+              <button class="ts-price-pill active" data-price="" aria-pressed="true">All</button>
+              <button class="ts-price-pill" data-price="free" aria-pressed="false">Free</button>
+              <button class="ts-price-pill" data-price="paid" aria-pressed="false">Paid</button>
+            </div>
+          </div>
+
+          <button class="ts-clear-btn" id="tsClearFilters" aria-label="Clear all filters" style="display:none;">
+            ✕ Clear filters
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Result count -->
+      <p class="ts-result-count" id="tsCount" aria-live="polite" aria-atomic="true"><%= series.length %> series available</p>
+
+      <!-- Series grid -->
+      <div class="ts-grid" id="tsGrid">
+        <% series.forEach(s => {
+             const exam     = s.examId || {};
+             const href     = exam.slug ? '/series/exam/' + exam.slug : '/series/' + s._id;
+             const mockLangs = s.mockLanguages && s.mockLanguages.length > 0
+                               ? s.mockLanguages
+                               : (exam.language || []);
+             const features  = (s.features || []).slice(0, 4);
+        %>
+        <a href="<%= href %>"
+           class="sc-card"
+           data-cat="<%= exam.category || '' %>"
+           data-langs="<%= mockLangs.join(',').toLowerCase() %>"
+           data-price="<%= s.price === 0 ? 'free' : 'paid' %>"
+           aria-label="<%= s.title %>"
+           itemscope itemtype="https://schema.org/Course">
+
+          <!-- Tiny exam label — context only -->
+          <div class="sc-exam-label">
+            <span class="sc-exam-icon"><%= exam.icon || '📚' %></span>
+            <span class="sc-exam-name"><%= exam.name || 'Mock Test' %></span>
+            <% if (s.price === 0) { %><span class="sc-badge-free">Free</span><% } %>
+          </div>
+
+          <!-- Product body — this is what we're selling -->
+          <div class="sc-card-body">
+            <div class="sc-card-title" itemprop="name"><%= s.title %></div>
+            <% if (s.description) { %>
+              <p class="sc-card-desc" itemprop="description"><%= s.description %></p>
+            <% } %>
+
+            <!-- What's included — the sell -->
+            <% if (features.length > 0) { %>
+            <ul class="sc-includes-list">
+              <% features.forEach(f => { %><li><%= f %></li><% }) %>
+            </ul>
+            <% } %>
+
+            <!-- Mock languages — useful signal -->
+            <% if (mockLangs.length > 0) { %>
+            <div class="sc-langs">
+              <% mockLangs.forEach(l => { %><span class="sc-lang-pill">🌐 <%= l %></span><% }) %>
+            </div>
+            <% } %>
+          </div>
+
+          <!-- Footer: mocks count + price + CTA -->
+          <div class="sc-card-footer">
+            <div class="sc-mocks-count">
+              <span class="sc-mocks-num"><%= s.totalMocks %></span>
+              <span class="sc-mocks-lbl">Full-Length Mock<%= s.totalMocks > 1 ? 's' : '' %></span>
+            </div>
+            <% if (s.price === 0) { %>
+              <span class="sc-cta-btn sc-cta-free">Access Free →</span>
+            <% } else { %>
+              <span class="sc-cta-btn">Buy ₹<%= s.price.toLocaleString('en-IN') %> →</span>
+            <% } %>
+          </div>
+
+        </a>
         <% }) %>
       </div>
+
+      <!-- No results message -->
+      <div class="ts-no-results" id="tsNoResults" style="display:none;" role="status">
+        <div class="empty-state-icon">🔍</div>
+        <h4>No series match your filters</h4>
+        <p>Try selecting a different category or language.</p>
+      </div>
+
     <% } %>
   </div>
 </section>
@@ -596,5 +617,80 @@ document.querySelectorAll('.faq-question').forEach(btn => {
   const scrollBy = 318;
   prev.addEventListener('click', () => track.scrollBy({ left: -scrollBy, behavior: 'smooth' }));
   next.addEventListener('click', () => track.scrollBy({ left:  scrollBy, behavior: 'smooth' }));
+})();
+
+// Test Series filter
+(function() {
+  const grid        = document.getElementById('tsGrid');
+  const countEl     = document.getElementById('tsCount');
+  const noResults   = document.getElementById('tsNoResults');
+  const langSel     = document.getElementById('tsLangFilter');
+  const clearBtn    = document.getElementById('tsClearFilters');
+  const catPills    = document.querySelectorAll('.ts-cat-pill');
+  const pricePills  = document.querySelectorAll('.ts-price-pill');
+  if (!grid) return;
+
+  let activeCat   = '';
+  let activeLang  = '';
+  let activePrice = '';
+
+  function hasActiveFilter() { return activeCat || activeLang || activePrice; }
+
+  function applyFilters() {
+    const cards = grid.querySelectorAll('.sc-card');
+    let visible = 0;
+    cards.forEach(card => {
+      const cat   = card.dataset.cat   || '';
+      const langs = card.dataset.langs || '';
+      const price = card.dataset.price || '';
+
+      const catOk   = !activeCat   || cat === activeCat;
+      const langOk  = !activeLang  || langs.split(',').map(l=>l.trim()).includes(activeLang.toLowerCase());
+      const priceOk = !activePrice || price === activePrice;
+
+      const show = catOk && langOk && priceOk;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    if (countEl) countEl.textContent = visible + (visible === 1 ? ' series' : ' series') + ' available';
+    if (noResults) noResults.style.display = visible === 0 ? 'block' : 'none';
+    if (clearBtn)  clearBtn.style.display  = hasActiveFilter() ? 'inline-flex' : 'none';
+  }
+
+  function setPills(group, activeVal) {
+    group.forEach(b => {
+      const isActive = b.dataset.cat !== undefined
+        ? b.dataset.cat === activeVal
+        : b.dataset.price === activeVal;
+      b.classList.toggle('active', isActive);
+      b.setAttribute('aria-pressed', String(isActive));
+    });
+  }
+
+  catPills.forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeCat = btn.dataset.cat;
+      setPills(catPills, activeCat);
+      applyFilters();
+    });
+  });
+
+  pricePills.forEach(btn => {
+    btn.addEventListener('click', () => {
+      activePrice = btn.dataset.price;
+      setPills(pricePills, activePrice);
+      applyFilters();
+    });
+  });
+
+  if (langSel) langSel.addEventListener('change', () => { activeLang = langSel.value; applyFilters(); });
+
+  if (clearBtn) clearBtn.addEventListener('click', () => {
+    activeCat = ''; activeLang = ''; activePrice = '';
+    setPills(catPills,   '');
+    setPills(pricePills, '');
+    if (langSel) langSel.value = '';
+    applyFilters();
+  });
 })();
 </script>

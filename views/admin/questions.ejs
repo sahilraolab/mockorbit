@@ -5,17 +5,17 @@
 
 <!-- Test selector -->
 <div class="card mb-6">
-  <form method="GET" action="/admin/questions" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
-    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+  <form method="GET" action="/admin/questions" id="testSelectForm">
+    <div class="form-group" style="margin-bottom: 0;">
       <label class="form-label">Select Test to Manage Questions</label>
-      <select name="testId" class="form-control">
+      <select name="testId" class="form-control" onchange="this.form.submit()" style="max-width:480px;">
         <option value="">— Choose a test —</option>
         <% tests.forEach(t => { %>
           <option value="<%= t._id %>" <%= testId && testId.toString() === t._id.toString() ? 'selected' : '' %>><%= t.title %></option>
         <% }) %>
       </select>
+      <span class="form-hint" style="margin-top:6px;display:block;">Questions load automatically when you select a test.</span>
     </div>
-    <button type="submit" class="btn btn-primary" style="margin-bottom: 0;">Load Questions</button>
   </form>
 </div>
 
