@@ -1,6 +1,6 @@
 <%- include('layout-top', { title: title, currentPath: '/admin/dashboard' }) %>
 
-<div class="stats-cards-grid" style="grid-template-columns:repeat(3,1fr);">
+<div class="stats-cards-grid" style="grid-template-columns:repeat(4,1fr);">
   <div class="stat-card">
     <div class="stat-card-value"><%= stats.users %></div>
     <div class="stat-card-label">Students</div>
@@ -14,12 +14,16 @@
     <div class="stat-card-label">Total Revenue</div>
   </div>
   <div class="stat-card">
-    <div class="stat-card-value"><%= stats.exams %></div>
-    <div class="stat-card-label">Exams</div>
-  </div>
-  <div class="stat-card">
     <div class="stat-card-value"><%= stats.series %></div>
     <div class="stat-card-label">Test Series</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-value"><%= stats.tests %></div>
+    <div class="stat-card-label">Mock Tests</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-value"><%= stats.questions %></div>
+    <div class="stat-card-label">Questions</div>
   </div>
   <div class="stat-card">
     <div class="stat-card-value"><%= stats.attempts %></div>

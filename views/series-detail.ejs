@@ -1,134 +1,368 @@
 <%- include('partials/header') %>
 
-<section class="section">
+<%
+  const exam        = series.examId || {};
+  const seriesLabel = series.category || exam.name || '';
+  const backHref    = exam.slug ? '/series/exam/' + exam.slug : '/#exams';
+  const backLabel   = exam.name || 'All Series';
+  const totalDuration = (tests || []).reduce((a, t) => a + (t.duration || 0), 0);
+%>
+
+<div class="sd-hero">
   <div class="container-sm">
-    <a href="/series/exam/<%= series.examId.slug %>" class="text-small text-muted">← <%= series.examId.name %></a>
+    <a href="<%= backHref %>" class="sd-back">← <%= backLabel %></a>
 
     <% if (error && error.length > 0) { %>
-      <div class="alert alert-error mt-4">⚠️ <%= error[0] %></div>
+      <div class="alert alert-error mt-3">⚠️ <%= error[0] %></div>
     <% } %>
     <% if (success && success.length > 0) { %>
-      <div class="alert alert-success mt-4">✓ <%= success[0] %></div>
+      <div class="alert alert-success mt-3">✓ <%= success[0] %></div>
     <% } %>
 
-    <div class="mt-4 mb-6">
-      <span class="badge badge-blue mb-3"><%= series.examId.name %></span>
-      <h1 style="font-size: 2rem;"><%= series.title %></h1>
-      <% if (series.description) { %><p class="mt-3"><%= series.description %></p><% } %>
-    </div>
-
-    <!-- Details card -->
-    <div class="card mb-6">
-      <div class="flex-between mb-4">
-        <div>
-          <% if (series.price === 0) { %>
-            <div class="price" style="color:var(--success);">Free</div>
-            <div class="price-note">Full access — no payment needed</div>
-          <% } else { %>
-            <div class="price"><span class="price-currency">₹</span><%= series.price.toLocaleString('en-IN') %></div>
-            <div class="price-note">One-time payment · Lifetime access</div>
-          <% } %>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-          <span class="badge badge-green"><%= series.totalMocks %> Full-Length Mock<%= series.totalMocks > 1 ? 's' : '' %></span>
-          <% if (series.mockLanguages && series.mockLanguages.length > 0) { %>
-            <span style="font-size:0.75rem;color:var(--ink-muted);">
-              🌐 Available in <%= series.mockLanguages.join(' · ') %>
-            </span>
-          <% } %>
-        </div>
+    <div class="sd-header">
+      <div class="sd-badges">
+        <% if (seriesLabel) { %><span class="badge badge-blue"><%= seriesLabel %></span><% } %>
+        <% if (series.mockLanguages && series.mockLanguages.length > 0) { %>
+          <span class="sd-lang-pill">🌐 <%= series.mockLanguages.join(' · ') %></span>
+        <% } %>
+        <% if (series.price === 0) { %><span class="badge badge-green">Free</span><% } %>
       </div>
-
-      <% if (series.features && series.features.length > 0) { %>
-      <ul class="feature-list mb-6">
-        <% series.features.forEach(f => { %><li><%= f %></li><% }) %>
-      </ul>
+      <h1 class="sd-title"><%= series.title %></h1>
+      <% if (series.description) { %>
+        <p class="sd-desc"><%= series.description %></p>
       <% } %>
+      <div class="sd-meta-row">
+        <span class="sd-meta-item">📋 <%= series.totalMocks %> Mock Test<%= series.totalMocks > 1 ? 's' : '' %></span>
+        <% if (totalDuration > 0) { %>
+          <span class="sd-meta-sep">·</span>
+          <span class="sd-meta-item">⏱ <%= Math.floor(totalDuration / 60) > 0 ? Math.floor(totalDuration/60) + 'h ' : '' %><%= totalDuration % 60 > 0 ? totalDuration % 60 + 'm' : '' %> total</span>
+        <% } %>
+        <% if (topicsCovered && topicsCovered.length > 0) { %>
+          <span class="sd-meta-sep">·</span>
+          <span class="sd-meta-item">📚 <%= topicsCovered.length %> Topics</span>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
 
+<div class="container-sm" style="padding-top:0;padding-bottom:48px;">
+
+  <!-- ── Price + CTA ─────────────────────────────────────────── -->
+  <div class="sd-cta-card">
+    <div class="sd-price-row">
+      <div>
+        <% if (series.price === 0) { %>
+          <div class="sd-price" style="color:var(--success);">Free</div>
+          <div class="sd-price-note">Full access — no payment needed</div>
+        <% } else { %>
+          <div class="sd-price"><span class="sd-price-curr">₹</span><%= series.price.toLocaleString('en-IN') %></div>
+          <div class="sd-price-note">One-time · Lifetime access</div>
+        <% } %>
+      </div>
       <% if (hasPurchased) { %>
-        <a href="/dashboard" class="btn btn-success btn-lg btn-block">Go to Dashboard →</a>
+        <a href="/dashboard" class="btn btn-success">Go to Dashboard →</a>
       <% } else if (series.price === 0) { %>
         <form method="POST" action="/payment/free-access/<%= series._id %>" style="margin:0;">
-          <button type="submit" class="btn btn-success btn-lg btn-block">Access Now — Free →</button>
+          <button type="submit" class="btn btn-success">Access Free →</button>
         </form>
       <% } else { %>
-        <a href="/payment/checkout/<%= series._id %>" class="btn btn-primary btn-lg btn-block">Buy Now — ₹<%= series.price.toLocaleString('en-IN') %></a>
-        <p class="trust-text mt-3">🔒 Secure payment · Instant access</p>
+        <a href="/payment/checkout/<%= series._id %>" class="btn btn-primary">Buy Now →</a>
       <% } %>
     </div>
 
-    <!-- Preview questions -->
-    <% if (series.previewQuestions && series.previewQuestions.length > 0) { %>
-      <div class="mb-6">
-        <h3 class="mb-4" style="font-family: 'DM Sans', sans-serif;">Sample Questions</h3>
-        <% series.previewQuestions.slice(0, 3).forEach((pq, idx) => { %>
-          <div class="card mb-4">
-            <div class="question-number">Question <%= idx + 1 %></div>
-            <div class="question-text"><%= pq.question %></div>
-            <div class="options-grid">
-              <% ['A','B','C','D'].forEach((letter, i) => { %>
-                <div class="option-btn" style="cursor: default;">
-                  <span class="option-label"><%= letter %></span>
-                  <span><%= pq.options[i] %></span>
-                </div>
-              <% }) %>
-            </div>
-            <div class="alert alert-info mt-4">
-              <strong>Answer: Option <%= ['A','B','C','D'][pq.correctAnswer] %></strong>
-              <% if (pq.explanation) { %> — <%= pq.explanation %><% } %>
-            </div>
-          </div>
-        <% }) %>
-      </div>
+    <% if (series.features && series.features.length > 0) { %>
+    <ul class="sd-features">
+      <% series.features.forEach(f => { %><li><%= f %></li><% }) %>
+    </ul>
     <% } %>
 
-    <p class="trust-text">⭐ Trusted by thousands of students preparing for <%= series.examId.name %></p>
+    <% if (!hasPurchased && series.price > 0) { %>
+      <p style="font-size:0.75rem;color:var(--ink-muted);margin-top:14px;text-align:center;">🔒 Secure payment via Razorpay</p>
+    <% } %>
+  </div>
 
-    <!-- Reviews: accordion like sample questions -->
-    <% if (seriesReviews && seriesReviews.length > 0) { %>
-    <div class="mb-6">
-      <div class="sample-accord">
-        <button class="sample-accord-btn" onclick="toggleSampleAccord(this)">
-          <span>Student Reviews (<%= seriesReviews.length %>)</span>
-          <span class="sample-accord-chevron">▼</span>
-        </button>
-        <div class="sample-accord-body">
-          <div style="display:flex; flex-direction:column; gap:12px; padding:4px 0 8px;">
-            <% seriesReviews.forEach(r => { %>
-              <div style="padding:14px 16px; background:var(--canvas-soft); border-radius:var(--radius); border:1px solid var(--border);">
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-                  <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.78rem;flex-shrink:0;"><%= r.name[0].toUpperCase() %></div>
-                  <div style="flex:1;">
-                    <div style="font-weight:600; font-size:0.88rem; color:var(--ink);"><%= r.name %></div>
-                    <% if (r.role) { %><div style="font-size:0.7rem; color:var(--ink-muted);"><%= r.role %></div><% } %>
-                  </div>
-                  <div style="color:#f59e0b; font-size:0.8rem;"><%= '★'.repeat(r.rating) %></div>
-                </div>
-                <p style="font-size:0.85rem; color:var(--ink-soft); line-height:1.55; font-style:italic; margin:0;">"<%= r.text %>"</p>
-              </div>
-            <% }) %>
+  <!-- ── What's Included ────────────────────────────────────── -->
+  <% if (tests && tests.length > 0) { %>
+  <div class="sd-block">
+    <h2 class="sd-block-title">📋 What's Included</h2>
+    <div class="sd-tests-list">
+      <% tests.forEach((t, i) => { %>
+      <div class="sd-test-item">
+        <div class="sd-test-num"><%= i + 1 %></div>
+        <div class="sd-test-info">
+          <div class="sd-test-name"><%= t.title %></div>
+          <div class="sd-test-meta">
+            <span>⏱ <%= t.duration %> min</span>
+            <% if (t.totalQuestions > 0) { %><span>· <%= t.totalQuestions %> questions</span><% } %>
           </div>
         </div>
+        <% if (hasPurchased) { %>
+          <a href="/test/start/<%= t._id %>" class="btn btn-primary btn-sm" style="flex-shrink:0;">Start →</a>
+        <% } else { %>
+          <span class="sd-lock-icon">🔒</span>
+        <% } %>
       </div>
+      <% }) %>
     </div>
-    <% } %>
+  </div>
+  <% } %>
 
-    <% if (hasPurchased) { %>
-      <p class="trust-text" style="margin-top:4px;">
-        ✍️ Reviewed this series?
-        <a href="/dashboard#reviewSection" style="color:var(--accent);">Go to Dashboard to leave a review →</a>
+  <!-- ── Topics Covered ────────────────────────────────────── -->
+  <% if (topicsCovered && topicsCovered.length > 0) { %>
+  <div class="sd-block">
+    <h2 class="sd-block-title">📚 Topics Covered <span class="sd-count-badge"><%= topicsCovered.length %></span></h2>
+    <div class="sd-topics-cloud">
+      <% topicsCovered.forEach(topic => { %>
+        <span class="sd-topic-pill"><%= topic %></span>
+      <% }) %>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- ── Sample Questions ──────────────────────────────────── -->
+  <% if (sampleQuestions && sampleQuestions.length > 0) { %>
+  <div class="sd-block">
+    <h2 class="sd-block-title">🔍 Sample Questions</h2>
+    <div class="sd-samples">
+      <% sampleQuestions.forEach((q, qi) => { %>
+      <div class="sd-sample-q">
+        <div class="sd-q-header">
+          <span class="sd-q-num">Q<%= qi + 1 %></span>
+          <% if (q.tag) { %><span class="sd-q-tag"><%= q.tag %></span><% } %>
+        </div>
+        <p class="sd-q-text"><%= q.question %></p>
+        <div class="sd-q-options">
+          <% q.options.forEach((opt, oi) => { %>
+            <div class="sd-q-option">
+              <span class="sd-opt-letter"><%= ['A','B','C','D'][oi] %></span>
+              <span><%= opt %></span>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% if (!hasPurchased) { %>
+      <p class="sd-sample-note">
+        <% if (series.price === 0) { %>
+          🔓 Get free access to see answers and full explanations.
+        <% } else { %>
+          🔒 Purchase to unlock answers, detailed explanations, and all <%= series.totalMocks %> mock tests.
+        <% } %>
       </p>
     <% } %>
   </div>
-</section>
+  <% } %>
+
+  <!-- ── Bottom CTA ────────────────────────────────────────── -->
+  <% if (!hasPurchased) { %>
+  <div class="sd-bottom-cta">
+    <% if (series.price === 0) { %>
+      <p class="sd-bottom-cta-title">This series is completely free</p>
+      <form method="POST" action="/payment/free-access/<%= series._id %>" style="margin:0;">
+        <button type="submit" class="btn btn-success btn-lg btn-block">Get Free Access →</button>
+      </form>
+    <% } else { %>
+      <p class="sd-bottom-cta-title">Ready to start preparing?</p>
+      <p class="sd-bottom-cta-sub">One-time payment · Lifetime access · Instant unlock</p>
+      <a href="/payment/checkout/<%= series._id %>" class="btn btn-primary btn-lg btn-block">Buy Now — ₹<%= series.price.toLocaleString('en-IN') %></a>
+      <p style="font-size:0.75rem;color:var(--ink-muted);text-align:center;margin-top:10px;">🔒 Secure payment via Razorpay</p>
+    <% } %>
+  </div>
+  <% } %>
+
+  <!-- ── Student Reviews ────────────────────────────────────── -->
+  <% if (seriesReviews && seriesReviews.length > 0) { %>
+  <div class="sd-block">
+    <h2 class="sd-block-title">⭐ Student Reviews <span class="sd-count-badge"><%= seriesReviews.length %></span></h2>
+    <div class="sd-reviews">
+      <% seriesReviews.forEach(r => { %>
+        <div class="sd-review-card">
+          <div class="sd-review-top">
+            <div class="sd-review-avatar"><%= r.name[0].toUpperCase() %></div>
+            <div class="sd-review-meta">
+              <div class="sd-review-name"><%= r.name %></div>
+              <% if (r.role) { %><div class="sd-review-role"><%= r.role %></div><% } %>
+            </div>
+            <div class="sd-review-stars"><%= '★'.repeat(r.rating) %></div>
+          </div>
+          <p class="sd-review-text">"<%= r.text %>"</p>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+  <% } %>
+
+  <% if (hasPurchased) { %>
+    <p style="text-align:center;font-size:0.82rem;color:var(--ink-muted);margin-top:16px;">
+      ✍️ <a href="/dashboard#reviewSection" style="color:var(--accent);">Leave a review on your dashboard →</a>
+    </p>
+  <% } %>
+
+</div>
+
+<!-- ── Series Detail styles ──────────────────────────────── -->
+<style>
+/* Hero banner */
+.sd-hero {
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%);
+  padding: 36px 0 32px;
+  border-bottom: 1px solid var(--border);
+}
+.sd-back {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.82rem; color: var(--ink-muted); text-decoration: none;
+  margin-bottom: 20px;
+}
+.sd-back:hover { color: var(--accent); }
+
+.sd-header { }
+.sd-badges { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.sd-lang-pill { font-size: 0.72rem; color: var(--ink-muted); }
+.sd-title { font-size: 1.85rem; font-weight: 800; line-height: 1.22; font-family: 'DM Sans', sans-serif; color: var(--ink); }
+.sd-desc { font-size: 0.95rem; color: var(--ink-soft); line-height: 1.65; margin-top: 10px; max-width: 600px; }
+.sd-meta-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.sd-meta-item { font-size: 0.82rem; color: var(--ink-muted); font-weight: 500; }
+.sd-meta-sep { color: var(--border-strong); }
+
+/* CTA card */
+.sd-cta-card {
+  background: var(--canvas);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  margin-top: 24px;
+  margin-bottom: 32px;
+}
+.sd-price-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.sd-price { font-size: 2rem; font-weight: 900; color: var(--ink); line-height: 1; font-family: 'DM Sans', sans-serif; }
+.sd-price-curr { font-size: 1rem; font-weight: 600; vertical-align: top; margin-top: 4px; display: inline-block; }
+.sd-price-note { font-size: 0.75rem; color: var(--ink-muted); margin-top: 4px; }
+.sd-features {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 6px;
+  border-top: 1px solid var(--border); padding-top: 14px;
+}
+.sd-features li {
+  font-size: 0.83rem; color: var(--ink-soft);
+  padding-left: 20px; position: relative; line-height: 1.5;
+}
+.sd-features li::before {
+  content: '✓'; position: absolute; left: 0;
+  color: var(--success); font-weight: 700;
+}
+
+/* Content blocks */
+.sd-block { margin-bottom: 32px; }
+.sd-block-title {
+  font-size: 1rem; font-weight: 800; color: var(--ink);
+  font-family: 'DM Sans', sans-serif; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sd-count-badge {
+  font-size: 0.7rem; font-weight: 700;
+  background: var(--canvas-soft); border: 1px solid var(--border);
+  color: var(--ink-muted); padding: 1px 8px; border-radius: 999px;
+}
+
+/* Tests list */
+.sd-tests-list { display: flex; flex-direction: column; gap: 8px; }
+.sd-test-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 16px; background: var(--canvas);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.sd-test-item:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(37,99,235,0.07); }
+.sd-test-num {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent), #1d4ed8);
+  color: #fff; font-size: 0.75rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.sd-test-info { flex: 1; min-width: 0; }
+.sd-test-name { font-size: 0.88rem; font-weight: 700; color: var(--ink); }
+.sd-test-meta { font-size: 0.75rem; color: var(--ink-muted); margin-top: 2px; display: flex; gap: 6px; }
+.sd-lock-icon { font-size: 0.85rem; color: var(--ink-muted); flex-shrink: 0; }
+
+/* Topics */
+.sd-topics-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+.sd-topic-pill {
+  font-size: 0.75rem; font-weight: 600; padding: 5px 12px;
+  background: var(--canvas-soft); border: 1px solid var(--border);
+  border-radius: 999px; color: var(--ink-soft);
+  transition: border-color 0.15s, color 0.15s;
+}
+.sd-topic-pill:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Sample questions */
+.sd-samples { display: flex; flex-direction: column; gap: 14px; }
+.sd-sample-q {
+  padding: 18px; background: var(--canvas);
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+}
+.sd-q-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.sd-q-num {
+  font-size: 0.68rem; font-weight: 800; background: var(--accent);
+  color: #fff; padding: 2px 8px; border-radius: 999px;
+}
+.sd-q-tag {
+  font-size: 0.68rem; font-weight: 600; color: var(--accent);
+  background: var(--accent-light); padding: 2px 8px; border-radius: 999px;
+}
+.sd-q-text { font-size: 0.9rem; color: var(--ink); line-height: 1.6; margin-bottom: 12px; font-weight: 500; }
+.sd-q-options { display: flex; flex-direction: column; gap: 7px; }
+.sd-q-option {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 0.84rem; color: var(--ink-soft); line-height: 1.45;
+}
+.sd-opt-letter {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  background: var(--canvas-soft); border: 1.5px solid var(--border);
+  font-size: 0.72rem; font-weight: 700; color: var(--ink-muted);
+  display: flex; align-items: center; justify-content: center;
+}
+.sd-sample-note {
+  font-size: 0.8rem; color: var(--ink-muted); margin-top: 14px;
+  text-align: center; padding: 10px 16px;
+  background: var(--canvas-soft); border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+/* Bottom CTA */
+.sd-bottom-cta {
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%);
+  border: 1.5px solid rgba(37,99,235,0.15);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  text-align: center;
+  margin-bottom: 32px;
+}
+.sd-bottom-cta-title { font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-bottom: 4px; font-family: 'DM Sans', sans-serif; }
+.sd-bottom-cta-sub { font-size: 0.82rem; color: var(--ink-muted); margin-bottom: 18px; }
+
+/* Reviews */
+.sd-reviews { display: flex; flex-direction: column; gap: 12px; }
+.sd-review-card {
+  padding: 14px 16px; background: var(--canvas);
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.sd-review-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.sd-review-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 0.78rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sd-review-meta { flex: 1; }
+.sd-review-name { font-size: 0.86rem; font-weight: 700; color: var(--ink); }
+.sd-review-role { font-size: 0.7rem; color: var(--ink-muted); }
+.sd-review-stars { color: #f59e0b; font-size: 0.82rem; }
+.sd-review-text { font-size: 0.84rem; color: var(--ink-soft); line-height: 1.55; font-style: italic; margin: 0; }
+</style>
 
 <%- include('partials/footer') %>
-
-<script>
-function toggleSampleAccord(btn) {
-  const body = btn.nextElementSibling;
-  const isOpen = body.classList.contains('open');
-  body.classList.toggle('open', !isOpen);
-  btn.classList.toggle('open', !isOpen);
-}
-</script>

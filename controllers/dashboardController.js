@@ -15,7 +15,7 @@ exports.showDashboard = async (req, res) => {
     // Get tests for each series
     const seriesWithTests = await Promise.all(
       purchasedSeries.map(async (series) => {
-        const tests = await Test.find({ testSeriesId: series._id, isActive: true }).lean();
+        const tests = await Test.find({ testSeriesId: series._id, isActive: true }).sort({ sortOrder: 1, createdAt: 1 }).lean();
         const attempts = await Attempt.find({ userId: user._id, status: 'submitted' }).lean();
         const attemptedTestIds = attempts.map(a => a.testId.toString());
 

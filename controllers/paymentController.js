@@ -2,6 +2,7 @@ const { TestSeries } = require('../models/Exam');
 const { Payment } = require('../models/Attempt');
 const User = require('../models/User');
 const paymentService = require('../services/paymentService');
+const invoiceEmail = require('../services/invoiceEmailService');
 
 const isFreeAccessEnabled = () =>
   process.env.ALLOW_FREE_ACCESS === 'true' || paymentService.isMock();
@@ -223,7 +224,7 @@ exports.mockPaymentSuccess = async (req, res) => {
   }
 };
 
-// ─── Helper: grant test access + create payment record ─────────────────────
+// ─── Helper: grant test access + create payment record + send invoice ──────
 async function grantAccess(userId, testSeriesId, amount = 0, orderId = null, paymentId = null) {
   // Idempotent: only add if not already purchased
   await User.findByIdAndUpdate(userId, {
@@ -231,11 +232,30 @@ async function grantAccess(userId, testSeriesId, amount = 0, orderId = null, pay
   });
 
   if (orderId) {
-    // Upsert payment record
     await Payment.findOneAndUpdate(
       { razorpayOrderId: orderId },
       { userId, testSeriesId, amount, razorpayOrderId: orderId, razorpayPaymentId: paymentId, status: 'success' },
       { upsert: true }
     );
+  }
+
+  // Send invoice / confirmation email (fire-and-forget — don't block the response)
+  try {
+    const [user, series] = await Promise.all([
+      User.findById(userId).select('email name').lean(),
+      TestSeries.findById(testSeriesId).select('title').lean()
+    ]);
+    if (user && series) {
+      invoiceEmail.sendInvoiceEmail({
+        toEmail:     user.email,
+        toName:      user.name || '',
+        seriesTitle: series.title,
+        amount,
+        paymentId:   paymentId || '',
+        orderId:     orderId || ''
+      }).catch(e => console.error('Invoice email error:', e.message));
+    }
+  } catch (e) {
+    console.error('Invoice email lookup error:', e.message);
   }
 }

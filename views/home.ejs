@@ -25,7 +25,7 @@
       <div class="mock-showcase-meta">
         <div class="mock-meta-item"><span class="mock-meta-val"><%= tickerSeries.length %></span><span class="mock-meta-lbl">Series Live</span></div>
         <div class="mock-meta-divider"></div>
-        <div class="mock-meta-item"><span class="mock-meta-val">All-India</span><span class="mock-meta-lbl">Rank After Test</span></div>
+        <div class="mock-meta-item"><span class="mock-meta-val">Open Book</span><span class="mock-meta-lbl">Format</span></div>
       </div>
       <div class="mock-showcase-nav" aria-label="Carousel navigation">
         <button class="mock-nav-btn" id="mockPrev" aria-label="Previous">&#8592;</button>
@@ -103,62 +103,134 @@
     <div class="hero-layout">
 
       <div class="hero-left">
-        <!-- <div class="hero-badge" aria-label="Platform tagline">
-          ⚖️ Prepare Smarter. Rank Higher.
-        </div> -->
+        <%
+          const heroHeading = (siteSettings && siteSettings.hero_heading)
+            ? siteSettings.hero_heading
+            : 'Mission for Academic\nRank & Success';
+          const heroSub = (siteSettings && siteSettings.hero_sub)
+            ? siteSettings.hero_sub
+            : 'Full-length mock tests for top competitive exams — topic-wise analytics, detailed explanations, and an all-India rank among fellow aspirants.';
+          // Split heading on '\n' so admin can add a line break
+          const headingParts = heroHeading.split('\n');
+        %>
         <h1 id="hero-heading">
-          Mission for Academic<br>
-          <span class="highlight">Rank &amp; Success</span>
+          <% headingParts.forEach((part, i) => { %>
+            <% if (i < headingParts.length - 1) { %>
+              <%= part %><br>
+            <% } else { %>
+              <span class="highlight"><%= part %></span>
+            <% } %>
+          <% }) %>
         </h1>
-        <p class="hero-sub">
-          Full-length mock tests for AIBE XXI and upcoming competitive exams — topic-wise analytics, detailed explanations, and an all-India rank among fellow aspirants.
-        </p>
+        <p class="hero-sub"><%= heroSub %></p>
         <div class="hero-cta">
-          <a href="#exams" class="btn btn-primary btn-lg" aria-label="Browse all exam test series">Explore Tests →</a>
+          <a href="#exams" class="btn btn-primary btn-lg" aria-label="Explore all mock test series">Explore Mock Tests →</a>
           <% if (user) { %>
             <a href="/dashboard" class="btn btn-outline btn-lg">My Dashboard</a>
           <% } else { %>
             <a href="/auth/login" class="btn btn-outline btn-lg">Login Free</a>
           <% } %>
         </div>
+        <!-- Dynamic trust bar: realtime question count + topic count -->
         <div class="hero-trust" aria-label="Platform highlights">
-          <div class="hero-trust-item"><strong>AIBE XXI</strong><span>June 2026</span></div>
-          <div class="hero-trust-sep">·</div>
-          <div class="hero-trust-item"><strong>380 Qs</strong><span>Full-Length Mock</span></div>
-          <div class="hero-trust-sep">·</div>
-          <div class="hero-trust-item"><strong>19 Topics</strong><span>Complete Syllabus</span></div>
-          <div class="hero-trust-sep">·</div>
-          <div class="hero-trust-item"><strong>Open Book</strong><span>Format</span></div>
+          <% if (totalQuestions > 0) { %>
+            <div class="hero-trust-item">
+              <strong><%= totalQuestions.toLocaleString('en-IN') %></strong>
+              <span>Questions</span>
+            </div>
+            <div class="hero-trust-sep">·</div>
+          <% } %>
+          <% if (topics && topics.length > 0) { %>
+            <div class="hero-trust-item">
+              <strong><%= topics.length %></strong>
+              <span>Topics Covered</span>
+            </div>
+            <div class="hero-trust-sep">·</div>
+          <% } %>
+          <div class="hero-trust-item">
+            <strong>Open Book</strong>
+            <span>Format</span>
+          </div>
         </div>
       </div>
 
-      <!-- Right: Live exam cards from DB only -->
+      <!-- Right: Mock result showcase card -->
       <div class="hero-right" aria-hidden="true">
-        <div class="hero-course-grid">
-          <% if (exams.length > 0) { %>
-            <% exams.slice(0, 4).forEach(exam => { %>
-              <a href="/series/exam/<%= exam.slug %>" class="hero-course-card">
-                <div class="hero-course-icon"><%= exam.icon || '📚' %></div>
-                <div>
-                  <div class="hero-course-name"><%= exam.name %></div>
-                  <div class="hero-course-meta"><%= exam.category || 'Mock Tests' %></div>
-                </div>
-                <div class="hero-course-arrow">→</div>
-              </a>
-            <% }) %>
-          <% } else { %>
-            <a href="/series/exam/aibe-xxi" class="hero-course-card">
-              <div class="hero-course-icon">⚖️</div>
-              <div>
-                <div class="hero-course-name">AIBE XXI</div>
-                <div class="hero-course-meta">Law — Bar Exam</div>
+        <div class="hrc-wrap">
+          <!-- Decorative blobs -->
+          <div class="hrc-blob hrc-blob-1"></div>
+          <div class="hrc-blob hrc-blob-2"></div>
+
+          <!-- Main result card -->
+          <div class="hrc-card">
+            <div class="hrc-card-header">
+              <span class="hrc-dot"></span>
+              <span class="hrc-header-text">Mock Test Complete</span>
+              <span class="hrc-check">✓</span>
+            </div>
+
+            <div class="hrc-rank-block">
+              <div class="hrc-rank-label">All India Rank</div>
+              <div class="hrc-rank-num" id="hrcRank">#1</div>
+              <div class="hrc-rank-sub">out of 3,812 attempts</div>
+            </div>
+
+            <div class="hrc-stats-row">
+              <div class="hrc-stat">
+                <div class="hrc-stat-val">312<span>/380</span></div>
+                <div class="hrc-stat-lbl">Score</div>
               </div>
-              <div class="hero-course-arrow">→</div>
-            </a>
-          <% } %>
-        </div>
-        <div class="hero-float-badge">
-          ⚖️ AIBE XXI — June 2026
+              <div class="hrc-stat-div"></div>
+              <div class="hrc-stat">
+                <div class="hrc-stat-val">94.2<span>%</span></div>
+                <div class="hrc-stat-lbl">Percentile</div>
+              </div>
+              <div class="hrc-stat-div"></div>
+              <div class="hrc-stat">
+                <div class="hrc-stat-val">3h<span> 2m</span></div>
+                <div class="hrc-stat-lbl">Time Taken</div>
+              </div>
+            </div>
+
+            <!-- Topic score bars -->
+            <div class="hrc-topics">
+              <div class="hrc-topic-row">
+                <span class="hrc-topic-name">Constitutional Law</span>
+                <div class="hrc-bar-track"><div class="hrc-bar-fill" style="--w:82%"></div></div>
+                <span class="hrc-topic-pct">82%</span>
+              </div>
+              <div class="hrc-topic-row">
+                <span class="hrc-topic-name">Contract Law</span>
+                <div class="hrc-bar-track"><div class="hrc-bar-fill" style="--w:76%"></div></div>
+                <span class="hrc-topic-pct">76%</span>
+              </div>
+              <div class="hrc-topic-row">
+                <span class="hrc-topic-name">Evidence Act</span>
+                <div class="hrc-bar-track"><div class="hrc-bar-fill" style="--w:91%"></div></div>
+                <span class="hrc-topic-pct">91%</span>
+              </div>
+            </div>
+
+            <div class="hrc-footer">
+              <span class="hrc-footer-text">📊 Full analytics available in dashboard</span>
+            </div>
+          </div>
+
+          <!-- Floating badge: live count -->
+          <div class="hrc-float-badge hrc-float-left">
+            <span class="hrc-fb-icon">🎯</span>
+            <div>
+              <div class="hrc-fb-val">Open Book</div>
+              <div class="hrc-fb-lbl">Format</div>
+            </div>
+          </div>
+          <div class="hrc-float-badge hrc-float-right">
+            <span class="hrc-fb-icon">⚡</span>
+            <div>
+              <div class="hrc-fb-val">Instant</div>
+              <div class="hrc-fb-lbl">Results</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -268,23 +340,23 @@
         <% series.forEach(s => {
              const exam     = s.examId || {};
              const href     = exam.slug ? '/series/exam/' + exam.slug : '/series/' + s._id;
-             const mockLangs = s.mockLanguages && s.mockLanguages.length > 0
-                               ? s.mockLanguages
-                               : (exam.language || []);
+             const mockLangs = s.mockLanguages && s.mockLanguages.length > 0 ? s.mockLanguages : [];
              const features  = (s.features || []).slice(0, 4);
+             const seriesCat = s.category || exam.category || '';
+             const seriesLabel = s.category || exam.name || 'Mock Test Series';
         %>
         <a href="<%= href %>"
            class="sc-card"
-           data-cat="<%= exam.category || '' %>"
+           data-cat="<%= seriesCat %>"
            data-langs="<%= mockLangs.join(',').toLowerCase() %>"
            data-price="<%= s.price === 0 ? 'free' : 'paid' %>"
            aria-label="<%= s.title %>"
            itemscope itemtype="https://schema.org/Course">
 
-          <!-- Tiny exam label — context only -->
+          <!-- Category label -->
           <div class="sc-exam-label">
-            <span class="sc-exam-icon"><%= exam.icon || '📚' %></span>
-            <span class="sc-exam-name"><%= exam.name || 'Mock Test' %></span>
+            <span class="sc-exam-icon"><%= exam.icon || '📝' %></span>
+            <span class="sc-exam-name"><%= seriesLabel %></span>
             <% if (s.price === 0) { %><span class="sc-badge-free">Free</span><% } %>
           </div>
 

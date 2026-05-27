@@ -47,9 +47,13 @@
               <span class="badge badge-blue">Q<%= idx + 1 %></span>
               <span class="badge badge-warm"><%= q.tag %></span>
             </div>
-            <form method="POST" action="/admin/questions/<%= q._id %>/delete?testId=<%= testId %>" onsubmit="return confirm('Delete this question?')">
-              <button class="btn btn-danger btn-sm" type="submit">Delete</button>
-            </form>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-outline btn-sm" type="button"
+                onclick="openEditQModal('<%= q._id %>',`<%= q.question.replace(/`/g,'\\`').replace(/'/g,`\\'`) %>`,`<%= q.options[0].replace(/`/g,'\\`') %>`,`<%= q.options[1].replace(/`/g,'\\`') %>`,`<%= q.options[2].replace(/`/g,'\\`') %>`,`<%= q.options[3].replace(/`/g,'\\`') %>`,<%= q.correctAnswer %>,`<%= (q.explanation||'').replace(/`/g,'\\`') %>`,`<%= (q.tag||'').replace(/`/g,'\\`') %>`)">Edit</button>
+              <form method="POST" action="/admin/questions/<%= q._id %>/delete?testId=<%= testId %>" onsubmit="return confirm('Delete this question?')" style="margin:0;">
+                <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+              </form>
+            </div>
           </div>
           <p class="fw-600 text-small mb-3" style="color: var(--ink);"><%= q.question %></p>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -215,6 +219,79 @@
     </div>
   </div>
 </div>
+
+<!-- Edit Question Modal -->
+<div class="modal-backdrop" id="editQModal">
+  <div class="modal" style="max-width: 640px;">
+    <div class="modal-header">
+      <h4 style="font-family: 'DM Sans';">Edit Question</h4>
+      <button class="modal-close" onclick="closeModal('editQModal')">✕</button>
+    </div>
+    <form method="POST" id="editQForm" action="">
+      <input type="hidden" name="_redirect" value="<%= testId ? '/admin/questions?testId=' + testId : '/admin/questions' %>">
+      <div class="form-group">
+        <label class="form-label">Question Text *</label>
+        <textarea name="question" id="eq_question" class="form-control" rows="3" required></textarea>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Option A *</label>
+          <input type="text" name="option0" id="eq_opt0" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Option B *</label>
+          <input type="text" name="option1" id="eq_opt1" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Option C *</label>
+          <input type="text" name="option2" id="eq_opt2" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Option D *</label>
+          <input type="text" name="option3" id="eq_opt3" class="form-control" required>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Correct Answer *</label>
+          <select name="correctAnswer" id="eq_ans" class="form-control" required>
+            <option value="0">A</option>
+            <option value="1">B</option>
+            <option value="2">C</option>
+            <option value="3">D</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tag (Topic) *</label>
+          <input type="text" name="tag" id="eq_tag" class="form-control" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Explanation</label>
+        <textarea name="explanation" id="eq_exp" class="form-control" rows="2"></textarea>
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn btn-outline" onclick="closeModal('editQModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openEditQModal(id, question, opt0, opt1, opt2, opt3, ans, explanation, tag) {
+  document.getElementById('editQForm').action = '/admin/questions/' + id + '/update';
+  document.getElementById('eq_question').value = question;
+  document.getElementById('eq_opt0').value     = opt0;
+  document.getElementById('eq_opt1').value     = opt1;
+  document.getElementById('eq_opt2').value     = opt2;
+  document.getElementById('eq_opt3').value     = opt3;
+  document.getElementById('eq_ans').value      = ans;
+  document.getElementById('eq_exp').value      = explanation;
+  document.getElementById('eq_tag').value      = tag;
+  openModal('editQModal');
+}
+</script>
 
 <script>
 function switchImportTab(tab) {

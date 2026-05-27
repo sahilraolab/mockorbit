@@ -36,7 +36,8 @@ const examSchema = new mongoose.Schema({
 });
 
 const testSeriesSchema = new mongoose.Schema({
-  examId: { type: mongoose.Schema.Types.ObjectId, ref: 'Exam', required: true },
+  examId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Exam' },  // optional — kept for backwards-compat
+  category: { type: String, trim: true },                           // direct category (replaces exam.category)
   title: { type: String, required: true, trim: true },
   price: { type: Number, required: true, min: 0 },
   totalMocks: { type: Number, required: true, min: 1 },
@@ -50,6 +51,7 @@ const testSeriesSchema = new mongoose.Schema({
     explanation: String
   }],
   isActive: { type: Boolean, default: true },
+  sortOrder: { type: Number, default: 0 },                          // display order in admin list
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -58,6 +60,7 @@ const testSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   duration: { type: Number, required: true, min: 1 }, // in minutes
   totalQuestions: { type: Number, default: 0 },
+  sortOrder: { type: Number, default: 0 },             // display order within a series
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });

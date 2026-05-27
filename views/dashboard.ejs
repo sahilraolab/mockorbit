@@ -25,10 +25,15 @@
       </div>
     <% } else { %>
       <% seriesWithTests.forEach(series => { %>
+        <%
+          // Display label: category or exam name or series title
+          const seriesLabel = series.category || (series.examId && series.examId.name) || series.title;
+          const examIdStr   = series.examId ? series.examId._id.toString() : '';
+        %>
         <div class="series-card mb-6">
           <div class="series-card-header flex-between">
             <div>
-              <span class="badge badge-blue mb-2"><%= series.examId.name %></span>
+              <span class="badge badge-blue mb-2"><%= seriesLabel %></span>
               <h4 style="font-family: 'DM Sans'; font-size: 1rem;"><%= series.title %></h4>
             </div>
             <span class="text-small text-muted"><%= series.totalMocks %> mocks</span>
@@ -39,19 +44,26 @@
               <p class="text-small text-muted">No tests available yet. Check back soon.</p>
             </div>
           <% } else { %>
-            <% series.tests.forEach(test => { %>
+            <% series.tests.forEach((test, tidx) => { %>
+              <%
+                // Auto-title: if stored title matches "Mock Test <digits?>", show positional name
+                const isMockTestTitle = /^mock\s*test\s*\d*$/i.test((test.title || '').trim());
+                const displayTestTitle = isMockTestTitle ? 'Mock Test ' + (tidx + 1) : test.title;
+              %>
               <div class="test-row">
                 <div>
-                  <p class="fw-600 text-small"><%= test.title %></p>
+                  <p class="fw-600 text-small"><%= displayTestTitle %></p>
                   <p class="text-xs text-muted mt-1">⏱ <%= test.duration %> min · <%= test.totalQuestions %> questions</p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px; flex-wrap:wrap;">
                   <% if (test.attempted && test.latestAttempt) { %>
                     <span class="badge badge-green">Score: <%= test.latestAttempt.score %>/<%= test.latestAttempt.totalMarks %></span>
                     <a href="/test/result/<%= test.latestAttempt._id %>" class="btn btn-outline btn-sm">View Result</a>
+                    <% if (examIdStr) { %>
                     <button type="button" class="btn btn-outline btn-sm"
-                      onclick="openReviewFor('<%= series.examId._id %>','<%= series._id %>')"
+                      onclick="openReviewFor('<%= examIdStr %>','<%= series._id %>')"
                       title="Write a review for this mock test">✍️ Review</button>
+                    <% } %>
                   <% } %>
                   <a href="/test/start/<%= test._id %>" class="btn btn-primary btn-sm">
                     <%= test.attempted ? 'Reattempt' : 'Start Test' %>

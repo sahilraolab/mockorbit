@@ -1,4 +1,4 @@
-const { Exam, TestSeries } = require('../models/Exam');
+const { Exam, TestSeries, Test, Question } = require('../models/Exam');
 const Testimonial = require('../models/Testimonial');
 
 exports.listByExam = async (req, res) => {
@@ -54,18 +54,43 @@ exports.showSeries = async (req, res) => {
 
     const hasPurchased = req.user ? req.user.hasPurchased(series._id) : false;
 
-    const seriesReviews = await Testimonial.find({
-      type: 'series', refId: series._id, status: 'approved'
-    }).sort({ createdAt: -1 }).limit(8).lean();
+    // Fetch tests belonging to this series (sorted)
+    const tests = await Test.find({ testSeriesId: series._id })
+      .sort({ sortOrder: 1, createdAt: 1 }).lean();
 
-    // Only fetch the user's existing review if they've purchased
-    const mySeriesReview = (req.user && hasPurchased)
-      ? await Testimonial.findOne({ userId: req.user._id, type: 'series', refId: series._id }).lean()
-      : null;
+    // Fetch all test IDs to query questions
+    const testIds = tests.map(t => t._id);
+
+    // Topics covered (distinct tags from all questions in this series)
+    const topicsCovered = testIds.length > 0
+      ? (await Question.distinct('tag', { testId: { $in: testIds } })).filter(Boolean).sort()
+      : [];
+
+    // Sample questions — pick up to 3 random, only show question text + options (no answer)
+    let sampleQuestions = [];
+    if (testIds.length > 0) {
+      const totalQs = await Question.countDocuments({ testId: { $in: testIds } });
+      if (totalQs > 0) {
+        // Skip a random offset for variety
+        const skip = Math.max(0, Math.floor(Math.random() * Math.max(1, totalQs - 3)));
+        sampleQuestions = await Question.find({ testId: { $in: testIds } })
+          .skip(skip).limit(3)
+          .select('question options tag').lean();
+      }
+    }
+
+    const [seriesReviews, mySeriesReview] = await Promise.all([
+      Testimonial.find({ type: 'series', refId: series._id, status: 'approved' })
+        .sort({ createdAt: -1 }).limit(8).lean(),
+      (req.user && hasPurchased)
+        ? Testimonial.findOne({ userId: req.user._id, type: 'series', refId: series._id }).lean()
+        : Promise.resolve(null)
+    ]);
 
     res.render('series-detail', {
       title: `${series.title} — ${process.env.APP_NAME}`,
       series, hasPurchased, seriesReviews, mySeriesReview,
+      tests, topicsCovered, sampleQuestions,
       user: req.user || null,
       error: req.flash('error'),
       success: req.flash('success')

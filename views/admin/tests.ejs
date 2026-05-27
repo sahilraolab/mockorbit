@@ -4,14 +4,29 @@
 <% if (success && success.length > 0) { %><div class="alert alert-success mb-4">✓ <%= success[0] %></div><% } %>
 
 <div class="admin-page-header">
-  <h3 style="font-family: 'DM Sans';">Tests (<%= tests.length %>)</h3>
-  <button class="btn btn-primary" onclick="openModal('addTestModal')">+ Add Test</button>
+  <div>
+    <h3 style="font-family: 'DM Sans';">Mock Tests (<%= tests.length %>)</h3>
+    <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:2px;">Drag rows to reorder. The title you set is shown to students exactly as typed.</p>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <form method="GET" action="/admin/tests" style="margin:0;">
+      <select name="seriesId" class="form-control" onchange="this.form.submit()" style="font-size:0.8rem;padding:6px 10px;max-width:220px;">
+        <option value="">All Series</option>
+        <% series.forEach(s => { %>
+          <option value="<%= s._id %>" <%= selectedSeriesId === s._id.toString() ? 'selected' : '' %>><%= s.title %></option>
+        <% }) %>
+      </select>
+    </form>
+    <button class="btn btn-primary" onclick="openModal('addTestModal')">+ Add Test</button>
+  </div>
 </div>
 
 <div class="table-wrap">
   <table>
     <thead>
       <tr>
+        <th style="width:36px;"></th>
+        <th>#</th>
         <th>Title</th>
         <th>Series</th>
         <th>Duration</th>
@@ -19,22 +34,37 @@
         <th>Actions</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="testsTbody">
       <% if (tests.length === 0) { %>
-        <tr><td colspan="5" class="text-center text-muted" style="padding: 32px;">No tests yet. Add your first test.</td></tr>
+        <tr><td colspan="7" class="text-center text-muted" style="padding: 32px;">No tests yet. Add your first test.</td></tr>
       <% } %>
-      <% tests.forEach(t => { %>
-        <tr>
+      <%
+        // Track position per series for the # column
+        const seriesPosMap = {};
+        tests.forEach(t => {
+          const sid = t.testSeriesId ? t.testSeriesId._id.toString() : '__none__';
+          if (!seriesPosMap[sid]) seriesPosMap[sid] = 0;
+          seriesPosMap[sid]++;
+          t._posInSeries = seriesPosMap[sid];
+        });
+      %>
+      <% tests.forEach((t, i) => { %>
+        <tr data-id="<%= t._id %>" class="test-row" style="cursor:grab;">
+          <td style="text-align:center;color:var(--ink-muted);font-size:1rem;cursor:grab;" title="Drag to reorder">⠿</td>
+          <td style="font-size:0.82rem;font-weight:700;color:var(--accent);text-align:center;"><%= t._posInSeries %></td>
           <td class="fw-600"><%= t.title %></td>
-          <td><%= t.testSeriesId ? t.testSeriesId.title : '—' %></td>
+          <td style="font-size:0.83rem;color:var(--ink-muted);"><%= t.testSeriesId ? t.testSeriesId.title : '—' %></td>
           <td><%= t.duration %> min</td>
           <td>
             <a href="/admin/questions?testId=<%= t._id %>" class="badge badge-blue"><%= t.totalQuestions %> Qs</a>
           </td>
           <td>
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 8px; flex-wrap:wrap;">
               <a href="/admin/questions?testId=<%= t._id %>" class="btn btn-outline btn-sm">Questions</a>
-              <form method="POST" action="/admin/tests/<%= t._id %>/delete" onsubmit="return confirm('Delete this test and all its questions?')">
+              <button class="btn btn-outline btn-sm"
+                onclick="openEditModal('<%= t._id %>','<%= t.title.replace(/'/g, `\\'`) %>','<%= t.duration %>','<%= t.sortOrder %>')"
+              >Edit</button>
+              <form method="POST" action="/admin/tests/<%= t._id %>/delete" onsubmit="return confirm('Delete \'<%= t.title %>\' and all its questions?')">
                 <button class="btn btn-danger btn-sm" type="submit">Delete</button>
               </form>
             </div>
@@ -45,11 +75,11 @@
   </table>
 </div>
 
-<!-- Add Test Modal -->
+<!-- ── Add Test Modal ──────────────────────────────────────────────────── -->
 <div class="modal-backdrop" id="addTestModal">
   <div class="modal">
     <div class="modal-header">
-      <h4 style="font-family: 'DM Sans';">Add Test</h4>
+      <h4 style="font-family: 'DM Sans';">Add Mock Test</h4>
       <button class="modal-close" onclick="closeModal('addTestModal')">✕</button>
     </div>
     <form method="POST" action="/admin/tests">
@@ -58,13 +88,13 @@
         <select name="testSeriesId" class="form-control" required>
           <option value="">Select Test Series</option>
           <% series.forEach(s => { %>
-            <option value="<%= s._id %>"><%= s.title %></option>
+            <option value="<%= s._id %>" <%= selectedSeriesId === s._id.toString() ? 'selected' : '' %>><%= s.title %></option>
           <% }) %>
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Test Title *</label>
-        <input type="text" name="title" class="form-control" placeholder="e.g., Mock Test 1" required>
+        <label class="form-label">Title *</label>
+        <input type="text" name="title" class="form-control" placeholder="e.g., Mock Test 1" value="Mock Test" required>
       </div>
       <div class="form-group">
         <label class="form-label">Duration (minutes) *</label>
@@ -77,5 +107,116 @@
     </form>
   </div>
 </div>
+
+<!-- ── Edit Test Modal ─────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="editTestModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h4 style="font-family: 'DM Sans';">Edit Test</h4>
+      <button class="modal-close" onclick="closeModal('editTestModal')">✕</button>
+    </div>
+    <form method="POST" id="editTestForm" action="">
+      <div class="form-group">
+        <label class="form-label">Title *</label>
+        <input type="text" name="title" id="editTestTitle" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Duration (minutes) *</label>
+        <input type="number" name="duration" id="editTestDuration" class="form-control" min="1" required>
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn btn-outline" onclick="closeModal('editTestModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Save order toast -->
+<div id="testsToast" style="display:none;position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--ink);color:#fff;padding:10px 20px;border-radius:var(--radius);font-size:0.85rem;box-shadow:var(--shadow-lg);transition:opacity 0.3s;">
+  ✓ Order saved
+</div>
+
+<style>
+.test-row.drag-over { outline: 2px dashed var(--accent); outline-offset: -2px; background: var(--accent-light); }
+.test-row:active { cursor: grabbing; }
+</style>
+
+<script>
+function openEditModal(id, title, duration, sortOrder) {
+  document.getElementById('editTestForm').action = '/admin/tests/' + id + '/update';
+  document.getElementById('editTestTitle').value   = title;
+  document.getElementById('editTestDuration').value = duration;
+  openModal('editTestModal');
+}
+
+// ── Drag-and-drop reorder ────────────────────────────────────────────────
+(function() {
+  const tbody = document.getElementById('testsTbody');
+  const toast = document.getElementById('testsToast');
+  if (!tbody) return;
+
+  let dragging = null;
+
+  tbody.querySelectorAll('.test-row').forEach(row => {
+    row.setAttribute('draggable', 'true');
+
+    row.addEventListener('dragstart', e => {
+      dragging = row;
+      row.style.opacity = '0.45';
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    row.addEventListener('dragend', () => {
+      row.style.opacity = '';
+      dragging = null;
+      tbody.querySelectorAll('.test-row').forEach(r => r.classList.remove('drag-over'));
+      saveOrder();
+    });
+
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (row === dragging) return;
+      tbody.querySelectorAll('.test-row').forEach(r => r.classList.remove('drag-over'));
+      row.classList.add('drag-over');
+      const rect = row.getBoundingClientRect();
+      if (e.clientY < rect.top + rect.height / 2) {
+        tbody.insertBefore(dragging, row);
+      } else {
+        const next = row.nextElementSibling;
+        if (next) tbody.insertBefore(dragging, next);
+        else tbody.appendChild(dragging);
+      }
+    });
+
+    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+    row.addEventListener('drop', e => e.preventDefault());
+  });
+
+  function saveOrder() {
+    const ids = Array.from(tbody.querySelectorAll('.test-row')).map(r => r.dataset.id);
+    fetch('/admin/tests/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'orderedIds=' + encodeURIComponent(JSON.stringify(ids))
+    })
+    .then(r => r.json())
+    .then(data => showToast(data.success ? '✓ Order saved' : '⚠ Save failed'))
+    .catch(() => showToast('⚠ Network error'));
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    toast.style.opacity = '1';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => { toast.style.display = 'none'; }, 350);
+    }, 2500);
+  }
+})();
+</script>
 
 <%- include('layout-bottom') %>

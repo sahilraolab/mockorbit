@@ -4,7 +4,13 @@
 <% if (success && success.length > 0) { %><div class="alert alert-success mb-4">✓ <%= success[0] %></div><% } %>
 
 <div class="admin-page-header">
-  <h3 style="font-family: 'DM Sans';">Test Series (<%= series.length %>)</h3>
+  <div>
+    <h3 style="font-family: 'DM Sans';">Test Series (<%= series.length %>)</h3>
+    <% const hidden = series.filter(s => !s.isActive).length; %>
+    <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:2px;">
+      Drag rows to reorder how series appear on the site.<% if (hidden > 0) { %> · <%= hidden %> series hidden from the site.<% } %>
+    </p>
+  </div>
   <a href="/admin/series/new" class="btn btn-primary">+ Add Series</a>
 </div>
 
@@ -12,27 +18,48 @@
   <table>
     <thead>
       <tr>
+        <th style="width:36px;"></th>
         <th>Title</th>
-        <th>Exam</th>
+        <th>Category</th>
         <th>Price</th>
         <th>Mocks</th>
+        <th>Visibility</th>
         <th>Actions</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="seriesTbody">
       <% if (series.length === 0) { %>
-        <tr><td colspan="5" class="text-center text-muted" style="padding: 32px;">No test series yet. <a href="/admin/series/new">Create one</a></td></tr>
+        <tr><td colspan="7" class="text-center text-muted" style="padding: 32px;">No test series yet. <a href="/admin/series/new">Create one</a></td></tr>
       <% } %>
       <% series.forEach(s => { %>
-        <tr>
-          <td class="fw-600"><%= s.title %></td>
-          <td><%= s.examId ? s.examId.name : '—' %></td>
-          <td>₹<%= s.price.toLocaleString('en-IN') %></td>
+        <%
+          const cat = s.category || (s.examId && s.examId.category) || '—';
+        %>
+        <tr data-id="<%= s._id %>" class="series-row" style="<%= !s.isActive ? 'opacity:0.55;' : '' %>; cursor:grab;">
+          <td style="text-align:center;color:var(--ink-muted);font-size:1rem;cursor:grab;" title="Drag to reorder">⠿</td>
+          <td class="fw-600">
+            <%= s.title %>
+            <% if (!s.isActive) { %>
+              <span style="font-size:0.7rem;font-weight:600;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:999px;margin-left:6px;border:1px solid #fde68a;">Hidden</span>
+            <% } %>
+          </td>
+          <td><% if (cat !== '—') { %><span class="badge badge-blue"><%= cat %></span><% } else { %>—<% } %></td>
+          <td>
+            <% if (s.price === 0) { %><span class="badge badge-green">Free</span><% } else { %>₹<%= s.price.toLocaleString('en-IN') %><% } %>
+          </td>
           <td><%= s.totalMocks %></td>
+          <td>
+            <form method="POST" action="/admin/series/<%= s._id %>/toggle-active" style="margin:0;">
+              <button class="btn btn-sm <%= s.isActive ? 'btn-outline' : 'btn-primary' %>" type="submit"
+                title="<%= s.isActive ? 'Hide from site' : 'Show on site' %>">
+                <%= s.isActive ? '👁 Visible' : '🙈 Hidden' %>
+              </button>
+            </form>
+          </td>
           <td>
             <div style="display: flex; gap: 8px;">
               <a href="/admin/series/<%= s._id %>/edit" class="btn btn-outline btn-sm">Edit</a>
-              <form method="POST" action="/admin/series/<%= s._id %>/delete" onsubmit="return confirm('Delete this series?')">
+              <form method="POST" action="/admin/series/<%= s._id %>/delete" onsubmit="return confirm('Delete this series?')" style="margin:0;">
                 <button class="btn btn-danger btn-sm" type="submit">Delete</button>
               </form>
             </div>
@@ -42,5 +69,90 @@
     </tbody>
   </table>
 </div>
+
+<!-- Save order toast -->
+<div id="reorderToast" style="display:none;position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--ink);color:#fff;padding:10px 20px;border-radius:var(--radius);font-size:0.85rem;box-shadow:var(--shadow-lg);transition:opacity 0.3s;">
+  ✓ Order saved
+</div>
+
+<script>
+(function() {
+  const tbody   = document.getElementById('seriesTbody');
+  const toast   = document.getElementById('reorderToast');
+  if (!tbody) return;
+
+  let dragging  = null;
+
+  tbody.querySelectorAll('.series-row').forEach(row => {
+    row.setAttribute('draggable', 'true');
+
+    row.addEventListener('dragstart', e => {
+      dragging = row;
+      row.style.opacity = '0.45';
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    row.addEventListener('dragend', () => {
+      row.style.opacity = '';
+      dragging = null;
+      tbody.querySelectorAll('.series-row').forEach(r => r.classList.remove('drag-over'));
+      saveOrder();
+    });
+
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (row === dragging) return;
+      tbody.querySelectorAll('.series-row').forEach(r => r.classList.remove('drag-over'));
+      row.classList.add('drag-over');
+
+      // Insert before or after based on mouse position
+      const rect = row.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (e.clientY < midY) {
+        tbody.insertBefore(dragging, row);
+      } else {
+        const next = row.nextElementSibling;
+        if (next) tbody.insertBefore(dragging, next);
+        else tbody.appendChild(dragging);
+      }
+    });
+
+    row.addEventListener('dragleave', () => {
+      row.classList.remove('drag-over');
+    });
+
+    row.addEventListener('drop', e => { e.preventDefault(); });
+  });
+
+  function saveOrder() {
+    const ids = Array.from(tbody.querySelectorAll('.series-row')).map(r => r.dataset.id);
+    fetch('/admin/series/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'orderedIds=' + encodeURIComponent(JSON.stringify(ids))
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) showToast('✓ Order saved');
+      else showToast('⚠ Failed to save order');
+    })
+    .catch(() => showToast('⚠ Network error'));
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    toast.style.opacity = '1';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => { toast.style.display = 'none'; }, 350); }, 2500);
+  }
+})();
+</script>
+
+<style>
+.series-row.drag-over { outline: 2px dashed var(--accent); outline-offset: -2px; background: var(--accent-light); }
+.series-row:active { cursor: grabbing; }
+</style>
 
 <%- include('layout-bottom') %>

@@ -4,6 +4,7 @@ const { Attempt, Payment } = require('../models/Attempt');
 const User = require('../models/User');
 const { Organization, OrgStudent } = require('../models/Organization');
 const Testimonial = require('../models/Testimonial');
+const SiteSettings = require('../models/SiteSettings');
 
 // Auth
 exports.showLogin = (req, res) => {
@@ -34,19 +35,20 @@ exports.logout = (req, res) => {
 
 // Dashboard
 exports.dashboard = async (req, res) => {
-  const [users, exams, series, attempts, orgs, revenue] = await Promise.all([
+  const [users, series, tests, questions, attempts, orgs, revenue] = await Promise.all([
     User.countDocuments(),
-    Exam.countDocuments(),
     TestSeries.countDocuments(),
+    Test.countDocuments(),
+    Question.countDocuments(),
     Attempt.countDocuments({ status: 'submitted' }),
     Organization.countDocuments(),
     Payment.aggregate([{ $match: { status: 'success' } }, { $group: { _id: null, total: { $sum: '$amount' } } }])
   ]);
   const totalRevenue = revenue[0]?.total || 0;
-  res.render('admin/dashboard', { title: 'Admin Dashboard', stats: { users, exams, series, attempts, orgs, totalRevenue } });
+  res.render('admin/dashboard', { title: 'Admin Dashboard', stats: { users, series, tests, questions, attempts, orgs, totalRevenue } });
 };
 
-// Exams
+// Exams (kept for backwards-compat API; admin nav no longer links here)
 exports.listExams = async (req, res) => {
   const exams = await Exam.find().lean();
   res.render('admin/exams', { title: 'Manage Exams', exams, error: req.flash('error'), success: req.flash('success') });
@@ -54,30 +56,11 @@ exports.listExams = async (req, res) => {
 
 exports.createExam = async (req, res) => {
   try {
-    const {
-      name, description, icon,
-      category, conductedBy, examLevel, eligibility, frequency,
-      totalVacancies, examDuration, totalMarks, metaDesc, isActive, sortOrder
-    } = req.body;
-
+    const { name, description, icon, category, conductedBy, examLevel, eligibility, frequency, totalVacancies, examDuration, totalMarks, metaDesc, isActive, sortOrder } = req.body;
     const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-
-    // Multi-value fields sent as comma-separated strings
     const language         = req.body.language         ? req.body.language.split(',').map(s => s.trim()).filter(Boolean) : [];
     const statesApplicable = req.body.statesApplicable ? req.body.statesApplicable.split(',').map(s => s.trim()).filter(Boolean) : [];
-
-    await Exam.create({
-      name, slug, description, icon: icon || '📚',
-      category: category || undefined,
-      conductedBy,
-      examLevel: examLevel || undefined,
-      eligibility,
-      frequency: frequency || undefined,
-      language, statesApplicable,
-      totalVacancies, examDuration, totalMarks, metaDesc,
-      isActive: isActive !== 'false',
-      sortOrder: parseInt(sortOrder) || 0
-    });
+    await Exam.create({ name, slug, description, icon: icon || '📚', category: category || undefined, conductedBy, examLevel: examLevel || undefined, eligibility, frequency: frequency || undefined, language, statesApplicable, totalVacancies, examDuration, totalMarks, metaDesc, isActive: isActive !== 'false', sortOrder: parseInt(sortOrder) || 0 });
     req.flash('success', 'Exam created');
   } catch (err) {
     req.flash('error', err.code === 11000 ? 'Exam already exists' : 'Failed to create exam');
@@ -87,28 +70,11 @@ exports.createExam = async (req, res) => {
 
 exports.updateExam = async (req, res) => {
   try {
-    const {
-      name, description, icon,
-      category, conductedBy, examLevel, eligibility, frequency,
-      totalVacancies, examDuration, totalMarks, metaDesc, isActive, sortOrder
-    } = req.body;
-
+    const { name, description, icon, category, conductedBy, examLevel, eligibility, frequency, totalVacancies, examDuration, totalMarks, metaDesc, isActive, sortOrder } = req.body;
     const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     const language         = req.body.language         ? req.body.language.split(',').map(s => s.trim()).filter(Boolean) : [];
     const statesApplicable = req.body.statesApplicable ? req.body.statesApplicable.split(',').map(s => s.trim()).filter(Boolean) : [];
-
-    await Exam.findByIdAndUpdate(req.params.id, {
-      name, slug, description, icon,
-      category: category || undefined,
-      conductedBy,
-      examLevel: examLevel || undefined,
-      eligibility,
-      frequency: frequency || undefined,
-      language, statesApplicable,
-      totalVacancies, examDuration, totalMarks, metaDesc,
-      isActive: isActive !== 'false',
-      sortOrder: parseInt(sortOrder) || 0
-    });
+    await Exam.findByIdAndUpdate(req.params.id, { name, slug, description, icon, category: category || undefined, conductedBy, examLevel: examLevel || undefined, eligibility, frequency: frequency || undefined, language, statesApplicable, totalVacancies, examDuration, totalMarks, metaDesc, isActive: isActive !== 'false', sortOrder: parseInt(sortOrder) || 0 });
     req.flash('success', 'Exam updated');
   } catch (err) {
     req.flash('error', 'Failed to update exam');
@@ -126,66 +92,34 @@ exports.deleteExam = async (req, res) => {
   res.redirect('/admin/exams');
 };
 
-// Test Series
+// ─── Test Series ─────────────────────────────────────────────────────────────
+
 exports.listSeries = async (req, res) => {
-  const series = await TestSeries.find().populate('examId').lean();
-  const exams = await Exam.find().lean();
-  res.render('admin/series', { title: 'Manage Test Series', series, exams, error: req.flash('error'), success: req.flash('success') });
+  const series = await TestSeries.find().populate('examId').sort({ sortOrder: 1, createdAt: 1 }).lean();
+  res.render('admin/series', { title: 'Manage Test Series', series, error: req.flash('error'), success: req.flash('success') });
 };
 
 exports.showCreateSeries = async (req, res) => {
-  const exams = await Exam.find().sort({ sortOrder: 1 }).lean();
-  res.render('admin/series-form', { title: 'Create Test Series', series: null, exams, error: req.flash('error') });
+  res.render('admin/series-form', { title: 'Create Test Series', series: null, error: req.flash('error') });
 };
-
-// Helper: resolve examId — uses existing or creates a new Exam from inline fields
-async function resolveExamId(body) {
-  if (body.examId) return body.examId;
-
-  const ne = body.newExam || {};
-  if (!ne.name) throw new Error('Exam name is required when creating a new exam.');
-
-  const slug = ne.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  const language         = ne.language         ? ne.language.split(',').map(s => s.trim()).filter(Boolean) : [];
-  const statesApplicable = ne.statesApplicable ? ne.statesApplicable.split(',').map(s => s.trim()).filter(Boolean) : [];
-
-  // Reuse if exam with same slug already exists
-  let exam = await Exam.findOne({ slug });
-  if (!exam) {
-    exam = await Exam.create({
-      name: ne.name, slug,
-      description: ne.description || undefined,
-      icon: ne.icon || '📚',
-      category: ne.category || undefined,
-      examLevel: ne.examLevel || undefined,
-      frequency: ne.frequency || undefined,
-      conductedBy: ne.conductedBy || undefined,
-      eligibility: ne.eligibility || undefined,
-      language, statesApplicable,
-      totalMarks: ne.totalMarks || undefined,
-      examDuration: ne.examDuration || undefined,
-      totalVacancies: ne.totalVacancies || undefined,
-      metaDesc: ne.metaDesc || undefined,
-      isActive: ne.isActive !== 'false',
-      sortOrder: parseInt(ne.sortOrder) || 0
-    });
-  }
-  return exam._id;
-}
 
 exports.createSeries = async (req, res) => {
   try {
-    const { title, price, totalMocks, description, features } = req.body;
-    const examId = await resolveExamId(req.body);
+    const { title, price, totalMocks, description, features, category } = req.body;
     const featuresArr = features
       ? features.split('\n').map(f => f.trim()).filter(Boolean)
-      : ['Latest pattern', 'Detailed solutions', 'Rank analysis'];
+      : [];
     const mockLanguages = req.body.mockLanguages
       ? req.body.mockLanguages.split(',').map(s => s.trim()).filter(Boolean)
       : [];
     await TestSeries.create({
-      examId, title, price: parseFloat(price), totalMocks: parseInt(totalMocks),
-      description, features: featuresArr, mockLanguages
+      title: title.trim(),
+      price: parseFloat(price) || 0,
+      totalMocks: parseInt(totalMocks) || 1,
+      description: description?.trim() || undefined,
+      features: featuresArr,
+      mockLanguages,
+      category: category?.trim() || undefined
     });
     req.flash('success', 'Test series created');
     res.redirect('/admin/series');
@@ -198,14 +132,13 @@ exports.createSeries = async (req, res) => {
 
 exports.showEditSeries = async (req, res) => {
   const series = await TestSeries.findById(req.params.id).lean();
-  const exams = await Exam.find().sort({ sortOrder: 1 }).lean();
-  res.render('admin/series-form', { title: 'Edit Test Series', series, exams, error: req.flash('error') });
+  if (!series) { req.flash('error', 'Series not found'); return res.redirect('/admin/series'); }
+  res.render('admin/series-form', { title: 'Edit Test Series', series, error: req.flash('error') });
 };
 
 exports.updateSeries = async (req, res) => {
   try {
-    const { title, price, totalMocks, description, features } = req.body;
-    const examId = await resolveExamId(req.body);
+    const { title, price, totalMocks, description, features, category } = req.body;
     const featuresArr = features
       ? features.split('\n').map(f => f.trim()).filter(Boolean)
       : [];
@@ -213,8 +146,13 @@ exports.updateSeries = async (req, res) => {
       ? req.body.mockLanguages.split(',').map(s => s.trim()).filter(Boolean)
       : [];
     await TestSeries.findByIdAndUpdate(req.params.id, {
-      examId, title, price: parseFloat(price), totalMocks: parseInt(totalMocks),
-      description, features: featuresArr, mockLanguages
+      title: title.trim(),
+      price: parseFloat(price) || 0,
+      totalMocks: parseInt(totalMocks) || 1,
+      description: description?.trim() || undefined,
+      features: featuresArr,
+      mockLanguages,
+      category: category?.trim() || undefined
     });
     req.flash('success', 'Test series updated');
     res.redirect('/admin/series');
@@ -223,6 +161,19 @@ exports.updateSeries = async (req, res) => {
     req.flash('error', err.message || 'Failed to update series');
     res.redirect('/admin/series');
   }
+};
+
+exports.toggleSeriesActive = async (req, res) => {
+  try {
+    const series = await TestSeries.findById(req.params.id);
+    if (!series) throw new Error('Not found');
+    series.isActive = !series.isActive;
+    await series.save();
+    req.flash('success', series.isActive ? 'Series is now visible on the site' : 'Series hidden from the site');
+  } catch (err) {
+    req.flash('error', 'Failed to update visibility');
+  }
+  res.redirect('/admin/series');
 };
 
 exports.deleteSeries = async (req, res) => {
@@ -235,22 +186,119 @@ exports.deleteSeries = async (req, res) => {
   res.redirect('/admin/series');
 };
 
-// Tests
+/**
+ * Reorder series via drag-and-drop.
+ * body.orderedIds = JSON array of series IDs in the new order.
+ */
+exports.reorderSeries = async (req, res) => {
+  try {
+    const ids = JSON.parse(req.body.orderedIds || '[]');
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.json({ success: false, message: 'No order data' });
+    }
+    const bulkOps = ids.map((id, i) => ({
+      updateOne: { filter: { _id: id }, update: { $set: { sortOrder: i * 10 } } }
+    }));
+    await TestSeries.bulkWrite(bulkOps);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('reorderSeries error:', err);
+    res.json({ success: false, message: err.message });
+  }
+};
+
+// ─── Tests ───────────────────────────────────────────────────────────────────
+
 exports.listTests = async (req, res) => {
-  const tests = await Test.find().populate('testSeriesId').lean();
-  const series = await TestSeries.find().lean();
-  res.render('admin/tests', { title: 'Manage Tests', tests, series, error: req.flash('error'), success: req.flash('success') });
+  const seriesFilter = req.query.seriesId ? { testSeriesId: req.query.seriesId } : {};
+  const tests  = await Test.find(seriesFilter).populate('testSeriesId').sort({ sortOrder: 1, createdAt: 1 }).lean();
+  const series = await TestSeries.find().sort({ createdAt: -1 }).lean();
+  res.render('admin/tests', { title: 'Manage Tests', tests, series, selectedSeriesId: req.query.seriesId || '', error: req.flash('error'), success: req.flash('success') });
 };
 
 exports.createTest = async (req, res) => {
   try {
     const { testSeriesId, title, duration } = req.body;
-    await Test.create({ testSeriesId, title, duration: parseInt(duration) });
+    // Auto-assign next sort order within the series
+    const lastTest = await Test.findOne({ testSeriesId }).sort({ sortOrder: -1 });
+    const sortOrder = lastTest ? lastTest.sortOrder + 10 : 0;
+    await Test.create({ testSeriesId, title: title.trim(), duration: parseInt(duration), sortOrder });
     req.flash('success', 'Test created');
   } catch (err) {
     req.flash('error', 'Failed to create test');
   }
-  res.redirect('/admin/tests');
+  res.redirect('/admin/tests' + (req.body.testSeriesId ? '?seriesId=' + req.body.testSeriesId : ''));
+};
+
+exports.updateTest = async (req, res) => {
+  try {
+    const { title, duration, sortOrder } = req.body;
+    await Test.findByIdAndUpdate(req.params.id, {
+      title: title.trim(),
+      duration: parseInt(duration),
+      sortOrder: parseInt(sortOrder) || 0
+    });
+    req.flash('success', 'Test updated');
+  } catch (err) {
+    req.flash('error', 'Failed to update test');
+  }
+  res.redirect(req.get('referer') || '/admin/tests');
+};
+
+/**
+ * Move a test up or down within its series by swapping sort orders.
+ * body.direction = 'up' | 'down'
+ */
+exports.moveTest = async (req, res) => {
+  try {
+    const { direction } = req.body;
+    const test = await Test.findById(req.params.id).lean();
+    if (!test) throw new Error('Test not found');
+
+    // Get all sibling tests sorted by current order
+    const siblings = await Test.find({ testSeriesId: test.testSeriesId })
+      .sort({ sortOrder: 1, createdAt: 1 }).lean();
+
+    const idx     = siblings.findIndex(t => t._id.toString() === req.params.id);
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+
+    if (swapIdx >= 0 && swapIdx < siblings.length) {
+      // Normalise all sort orders to 0, 10, 20 … then swap the two
+      const bulkOps = siblings.map((t, i) => ({
+        updateOne: { filter: { _id: t._id }, update: { $set: { sortOrder: i * 10 } } }
+      }));
+      await Test.bulkWrite(bulkOps);
+
+      // Swap the two positions
+      await Test.findByIdAndUpdate(siblings[idx]._id,     { sortOrder: swapIdx * 10 });
+      await Test.findByIdAndUpdate(siblings[swapIdx]._id, { sortOrder: idx * 10 });
+      req.flash('success', 'Test reordered');
+    }
+  } catch (err) {
+    req.flash('error', 'Failed to reorder test');
+  }
+  res.redirect(req.get('referer') || '/admin/tests');
+};
+
+/**
+ * Reorder tests via drag-and-drop.
+ * body.orderedIds = JSON array of test IDs in the new order.
+ */
+exports.reorderTests = async (req, res) => {
+  try {
+    const ids = JSON.parse(req.body.orderedIds || '[]');
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.json({ success: false, message: 'No order data' });
+    }
+    const bulkOps = ids.map((id, i) => ({
+      updateOne: { filter: { _id: id }, update: { $set: { sortOrder: i * 10 } } }
+    }));
+    await Test.bulkWrite(bulkOps);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('reorderTests error:', err);
+    res.json({ success: false, message: err.message });
+  }
 };
 
 exports.deleteTest = async (req, res) => {
@@ -261,13 +309,14 @@ exports.deleteTest = async (req, res) => {
   } catch (err) {
     req.flash('error', 'Failed to delete');
   }
-  res.redirect('/admin/tests');
+  res.redirect(req.get('referer') || '/admin/tests');
 };
 
-// Questions
+// ─── Questions ───────────────────────────────────────────────────────────────
+
 exports.listQuestions = async (req, res) => {
   const testId = req.query.testId;
-  const tests = await Test.find().lean();
+  const tests = await Test.find().populate('testSeriesId').sort({ 'testSeriesId': 1, sortOrder: 1 }).lean();
   const questions = testId ? await Question.find({ testId }).lean() : [];
   const selectedTest = testId ? await Test.findById(testId).lean() : null;
   res.render('admin/questions', { title: 'Manage Questions', questions, tests, selectedTest, testId, error: req.flash('error'), success: req.flash('success') });
@@ -282,15 +331,31 @@ exports.createQuestion = async (req, res) => {
       options: [option0, option1, option2, option3],
       correctAnswer: parseInt(correctAnswer),
       explanation,
-      tag
+      tag: tag || 'General'
     });
-    // Update test question count
     await Test.findByIdAndUpdate(testId, { $inc: { totalQuestions: 1 } });
     req.flash('success', 'Question added');
   } catch (err) {
     req.flash('error', 'Failed to add question');
   }
   res.redirect(`/admin/questions?testId=${req.body.testId}`);
+};
+
+exports.updateQuestion = async (req, res) => {
+  try {
+    const { question, option0, option1, option2, option3, correctAnswer, explanation, tag } = req.body;
+    await Question.findByIdAndUpdate(req.params.id, {
+      question: question.trim(),
+      options: [option0.trim(), option1.trim(), option2.trim(), option3.trim()],
+      correctAnswer: parseInt(correctAnswer),
+      explanation: explanation?.trim() || '',
+      tag: tag?.trim() || 'General'
+    });
+    req.flash('success', 'Question updated');
+  } catch (err) {
+    req.flash('error', 'Failed to update question');
+  }
+  res.redirect(req.get('referer') || '/admin/questions');
 };
 
 exports.deleteQuestion = async (req, res) => {
@@ -309,8 +374,7 @@ exports.deleteQuestion = async (req, res) => {
 
 function parseCSVLine(line) {
   const cols = [];
-  let cur = '';
-  let inQ = false;
+  let cur = '', inQ = false;
   for (let i = 0; i < line.length; i++) {
     if (line[i] === '"') { inQ = !inQ; }
     else if (line[i] === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
@@ -323,55 +387,33 @@ function parseCSVLine(line) {
 exports.bulkImportQuestions = async (req, res) => {
   const testId = req.body.testId || req.query.testId;
   try {
-    if (!req.file) {
-      req.flash('error', 'Please upload a CSV file.');
-      return res.redirect(`/admin/questions?testId=${testId}`);
-    }
-    if (!testId) {
-      req.flash('error', 'Please select a test first.');
-      return res.redirect('/admin/questions');
-    }
+    if (!req.file) { req.flash('error', 'Please upload a CSV file.'); return res.redirect(`/admin/questions?testId=${testId}`); }
+    if (!testId)   { req.flash('error', 'Please select a test first.'); return res.redirect('/admin/questions'); }
 
     const content = req.file.buffer.toString('utf8').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    const lines = content.split('\n').filter(l => l.trim());
-    const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/\s/g, ''));
+    const lines   = content.split('\n').filter(l => l.trim());
+    const header  = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/\s/g, ''));
 
-    const qIdx   = header.indexOf('question');
-    const aIdx   = header.indexOf('optiona');
-    const bIdx   = header.indexOf('optionb');
-    const cIdx   = header.indexOf('optionc');
-    const dIdx   = header.indexOf('optiond');
-    const ansIdx = header.indexOf('correctanswer'); // 0-3 or A-D
-    const expIdx = header.indexOf('explanation');
-    const tagIdx = header.indexOf('tag');
+    const qIdx = header.indexOf('question'), aIdx = header.indexOf('optiona'), bIdx = header.indexOf('optionb');
+    const cIdx = header.indexOf('optionc'),  dIdx = header.indexOf('optiond'), ansIdx = header.indexOf('correctanswer');
+    const expIdx = header.indexOf('explanation'), tagIdx = header.indexOf('tag');
 
     if (qIdx === -1 || aIdx === -1 || ansIdx === -1) {
       req.flash('error', 'CSV must have columns: question, optionA, optionB, optionC, optionD, correctAnswer');
       return res.redirect(`/admin/questions?testId=${testId}`);
     }
 
-    const dataRows = lines.slice(1);
     let added = 0, failed = 0;
-
-    for (const line of dataRows) {
+    for (const line of lines.slice(1)) {
       const row = parseCSVLine(line);
       try {
         const rawAns = row[ansIdx]?.trim().toUpperCase();
         const correctAnswer = ['A','B','C','D'].includes(rawAns) ? ['A','B','C','D'].indexOf(rawAns) : parseInt(rawAns);
         if (isNaN(correctAnswer) || correctAnswer < 0 || correctAnswer > 3) { failed++; continue; }
-
-        await Question.create({
-          testId,
-          question: row[qIdx],
-          options: [row[aIdx] || '', row[bIdx] || '', row[cIdx] || '', row[dIdx] || ''],
-          correctAnswer,
-          explanation: expIdx !== -1 ? row[expIdx] : '',
-          tag: tagIdx !== -1 ? (row[tagIdx] || 'General') : 'General',
-        });
+        await Question.create({ testId, question: row[qIdx], options: [row[aIdx]||'',row[bIdx]||'',row[cIdx]||'',row[dIdx]||''], correctAnswer, explanation: expIdx !== -1 ? row[expIdx] : '', tag: tagIdx !== -1 ? (row[tagIdx]||'General') : 'General' });
         added++;
       } catch { failed++; }
     }
-
     await Test.findByIdAndUpdate(testId, { $inc: { totalQuestions: added } });
     req.flash('success', `Bulk import complete — ${added} added, ${failed} failed.`);
   } catch (err) {
@@ -384,42 +426,21 @@ exports.bulkImportQuestions = async (req, res) => {
 exports.bulkImportExcel = async (req, res) => {
   const testId = req.body.testId || req.query.testId;
   try {
-    if (!req.file) {
-      req.flash('error', 'Please upload an Excel file (.xlsx).');
-      return res.redirect(`/admin/questions?testId=${testId}`);
-    }
-    if (!testId) {
-      req.flash('error', 'Please select a test first.');
-      return res.redirect('/admin/questions');
-    }
+    if (!req.file) { req.flash('error', 'Please upload an Excel file (.xlsx).'); return res.redirect(`/admin/questions?testId=${testId}`); }
+    if (!testId)   { req.flash('error', 'Please select a test first.'); return res.redirect('/admin/questions'); }
 
     const XLSX = require('xlsx');
     const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
 
-    if (!rows.length) {
-      req.flash('error', 'Excel file is empty or has no data rows.');
-      return res.redirect(`/admin/questions?testId=${testId}`);
-    }
+    if (!rows.length) { req.flash('error', 'Excel file is empty.'); return res.redirect(`/admin/questions?testId=${testId}`); }
 
-    // Normalise header names (case-insensitive, strip spaces)
     const normalise = str => String(str).toLowerCase().replace(/\s+/g, '');
-    const headers = Object.keys(rows[0]).reduce((map, key) => {
-      map[normalise(key)] = key;
-      return map;
-    }, {});
-
+    const headers = Object.keys(rows[0]).reduce((map, key) => { map[normalise(key)] = key; return map; }, {});
     const col = name => headers[name] || headers[normalise(name)];
 
-    const qCol   = col('question');
-    const aCol   = col('optiona');
-    const bCol   = col('optionb');
-    const cCol   = col('optionc');
-    const dCol   = col('optiond');
-    const ansCol = col('correctanswer');
-    const expCol = col('explanation');
-    const tagCol = col('tag');
+    const qCol = col('question'), aCol = col('optiona'), bCol = col('optionb'), cCol = col('optionc');
+    const dCol = col('optiond'), ansCol = col('correctanswer'), expCol = col('explanation'), tagCol = col('tag');
 
     if (!qCol || !aCol || !ansCol) {
       req.flash('error', 'Excel must have columns: question, optionA, optionB, optionC, optionD, correctAnswer');
@@ -429,32 +450,15 @@ exports.bulkImportExcel = async (req, res) => {
     let added = 0, failed = 0;
     for (const row of rows) {
       try {
-        const rawAns = String(row[ansCol] || '').trim().toUpperCase();
-        const correctAnswer = ['A', 'B', 'C', 'D'].includes(rawAns)
-          ? ['A', 'B', 'C', 'D'].indexOf(rawAns)
-          : parseInt(rawAns);
+        const rawAns = String(row[ansCol]||'').trim().toUpperCase();
+        const correctAnswer = ['A','B','C','D'].includes(rawAns) ? ['A','B','C','D'].indexOf(rawAns) : parseInt(rawAns);
         if (isNaN(correctAnswer) || correctAnswer < 0 || correctAnswer > 3) { failed++; continue; }
-
-        const questionText = String(row[qCol] || '').trim();
+        const questionText = String(row[qCol]||'').trim();
         if (!questionText) { failed++; continue; }
-
-        await Question.create({
-          testId,
-          question: questionText,
-          options: [
-            String(row[aCol] || '').trim(),
-            String(row[bCol] || '').trim(),
-            String(row[cCol] || '').trim(),
-            String(row[dCol] || '').trim(),
-          ],
-          correctAnswer,
-          explanation: expCol ? String(row[expCol] || '').trim() : '',
-          tag: tagCol ? (String(row[tagCol] || '').trim() || 'General') : 'General',
-        });
+        await Question.create({ testId, question: questionText, options: [String(row[aCol]||'').trim(),String(row[bCol]||'').trim(),String(row[cCol]||'').trim(),String(row[dCol]||'').trim()], correctAnswer, explanation: expCol ? String(row[expCol]||'').trim() : '', tag: tagCol ? (String(row[tagCol]||'').trim()||'General') : 'General' });
         added++;
       } catch { failed++; }
     }
-
     await Test.findByIdAndUpdate(testId, { $inc: { totalQuestions: added } });
     req.flash('success', `Excel import complete — ${added} added, ${failed} failed.`);
   } catch (err) {
@@ -464,13 +468,13 @@ exports.bulkImportExcel = async (req, res) => {
   res.redirect(`/admin/questions?testId=${testId}`);
 };
 
-// Users
+// ─── Users ───────────────────────────────────────────────────────────────────
+
 exports.listUsers = async (req, res) => {
   const users = await User.find().sort({ createdAt: -1 }).lean();
   res.render('admin/users', { title: 'Users', users, error: req.flash('error'), success: req.flash('success') });
 };
 
-// Login as user (impersonation)
 exports.loginAsUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).lean();
@@ -481,20 +485,16 @@ exports.loginAsUser = async (req, res) => {
   } catch (e) { req.flash('error', 'Failed'); res.redirect('/admin/users'); }
 };
 
-// Organizations
+// ─── Organizations ────────────────────────────────────────────────────────────
+
 exports.listOrgs = async (req, res) => {
   const orgs = await Organization.find().sort({ createdAt: -1 }).lean();
-  const studentCounts = await OrgStudent.aggregate([
-    { $match: { isActive: true } },
-    { $group: { _id: '$orgId', count: { $sum: 1 } } }
-  ]);
+  const studentCounts = await OrgStudent.aggregate([{ $match: { isActive: true } }, { $group: { _id: '$orgId', count: { $sum: 1 } } }]);
   const countMap = {};
   studentCounts.forEach(s => { countMap[s._id.toString()] = s.count; });
-  const orgsWithCounts = orgs.map(o => ({ ...o, studentCount: countMap[o._id.toString()] || 0 }));
-  res.render('admin/organizations', { title: 'Organizations', orgs: orgsWithCounts, error: req.flash('error'), success: req.flash('success') });
+  res.render('admin/organizations', { title: 'Organizations', orgs: orgs.map(o => ({ ...o, studentCount: countMap[o._id.toString()] || 0 })), error: req.flash('error'), success: req.flash('success') });
 };
 
-// Login as org (impersonation)
 exports.loginAsOrg = async (req, res) => {
   try {
     const org = await Organization.findById(req.params.id).lean();
@@ -505,7 +505,6 @@ exports.loginAsOrg = async (req, res) => {
   } catch (e) { req.flash('error', 'Failed'); res.redirect('/admin/organizations'); }
 };
 
-// Stop impersonation — return to admin
 exports.stopImpersonation = (req, res) => {
   if (req.session.adminImpersonating) {
     req.session.adminId = req.session.adminImpersonating;
@@ -516,23 +515,19 @@ exports.stopImpersonation = (req, res) => {
   res.redirect('/admin/dashboard');
 };
 
-// Payments / Invoices
+// ─── Payments ─────────────────────────────────────────────────────────────────
+
 exports.listPayments = async (req, res) => {
-  const payments = await Payment.find()
-    .populate('userId', 'email name')
-    .populate('testSeriesId', 'title price')
-    .sort({ createdAt: -1 })
-    .limit(300)
-    .lean();
+  const payments = await Payment.find().populate('userId', 'email name').populate('testSeriesId', 'title price').sort({ createdAt: -1 }).limit(300).lean();
   const totalRevenue = payments.filter(p => p.status === 'success').reduce((s, p) => s + (p.amount || 0), 0);
   res.render('admin/payments', { title: 'Payments & Invoices', payments, totalRevenue });
 };
 
-// Testimonials
+// ─── Testimonials ─────────────────────────────────────────────────────────────
+
 exports.listTestimonials = async (req, res) => {
   const filter = req.query.status || 'pending';
-  const testimonials = await Testimonial.find(filter === 'all' ? {} : { status: filter })
-    .sort({ createdAt: -1 }).lean();
+  const testimonials = await Testimonial.find(filter === 'all' ? {} : { status: filter }).sort({ createdAt: -1 }).lean();
   const counts = await Testimonial.aggregate([{ $group: { _id: '$status', n: { $sum: 1 } } }]);
   const cnt = {};
   counts.forEach(c => { cnt[c._id] = c.n; });
@@ -551,13 +546,30 @@ exports.rejectTestimonial = async (req, res) => {
   res.redirect('/admin/testimonials');
 };
 
-// Results
+// ─── Results ──────────────────────────────────────────────────────────────────
+
 exports.listResults = async (req, res) => {
-  const attempts = await Attempt.find({ status: 'submitted' })
-    .populate('userId', 'email')
-    .populate('testId', 'title')
-    .sort({ submittedAt: -1 })
-    .limit(100)
-    .lean();
+  const attempts = await Attempt.find({ status: 'submitted' }).populate('userId', 'email').populate('testId', 'title').sort({ submittedAt: -1 }).limit(100).lean();
   res.render('admin/results', { title: 'Test Results', attempts });
+};
+
+// ─── Site Settings ────────────────────────────────────────────────────────────
+
+exports.showSettings = async (req, res) => {
+  const settings = await SiteSettings.getAll();
+  res.render('admin/settings', { title: 'Site Settings', settings, error: req.flash('error'), success: req.flash('success') });
+};
+
+exports.saveSettings = async (req, res) => {
+  try {
+    const { hero_heading, hero_sub } = req.body;
+    await Promise.all([
+      SiteSettings.set('hero_heading', hero_heading || ''),
+      SiteSettings.set('hero_sub', hero_sub || '')
+    ]);
+    req.flash('success', 'Settings saved');
+  } catch (err) {
+    req.flash('error', 'Failed to save settings');
+  }
+  res.redirect('/admin/settings');
 };

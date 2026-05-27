@@ -93,16 +93,22 @@ adminRouter.post('/exams/:id/delete', requireAdmin, adminController.deleteExam);
 adminRouter.get('/series', requireAdmin, adminController.listSeries);
 adminRouter.get('/series/new', requireAdmin, adminController.showCreateSeries);
 adminRouter.post('/series', requireAdmin, adminController.createSeries);
+adminRouter.post('/series/reorder', requireAdmin, adminController.reorderSeries);
 adminRouter.get('/series/:id/edit', requireAdmin, adminController.showEditSeries);
 adminRouter.post('/series/:id/update', requireAdmin, adminController.updateSeries);
+adminRouter.post('/series/:id/toggle-active', requireAdmin, adminController.toggleSeriesActive);
 adminRouter.post('/series/:id/delete', requireAdmin, adminController.deleteSeries);
 adminRouter.get('/tests', requireAdmin, adminController.listTests);
 adminRouter.post('/tests', requireAdmin, adminController.createTest);
+adminRouter.post('/tests/reorder', requireAdmin, adminController.reorderTests);
+adminRouter.post('/tests/:id/update', requireAdmin, adminController.updateTest);
+adminRouter.post('/tests/:id/move', requireAdmin, adminController.moveTest);
 adminRouter.post('/tests/:id/delete', requireAdmin, adminController.deleteTest);
 adminRouter.get('/questions', requireAdmin, adminController.listQuestions);
 adminRouter.post('/questions', requireAdmin, adminController.createQuestion);
 adminRouter.post('/questions/bulk-import', requireAdmin, csvUpload.single('csvFile'), adminController.bulkImportQuestions);
 adminRouter.post('/questions/excel-import', requireAdmin, excelUpload.single('excelFile'), adminController.bulkImportExcel);
+adminRouter.post('/questions/:id/update', requireAdmin, adminController.updateQuestion);
 adminRouter.post('/questions/:id/delete', requireAdmin, adminController.deleteQuestion);
 adminRouter.get('/users', requireAdmin, adminController.listUsers);
 adminRouter.post('/users/:id/login-as', requireAdmin, adminController.loginAsUser);
@@ -114,6 +120,8 @@ adminRouter.get('/testimonials', requireAdmin, adminController.listTestimonials)
 adminRouter.post('/testimonials/:id/approve', requireAdmin, adminController.approveTestimonial);
 adminRouter.post('/testimonials/:id/reject', requireAdmin, adminController.rejectTestimonial);
 adminRouter.get('/results', requireAdmin, adminController.listResults);
+adminRouter.get('/settings', requireAdmin, adminController.showSettings);
+adminRouter.post('/settings', requireAdmin, adminController.saveSettings);
 
 // API routes (public, JSON)
 const apiRouter = express.Router();

@@ -7,84 +7,8 @@
   <a href="/admin/series" class="btn btn-outline btn-sm">← Back</a>
 </div>
 
-<form method="POST" action="<%= series ? '/admin/series/' + series._id + '/update' : '/admin/series' %>" id="seriesForm">
+<form method="POST" action="<%= series ? '/admin/series/' + series._id + '/update' : '/admin/series' %>">
 
-  <!-- ══════════════════════════════════════════════════════════
-       EXAM SECTION — toggle between existing or create new
-  ═══════════════════════════════════════════════════════════ -->
-  <div class="sf-section">
-    <div class="sf-section-header">
-      <span class="sf-section-icon">🎓</span>
-      <span class="sf-section-title">Exam</span>
-      <div class="sf-exam-toggle" id="examToggle">
-        <button type="button" class="sf-toggle-btn active" id="btnExisting" onclick="switchExamMode('existing')">Use Existing</button>
-        <button type="button" class="sf-toggle-btn" id="btnNew" onclick="switchExamMode('new')">Create New</button>
-      </div>
-    </div>
-
-    <!-- Use existing exam -->
-    <div id="panelExisting">
-      <div class="sf-grid-2">
-        <div class="form-group">
-          <label class="form-label">Select Exam</label>
-          <select name="examId" id="examIdSelect" class="form-control">
-            <option value="">— Select existing exam —</option>
-            <% exams.forEach(exam => { %>
-              <option value="<%= exam._id %>"
-                data-langs="<%= (exam.language||[]).join(', ') %>"
-                data-level="<%= exam.examLevel||'' %>"
-                data-duration="<%= exam.examDuration||'' %>"
-                data-marks="<%= exam.totalMarks||'' %>"
-                data-category="<%= exam.category||'' %>"
-                data-conducted="<%= exam.conductedBy||'' %>"
-                data-eligibility="<%= exam.eligibility||'' %>"
-                <%= series && series.examId && series.examId.toString() === exam._id.toString() ? 'selected' : '' %>>
-                <%= exam.icon || '📚' %> <%= exam.name %>
-              </option>
-            <% }) %>
-          </select>
-        </div>
-        <!-- Read-only info panel -->
-        <div id="examInfoPanel" class="sf-info-panel" style="display:none;">
-          <div class="sf-info-row"><span>Category</span><strong id="ei_cat">—</strong></div>
-          <div class="sf-info-row"><span>Level</span><strong id="ei_level">—</strong></div>
-          <div class="sf-info-row"><span>Duration</span><strong id="ei_duration">—</strong></div>
-          <div class="sf-info-row"><span>Total Marks</span><strong id="ei_marks">—</strong></div>
-          <div class="sf-info-row"><span>Exam Languages</span><strong id="ei_langs">—</strong></div>
-          <div class="sf-info-row"><span>Conducted By</span><strong id="ei_conducted">—</strong></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Create new exam — only fields needed to identify + filter -->
-    <div id="panelNew" style="display:none;">
-      <div class="sf-grid-2" style="max-width:680px;">
-        <div class="form-group">
-          <label class="form-label">Exam Name <span class="req">*</span></label>
-          <input type="text" name="newExam[name]" id="newExamName" class="form-control" placeholder="e.g. CLAT UG 2025">
-          <span class="sf-hint">Used as the label on series cards and for filtering.</span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Icon (emoji)</label>
-          <input type="text" name="newExam[icon]" class="form-control" value="📚" placeholder="📚" style="max-width:100px;">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Category <span class="sf-hint">used for filter tabs on homepage</span></label>
-          <input type="text" name="newExam[category]" class="form-control" list="categoryOptions" placeholder="e.g. Law Entrance, SSC…" autocomplete="off">
-          <datalist id="categoryOptions">
-            <option value="Judiciary"><option value="Law Entrance"><option value="SSC">
-            <option value="Banking"><option value="UPSC"><option value="State PSC">
-            <option value="Railway"><option value="Defence"><option value="Teaching"><option value="Other">
-          </datalist>
-          <span class="sf-hint">Pick from list or type your own.</span>
-        </div>
-      </div>
-    </div><!-- /panelNew -->
-  </div><!-- /sf-section exam -->
-
-  <!-- ══════════════════════════════════════════════════════════
-       SERIES SECTION
-  ═══════════════════════════════════════════════════════════ -->
   <div class="sf-section">
     <div class="sf-section-header">
       <span class="sf-section-icon">📚</span>
@@ -92,7 +16,6 @@
     </div>
 
     <div class="sf-grid-2">
-
       <!-- Left col -->
       <div>
         <div class="form-group">
@@ -101,14 +24,29 @@
             value="<%= series ? series.title : '' %>"
             placeholder="e.g., CLAT 2025 Complete Package" required>
         </div>
+
+        <div class="form-group">
+          <label class="form-label">Category <span class="sf-hint">shown as filter on homepage</span></label>
+          <input type="text" name="category" class="form-control" list="categoryOptions" autocomplete="off"
+            value="<%= series && series.category ? series.category : '' %>"
+            placeholder="e.g. Law Entrance, SSC…">
+          <datalist id="categoryOptions">
+            <option value="Judiciary"><option value="Law Entrance"><option value="SSC">
+            <option value="Banking"><option value="UPSC"><option value="State PSC">
+            <option value="Railway"><option value="Defence"><option value="Teaching"><option value="Other">
+          </datalist>
+          <span class="sf-hint">Pick from list or type your own.</span>
+        </div>
+
         <div class="form-group">
           <label class="form-label">Description</label>
           <textarea name="description" class="form-control" rows="3"
             placeholder="Brief overview shown on cards and the detail page"><%= series ? series.description : '' %></textarea>
         </div>
+
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
           <div class="form-group">
-            <label class="form-label">Price (₹) <span class="req">*</span></label>
+            <label class="form-label">Price (Rs) <span class="req">*</span></label>
             <input type="number" name="price" class="form-control"
               value="<%= series ? series.price : '' %>" placeholder="999" min="0" required>
             <span class="sf-hint">Set 0 for free</span>
@@ -119,8 +57,9 @@
               value="<%= series ? series.totalMocks : '' %>" placeholder="20" min="1" required>
           </div>
         </div>
+
         <div class="form-group">
-          <label class="form-label">Mock Available In <span class="sf-hint">languages this mock series is available in</span></label>
+          <label class="form-label">Mock Available In</label>
           <input type="text" name="mockLanguages" class="form-control" list="mockLangOptions" autocomplete="off"
             value="<%= series && series.mockLanguages ? series.mockLanguages.join(', ') : '' %>"
             placeholder="e.g. English, Hindi">
@@ -130,26 +69,25 @@
             <option value="Marathi"><option value="Bengali"><option value="Gujarati"><option value="Odia">
             <option value="English, Hindi"><option value="English, Hindi, Tamil">
           </datalist>
-          <span class="sf-hint">Pick from list or type your own. Comma-separate multiple languages.</span>
+          <span class="sf-hint">Comma-separate multiple languages.</span>
         </div>
       </div>
 
-      <!-- Right col: what's included -->
+      <!-- Right col -->
       <div>
         <div class="form-group">
-          <label class="form-label">What's Included <span class="sf-hint">one item per line — shown as ✓ checklist</span></label>
-          <textarea name="features" class="form-control" rows="10"
+          <label class="form-label">What's Included <span class="sf-hint">one item per line — shown as checklist</span></label>
+          <textarea name="features" class="form-control" rows="13"
             placeholder="Full-length mock tests&#10;Detailed solutions with explanations&#10;All-India rank after every test&#10;Topic-wise performance analytics&#10;Latest exam pattern questions"><% if (series && series.features && series.features.length > 0) { %><%= series.features.join('\n') %><% } else { %>Full-length mock tests
 Detailed solutions with explanations
 All-India rank after every test
 Topic-wise performance analytics
 Latest exam pattern questions<% } %></textarea>
-          <span class="sf-hint">Each line = one ✓ bullet on homepage cards and the series page.</span>
+          <span class="sf-hint">Each line = one bullet on the series page and homepage card.</span>
         </div>
       </div>
-
     </div>
-  </div><!-- /sf-section series -->
+  </div>
 
   <div class="sf-actions">
     <a href="/admin/series" class="btn btn-outline">Cancel</a>
@@ -163,74 +101,14 @@ Latest exam pattern questions<% } %></textarea>
 .sf-section-header { display:flex; align-items:center; gap:10px; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--border); }
 .sf-section-icon { font-size:1.1rem; }
 .sf-section-title { font-size:0.95rem; font-weight:700; font-family:'DM Sans',sans-serif; flex:1; }
-.sf-exam-toggle { display:flex; gap:0; border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; }
-.sf-toggle-btn { padding:5px 14px; font-size:0.78rem; font-weight:600; border:none; background:var(--canvas); color:var(--ink-soft); cursor:pointer; transition:background 0.15s,color 0.15s; }
-.sf-toggle-btn.active { background:var(--primary); color:#fff; }
-.sf-col-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-muted); margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid var(--border); }
 .sf-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
-.sf-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
-.sf-info-panel { background:var(--canvas-soft); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; align-self:start; }
-.sf-info-row { display:flex; justify-content:space-between; font-size:0.78rem; padding:5px 0; border-bottom:1px solid var(--border); }
-.sf-info-row:last-child { border-bottom:none; }
-.sf-info-row span { color:var(--ink-muted); }
-.sf-info-row strong { color:var(--ink); text-align:right; max-width:55%; }
 .sf-hint { font-size:0.72rem; color:var(--ink-muted); margin-left:4px; }
 .sf-actions { display:flex; gap:12px; justify-content:flex-end; }
 .req { color:var(--danger); }
-@media(max-width:900px){
-  .sf-grid-3 { grid-template-columns:1fr 1fr; }
-}
 @media(max-width:640px){
   .sf-section { padding:16px; }
-  .sf-grid-2,
-  .sf-grid-3 { grid-template-columns:1fr; }
+  .sf-grid-2 { grid-template-columns:1fr; }
 }
 </style>
-
-<script>
-// ── Exam mode toggle ──────────────────────────────────────
-function switchExamMode(mode) {
-  const isNew = mode === 'new';
-  document.getElementById('panelExisting').style.display = isNew ? 'none' : '';
-  document.getElementById('panelNew').style.display      = isNew ? '' : 'none';
-  document.getElementById('btnExisting').classList.toggle('active', !isNew);
-  document.getElementById('btnNew').classList.toggle('active',  isNew);
-
-  // Toggle required on exam name
-  const nameInput = document.getElementById('newExamName');
-  if (nameInput) nameInput.required = isNew;
-
-  // Clear examId when switching to new
-  if (isNew) document.getElementById('examIdSelect').value = '';
-}
-
-// ── Auto-fill info panel when existing exam selected ─────
-const examSel = document.getElementById('examIdSelect');
-const panel   = document.getElementById('examInfoPanel');
-function updateExamPanel() {
-  const opt = examSel.options[examSel.selectedIndex];
-  if (!opt || !opt.value) { panel.style.display = 'none'; return; }
-  document.getElementById('ei_cat').textContent      = opt.dataset.category  || '—';
-  document.getElementById('ei_level').textContent    = opt.dataset.level     || '—';
-  document.getElementById('ei_duration').textContent = opt.dataset.duration  || '—';
-  document.getElementById('ei_marks').textContent    = opt.dataset.marks     || '—';
-  document.getElementById('ei_langs').textContent    = opt.dataset.langs     || '—';
-  document.getElementById('ei_conducted').textContent= opt.dataset.conducted || '—';
-  panel.style.display = 'flex';
-  panel.style.flexDirection = 'column';
-}
-examSel.addEventListener('change', updateExamPanel);
-
-// ── Init on page load ─────────────────────────────────────
-(function init() {
-  <% if (series && series.examId) { %>
-    // Edit mode — existing exam already selected
-    updateExamPanel();
-  <% } else if (exams.length === 0) { %>
-    // No exams exist yet — default to create new
-    switchExamMode('new');
-  <% } %>
-})();
-</script>
 
 <%- include('layout-bottom') %>

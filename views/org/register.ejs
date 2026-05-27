@@ -1,43 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
-  <meta name="description" content="<%= metaDesc %>">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="<%= appUrl %>/org/register">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-</head>
-<body>
-<a href="#main-content" class="skip-nav">Skip to main content</a>
+<%- include('../partials/header') %>
 
-<nav class="navbar" role="navigation" aria-label="Main navigation">
-  <div class="container">
-    <div class="navbar-inner">
-      <a href="/" class="navbar-brand" aria-label="MockOrbit home">
-        <span class="brand-mock">Mock</span><span class="brand-orbit">Orbit</span>
-      </a>
-      <div class="navbar-nav">
-        <a href="/org/login" class="nav-link">Institute Login</a>
-        <a href="/auth/login" class="btn btn-outline btn-sm">Student Login</a>
-      </div>
-    </div>
-  </div>
-</nav>
-
-<main id="main-content" class="auth-page" role="main">
-  <div class="auth-card">
+<div class="auth-page">
+  <div class="auth-card" style="max-width:500px;">
     <div class="auth-brand">
       <div><span class="auth-brand brand-mock">Mock</span><span class="auth-brand brand-orbit">Orbit</span></div>
       <p class="auth-tagline">Mission for Academic Rank &amp; Success</p>
     </div>
     <h1 style="font-size:1.4rem; text-align:center; margin-bottom:6px;">Register Your Institution</h1>
-    <p style="text-align:center; font-size:0.88rem; color:var(--ink-muted); margin-bottom:28px;">Join 150+ institutes already using MockOrbit to track student performance.</p>
+    <p style="text-align:center; font-size:0.88rem; color:var(--ink-muted); margin-bottom:28px;">Join institutes already using MockOrbit to track student performance.</p>
 
     <% if (error && error.length > 0) { %>
       <div class="alert alert-error" role="alert">⚠️ <%= error[0] %></div>
+    <% } %>
+    <% if (success && success.length > 0) { %>
+      <div class="alert alert-success" role="status">✓ <%= success[0] %></div>
     <% } %>
 
     <form action="/org/register" method="POST" novalidate aria-label="Institution registration form">
@@ -86,11 +62,6 @@
       By registering, you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.
     </p>
   </div>
-</main>
+</div>
 
-<footer style="text-align:center;padding:20px;font-size:0.78rem;color:var(--ink-muted);border-top:1px solid var(--border);">
-  © <%= new Date().getFullYear() %> MockOrbit — <a href="/">Return to Home</a>
-</footer>
-<script src="/js/app.js"></script>
-</body>
-</html>
+<%- include('../partials/footer') %>
