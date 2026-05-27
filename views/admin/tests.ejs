@@ -137,11 +137,6 @@
   ✓ Order saved
 </div>
 
-<style>
-.test-row.drag-over { outline: 2px dashed var(--accent); outline-offset: -2px; background: var(--accent-light); }
-.test-row:active { cursor: grabbing; }
-</style>
-
 <script>
 function openEditModal(id, title, duration, sortOrder) {
   document.getElementById('editTestForm').action = '/admin/tests/' + id + '/update';
