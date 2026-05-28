@@ -125,11 +125,11 @@
   <!-- ── What's Included (accordion) ──────────────────────────── -->
   <% if (tests && tests.length > 0) { %>
   <div class="sd-block">
-    <button class="sd-accord-btn" onclick="sdToggle(this)" aria-expanded="false">
+    <button class="sd-accord-btn open" onclick="sdToggle(this)" aria-expanded="true">
       <span class="sd-accord-title">📋 What's Included</span>
       <span class="sd-accord-chevron">▼</span>
     </button>
-    <div class="sd-accord-body">
+    <div class="sd-accord-body open">
       <div class="sd-tests-list">
         <% tests.forEach((t, i) => { %>
         <div class="sd-test-item">
