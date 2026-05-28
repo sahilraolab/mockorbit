@@ -108,7 +108,7 @@ exports.verifyPayment = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Payment record not found' });
     }
 
-    await grantAccess(payment.userId, payment.testSeriesId);
+    await grantAccess(payment.userId, payment.testSeriesId, payment.amount, payment.razorpayOrderId, payment.razorpayPaymentId);
     res.json({ success: true, redirect: '/dashboard' });
   } catch (err) {
     console.error('Verify payment error:', err);
@@ -150,7 +150,7 @@ exports.webhook = async (req, res) => {
         record.razorpayPaymentId = paymentId;
         record.status = 'success';
         await record.save();
-        await grantAccess(record.userId, record.testSeriesId);
+        await grantAccess(record.userId, record.testSeriesId, record.amount, record.razorpayOrderId, paymentId);
         console.log(`Webhook: payment captured — order ${orderId}, user ${record.userId}`);
       }
     }
