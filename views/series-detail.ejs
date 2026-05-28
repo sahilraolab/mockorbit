@@ -82,45 +82,7 @@
     <% } %>
   </div>
 
-  <!-- ── What's Included ────────────────────────────────────── -->
-  <% if (tests && tests.length > 0) { %>
-  <div class="sd-block">
-    <h2 class="sd-block-title">📋 What's Included</h2>
-    <div class="sd-tests-list">
-      <% tests.forEach((t, i) => { %>
-      <div class="sd-test-item">
-        <div class="sd-test-num"><%= i + 1 %></div>
-        <div class="sd-test-info">
-          <div class="sd-test-name"><%= t.title %></div>
-          <div class="sd-test-meta">
-            <span>⏱ <%= t.duration %> min</span>
-            <% if (t.totalQuestions > 0) { %><span>· <%= t.totalQuestions %> questions</span><% } %>
-          </div>
-        </div>
-        <% if (hasPurchased) { %>
-          <a href="/test/start/<%= t._id %>" class="btn btn-primary btn-sm" style="flex-shrink:0;">Start →</a>
-        <% } else { %>
-          <span class="sd-lock-icon">🔒</span>
-        <% } %>
-      </div>
-      <% }) %>
-    </div>
-  </div>
-  <% } %>
-
-  <!-- ── Topics Covered ────────────────────────────────────── -->
-  <% if (topicsCovered && topicsCovered.length > 0) { %>
-  <div class="sd-block">
-    <h2 class="sd-block-title">📚 Topics Covered <span class="sd-count-badge"><%= topicsCovered.length %></span></h2>
-    <div class="sd-topics-cloud">
-      <% topicsCovered.forEach(topic => { %>
-        <span class="sd-topic-pill"><%= topic %></span>
-      <% }) %>
-    </div>
-  </div>
-  <% } %>
-
-  <!-- ── Sample Questions ──────────────────────────────────── -->
+  <!-- ── Sample Questions (above What's Included) ─────────── -->
   <% if (sampleQuestions && sampleQuestions.length > 0) { %>
   <div class="sd-block">
     <h2 class="sd-block-title">🔍 Sample Questions</h2>
@@ -152,6 +114,49 @@
         <% } %>
       </p>
     <% } %>
+  </div>
+  <% } %>
+
+  <!-- ── What's Included ────────────────────────────────────── -->
+  <% if (tests && tests.length > 0) { %>
+  <div class="sd-block">
+    <h2 class="sd-block-title">📋 What's Included</h2>
+    <div class="sd-tests-list">
+      <% tests.forEach((t, i) => { %>
+      <div class="sd-test-item">
+        <div class="sd-test-num"><%= i + 1 %></div>
+        <div class="sd-test-info">
+          <div class="sd-test-name"><%= t.title %></div>
+          <div class="sd-test-meta">
+            <span>⏱ <%= t.duration %> min</span>
+            <% if (t.totalQuestions > 0) { %><span>· <%= t.totalQuestions %> questions</span><% } %>
+          </div>
+        </div>
+        <% if (hasPurchased) { %>
+          <a href="/test/start/<%= t._id %>" class="btn btn-primary btn-sm" style="flex-shrink:0;">Start →</a>
+        <% } else { %>
+          <span class="sd-lock-icon">🔒</span>
+        <% } %>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- ── Topics Covered (accordion) ──────────────────────────── -->
+  <% if (topicsCovered && topicsCovered.length > 0) { %>
+  <div class="sd-block">
+    <button class="sd-accord-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');" aria-expanded="false">
+      <span class="sd-accord-title">📚 Topics Covered</span>
+      <span class="sd-accord-chevron">▼</span>
+    </button>
+    <div class="sd-accord-body">
+      <div class="sd-topics-cloud">
+        <% topicsCovered.forEach(topic => { %>
+          <span class="sd-topic-pill"><%= topic %></span>
+        <% }) %>
+      </div>
+    </div>
   </div>
   <% } %>
 
@@ -257,17 +262,33 @@
 }
 
 /* Content blocks */
-.sd-block { margin-bottom: 32px; }
+.sd-block { margin-bottom: 28px; }
 .sd-block-title {
-  font-size: 1rem; font-weight: 800; color: var(--ink);
-  font-family: 'DM Sans', sans-serif; margin-bottom: 14px;
+  font-size: 0.95rem; font-weight: 800; color: var(--ink);
+  font-family: 'DM Sans', sans-serif; margin-bottom: 12px;
   display: flex; align-items: center; gap: 8px;
 }
-.sd-count-badge {
-  font-size: 0.7rem; font-weight: 700;
-  background: var(--canvas-soft); border: 1px solid var(--border);
-  color: var(--ink-muted); padding: 1px 8px; border-radius: 999px;
+
+/* Topics accordion */
+.sd-accord-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 16px; background: var(--canvas-soft);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--ink);
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
 }
+.sd-accord-btn:hover { border-color: var(--accent); background: var(--accent-light); }
+.sd-accord-btn.open { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-color: var(--accent); }
+.sd-accord-chevron { font-size: 0.6rem; color: var(--ink-muted); transition: transform 0.22s; }
+.sd-accord-btn.open .sd-accord-chevron { transform: rotate(180deg); }
+.sd-accord-body {
+  display: none; padding: 14px 16px;
+  border: 1px solid var(--accent); border-top: none;
+  border-bottom-left-radius: var(--radius); border-bottom-right-radius: var(--radius);
+  background: var(--canvas);
+}
+.sd-accord-body.open { display: block; }
 
 /* Tests list */
 .sd-tests-list { display: flex; flex-direction: column; gap: 8px; }
@@ -290,9 +311,9 @@
 .sd-lock-icon { font-size: 0.85rem; color: var(--ink-muted); flex-shrink: 0; }
 
 /* Topics */
-.sd-topics-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+.sd-topics-cloud { display: flex; flex-wrap: wrap; gap: 7px; }
 .sd-topic-pill {
-  font-size: 0.75rem; font-weight: 600; padding: 5px 12px;
+  font-size: 0.73rem; font-weight: 600; padding: 4px 11px;
   background: var(--canvas-soft); border: 1px solid var(--border);
   border-radius: 999px; color: var(--ink-soft);
   transition: border-color 0.15s, color 0.15s;
