@@ -38,8 +38,7 @@
       <div class="mock-showcase-track" id="mockTrack">
         <% tickerSeries.forEach(s => {
              const exam = s.examId || {};
-             const examSlug = exam.slug || '';
-             const href = examSlug ? '/series/exam/' + examSlug : '/series/' + s._id;
+             const href = '/series/' + s._id;
         %>
         <%
           const mockLangsSlider = s.mockLanguages && s.mockLanguages.length > 0
@@ -131,107 +130,94 @@
             <a href="/auth/login" class="btn btn-outline btn-lg">Login Free</a>
           <% } %>
         </div>
-        <!-- Dynamic trust bar: realtime question count + topic count -->
-        <div class="hero-trust" aria-label="Platform highlights">
-          <% if (totalQuestions > 0) { %>
-            <div class="hero-trust-item">
-              <strong><%= totalQuestions.toLocaleString('en-IN') %></strong>
-              <span>Questions</span>
-            </div>
-            <div class="hero-trust-sep">·</div>
-          <% } %>
-          <% if (topics && topics.length > 0) { %>
-            <div class="hero-trust-item">
-              <strong><%= topics.length %></strong>
-              <span>Topics Covered</span>
-            </div>
-            <div class="hero-trust-sep">·</div>
-          <% } %>
-          <div class="hero-trust-item">
-            <strong>Open Book</strong>
-            <span>Format</span>
-          </div>
-        </div>
       </div>
 
-      <!-- Right: Mock result showcase card -->
+      <!-- Right: Featured series prep card (dynamic) -->
       <div class="hero-right" aria-hidden="true">
+        <% if (featuredSeries) { %>
+        <%
+          const fs = featuredSeries;
+          const fsLabel = fs.category || (fs.examId && fs.examId.name) || 'Mock Test Series';
+          const fsMocks = fs._testCount || fs.totalMocks || 0;
+          const fsQs    = fs._totalQuestions || 0;
+          const fsTopicCount = featuredTopics.length;
+          // Bar widths relative to the top topic's count
+          const maxTopicCount = featuredTopics.length > 0 ? featuredTopics[0].count : 1;
+        %>
         <div class="hrc-wrap">
-          <!-- Decorative blobs -->
           <div class="hrc-blob hrc-blob-1"></div>
           <div class="hrc-blob hrc-blob-2"></div>
 
-          <!-- Main result card -->
           <div class="hrc-card">
             <div class="hrc-card-header">
               <span class="hrc-dot"></span>
-              <span class="hrc-header-text">Mock Test Complete</span>
-              <span class="hrc-check">✓</span>
+              <span class="hrc-header-text">Prepare for <%= fsLabel %></span>
             </div>
 
             <div class="hrc-rank-block">
-              <div class="hrc-rank-label">All India Rank</div>
-              <div class="hrc-rank-num" id="hrcRank">#1</div>
-              <div class="hrc-rank-sub">out of 3,812 attempts</div>
+              <div class="hrc-rank-label">Featured Test Series</div>
+              <div class="hrc-rank-num" style="font-size:1.55rem;line-height:1.15;letter-spacing:-0.3px;"><%= fs.title %></div>
+              <% if (fs.mockLanguages && fs.mockLanguages.length > 0) { %>
+                <div class="hrc-rank-sub">🌐 <%= fs.mockLanguages.join(' · ') %></div>
+              <% } %>
             </div>
 
             <div class="hrc-stats-row">
               <div class="hrc-stat">
-                <div class="hrc-stat-val">312<span>/380</span></div>
-                <div class="hrc-stat-lbl">Score</div>
+                <div class="hrc-stat-val"><%= fsMocks %></div>
+                <div class="hrc-stat-lbl">Mocks</div>
               </div>
               <div class="hrc-stat-div"></div>
               <div class="hrc-stat">
-                <div class="hrc-stat-val">94.2<span>%</span></div>
-                <div class="hrc-stat-lbl">Percentile</div>
+                <div class="hrc-stat-val"><%= fsQs > 0 ? fsQs.toLocaleString('en-IN') : '—' %></div>
+                <div class="hrc-stat-lbl">Questions</div>
               </div>
               <div class="hrc-stat-div"></div>
               <div class="hrc-stat">
-                <div class="hrc-stat-val">3h<span> 2m</span></div>
-                <div class="hrc-stat-lbl">Time Taken</div>
+                <% if (fs.price === 0) { %>
+                  <div class="hrc-stat-val" style="color:var(--success);font-size:1rem;">Free</div>
+                <% } else { %>
+                  <div class="hrc-stat-val" style="font-size:1rem;">₹<%= fs.price.toLocaleString('en-IN') %></div>
+                <% } %>
+                <div class="hrc-stat-lbl">Price</div>
               </div>
             </div>
 
-            <!-- Topic score bars -->
+            <% if (featuredTopics.length > 0) { %>
             <div class="hrc-topics">
+              <% featuredTopics.forEach(t => {
+                   const pct = Math.round((t.count / maxTopicCount) * 100);
+              %>
               <div class="hrc-topic-row">
-                <span class="hrc-topic-name">Constitutional Law</span>
-                <div class="hrc-bar-track"><div class="hrc-bar-fill" style="--w:82%"></div></div>
-                <span class="hrc-topic-pct">82%</span>
+                <span class="hrc-topic-name"><%= t.name %></span>
+                <div class="hrc-bar-track"><div class="hrc-bar-fill" style="--w:<%= pct %>%"></div></div>
+                <span class="hrc-topic-pct"><%= t.count %> Qs</span>
               </div>
-              <div class="hrc-topic-row">
-                <span class="hrc-topic-name">Contract Law</span>
-                <div class="hrc-bar-track"><div class="hrc-bar-fill" style="--w:76%"></div></div>
-                <span class="hrc-topic-pct">76%</span>
-              </div>
-              <div class="hrc-topic-row">
-                <span class="hrc-topic-name">Evidence Act</span>
-                <div class="hrc-bar-track"><div class="hrc-bar-fill" style="--w:91%"></div></div>
-                <span class="hrc-topic-pct">91%</span>
-              </div>
+              <% }) %>
             </div>
+            <% } %>
 
             <div class="hrc-footer">
-              <span class="hrc-footer-text">📊 Full analytics available in dashboard</span>
+              <span class="hrc-footer-text">📊 All-India rank after every mock</span>
             </div>
           </div>
 
-          <!-- Floating badge: live count -->
           <div class="hrc-float-badge hrc-float-left">
-            <span class="hrc-fb-icon">🎯</span>
+            <span class="hrc-fb-icon">📋</span>
             <div>
-              <div class="hrc-fb-val">Open Book</div>
-              <div class="hrc-fb-lbl">Format</div>
+              <div class="hrc-fb-val"><%= fsMocks %> Mocks</div>
+              <div class="hrc-fb-lbl">Full-Length</div>
             </div>
           </div>
           <div class="hrc-float-badge hrc-float-right">
-            <span class="hrc-fb-icon">⚡</span>
+            <span class="hrc-fb-icon">🏆</span>
             <div>
-              <div class="hrc-fb-val">Instant</div>
-              <div class="hrc-fb-lbl">Results</div>
+              <div class="hrc-fb-val">All India</div>
+              <div class="hrc-fb-lbl">Rank</div>
             </div>
           </div>
         </div>
+        <% } %>
       </div>
 
     </div>
@@ -339,7 +325,7 @@
       <div class="ts-grid" id="tsGrid">
         <% series.forEach(s => {
              const exam     = s.examId || {};
-             const href     = exam.slug ? '/series/exam/' + exam.slug : '/series/' + s._id;
+             const href     = '/series/' + s._id;
              const mockLangs = s.mockLanguages && s.mockLanguages.length > 0 ? s.mockLanguages : [];
              const features  = (s.features || []).slice(0, 4);
              const seriesCat = s.category || exam.category || '';
@@ -382,11 +368,16 @@
             <% } %>
           </div>
 
-          <!-- Footer: mocks count + price + CTA -->
+          <!-- Footer: mocks count + questions + price + CTA -->
           <div class="sc-card-footer">
             <div class="sc-mocks-count">
               <span class="sc-mocks-num"><%= s.totalMocks %></span>
-              <span class="sc-mocks-lbl">Full-Length Mock<%= s.totalMocks > 1 ? 's' : '' %></span>
+              <span class="sc-mocks-lbl">Mock<%= s.totalMocks > 1 ? 's' : '' %></span>
+              <% if (s._totalQuestions > 0) { %>
+                <span class="sc-mocks-sep">·</span>
+                <span class="sc-mocks-num"><%= s._totalQuestions.toLocaleString('en-IN') %></span>
+                <span class="sc-mocks-lbl">Questions</span>
+              <% } %>
             </div>
             <% if (s.price === 0) { %>
               <span class="sc-cta-btn sc-cta-free">Access Free →</span>
