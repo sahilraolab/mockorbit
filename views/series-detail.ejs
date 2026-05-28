@@ -82,63 +82,73 @@
     <% } %>
   </div>
 
-  <!-- ── Sample Questions (above What's Included) ─────────── -->
+  <!-- ── Sample Questions (accordion) ────────────────────────── -->
   <% if (sampleQuestions && sampleQuestions.length > 0) { %>
   <div class="sd-block">
-    <h2 class="sd-block-title">🔍 Sample Questions</h2>
-    <div class="sd-samples">
-      <% sampleQuestions.forEach((q, qi) => { %>
-      <div class="sd-sample-q">
-        <div class="sd-q-header">
-          <span class="sd-q-num">Q<%= qi + 1 %></span>
-          <% if (q.tag) { %><span class="sd-q-tag"><%= q.tag %></span><% } %>
+    <button class="sd-accord-btn" onclick="sdToggle(this)" aria-expanded="false">
+      <span class="sd-accord-title">🔍 Sample Questions</span>
+      <span class="sd-accord-chevron">▼</span>
+    </button>
+    <div class="sd-accord-body">
+      <div class="sd-samples">
+        <% sampleQuestions.forEach((q, qi) => { %>
+        <div class="sd-sample-q">
+          <div class="sd-q-header">
+            <span class="sd-q-num">Q<%= qi + 1 %></span>
+            <% if (q.tag) { %><span class="sd-q-tag"><%= q.tag %></span><% } %>
+          </div>
+          <p class="sd-q-text"><%= q.question %></p>
+          <div class="sd-q-options">
+            <% q.options.forEach((opt, oi) => { %>
+              <div class="sd-q-option">
+                <span class="sd-opt-letter"><%= ['A','B','C','D'][oi] %></span>
+                <span><%= opt %></span>
+              </div>
+            <% }) %>
+          </div>
         </div>
-        <p class="sd-q-text"><%= q.question %></p>
-        <div class="sd-q-options">
-          <% q.options.forEach((opt, oi) => { %>
-            <div class="sd-q-option">
-              <span class="sd-opt-letter"><%= ['A','B','C','D'][oi] %></span>
-              <span><%= opt %></span>
-            </div>
-          <% }) %>
-        </div>
+        <% }) %>
       </div>
-      <% }) %>
+      <% if (!hasPurchased) { %>
+        <p class="sd-sample-note" style="margin-top:12px;">
+          <% if (series.price === 0) { %>
+            🔓 Get free access to see answers and full explanations.
+          <% } else { %>
+            🔒 Purchase to unlock answers, explanations, and all <%= series.totalMocks %> mock tests.
+          <% } %>
+        </p>
+      <% } %>
     </div>
-    <% if (!hasPurchased) { %>
-      <p class="sd-sample-note">
-        <% if (series.price === 0) { %>
-          🔓 Get free access to see answers and full explanations.
-        <% } else { %>
-          🔒 Purchase to unlock answers, detailed explanations, and all <%= series.totalMocks %> mock tests.
-        <% } %>
-      </p>
-    <% } %>
   </div>
   <% } %>
 
-  <!-- ── What's Included ────────────────────────────────────── -->
+  <!-- ── What's Included (accordion) ──────────────────────────── -->
   <% if (tests && tests.length > 0) { %>
   <div class="sd-block">
-    <h2 class="sd-block-title">📋 What's Included</h2>
-    <div class="sd-tests-list">
-      <% tests.forEach((t, i) => { %>
-      <div class="sd-test-item">
-        <div class="sd-test-num"><%= i + 1 %></div>
-        <div class="sd-test-info">
-          <div class="sd-test-name"><%= t.title %></div>
-          <div class="sd-test-meta">
-            <span>⏱ <%= t.duration %> min</span>
-            <% if (t.totalQuestions > 0) { %><span>· <%= t.totalQuestions %> questions</span><% } %>
+    <button class="sd-accord-btn" onclick="sdToggle(this)" aria-expanded="false">
+      <span class="sd-accord-title">📋 What's Included</span>
+      <span class="sd-accord-chevron">▼</span>
+    </button>
+    <div class="sd-accord-body">
+      <div class="sd-tests-list">
+        <% tests.forEach((t, i) => { %>
+        <div class="sd-test-item">
+          <div class="sd-test-num"><%= i + 1 %></div>
+          <div class="sd-test-info">
+            <div class="sd-test-name"><%= t.title %></div>
+            <div class="sd-test-meta">
+              <span>⏱ <%= t.duration %> min</span>
+              <% if (t.totalQuestions > 0) { %><span>· <%= t.totalQuestions %> questions</span><% } %>
+            </div>
           </div>
+          <% if (hasPurchased) { %>
+            <a href="/test/start/<%= t._id %>" class="btn btn-primary btn-sm" style="flex-shrink:0;">Start →</a>
+          <% } else { %>
+            <span class="sd-lock-icon">🔒</span>
+          <% } %>
         </div>
-        <% if (hasPurchased) { %>
-          <a href="/test/start/<%= t._id %>" class="btn btn-primary btn-sm" style="flex-shrink:0;">Start →</a>
-        <% } else { %>
-          <span class="sd-lock-icon">🔒</span>
-        <% } %>
+        <% }) %>
       </div>
-      <% }) %>
     </div>
   </div>
   <% } %>
@@ -146,7 +156,7 @@
   <!-- ── Topics Covered (accordion) ──────────────────────────── -->
   <% if (topicsCovered && topicsCovered.length > 0) { %>
   <div class="sd-block">
-    <button class="sd-accord-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');" aria-expanded="false">
+    <button class="sd-accord-btn" onclick="sdToggle(this)" aria-expanded="false">
       <span class="sd-accord-title">📚 Topics Covered</span>
       <span class="sd-accord-chevron">▼</span>
     </button>
@@ -385,5 +395,14 @@
 .sd-review-stars { color: #f59e0b; font-size: 0.82rem; }
 .sd-review-text { font-size: 0.84rem; color: var(--ink-soft); line-height: 1.55; font-style: italic; margin: 0; }
 </style>
+
+<script>
+function sdToggle(btn) {
+  const body = btn.nextElementSibling;
+  const open = body.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+}
+</script>
 
 <%- include('partials/footer') %>
