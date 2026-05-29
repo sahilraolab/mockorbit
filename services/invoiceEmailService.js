@@ -57,8 +57,8 @@ module.exports.sendInvoiceEmail = async function (opts = {}) {
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${isFree ? 'Access Confirmed' : 'Payment Confirmed'} — ${appName}</title>
 </head>
-<body style="margin:0;padding:0;background:#eef2f7;font-family:'Segoe UI',Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f7;padding:48px 0;">
+<body style="margin:0;padding:0;background:#f5f7fa;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f7fa;padding:48px 0;">
 <tr><td align="center">
 <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(28,43,58,0.10);">
 
@@ -145,7 +145,8 @@ module.exports.sendInvoiceEmail = async function (opts = {}) {
       <p style="margin:0 0 8px;font-size:0.8rem;color:#2563eb;font-weight:700;">${appName}</p>
       <p style="margin:0;font-size:0.75rem;color:#9ca3af;line-height:1.6;">
         Mock tests · All-India rank · Topic analytics<br>
-        <a href="${appUrl}" style="color:#2563eb;text-decoration:none;font-weight:600;">${appUrl}</a> · <a href="${appUrl}/contact" style="color:#6b7280;text-decoration:none;">Support</a>
+        <a href="${appUrl}" style="color:#2563eb;text-decoration:none;font-weight:600;">${appUrl}</a> · <a href="${appUrl}/contact" style="color:#6b7280;text-decoration:none;">Support</a><br>
+        <span style="color:#b0b8c1;">A brand of Gaurik Enterprises.</span>
       </p>
     </td>
   </tr>

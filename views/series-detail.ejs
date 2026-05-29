@@ -37,10 +37,6 @@
           <span class="sd-meta-sep">·</span>
           <span class="sd-meta-item">⏱ <%= Math.floor(totalDuration / 60) > 0 ? Math.floor(totalDuration/60) + 'h ' : '' %><%= totalDuration % 60 > 0 ? totalDuration % 60 + 'm' : '' %> total</span>
         <% } %>
-        <% if (topicsCovered && topicsCovered.length > 0) { %>
-          <span class="sd-meta-sep">·</span>
-          <span class="sd-meta-item">📚 <%= topicsCovered.length %> Topics</span>
-        <% } %>
       </div>
     </div>
   </div>
