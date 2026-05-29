@@ -51,6 +51,10 @@ const loadUser = async (req, res, next) => {
   if (req.session.userId) {
     try {
       req.user = await User.findById(req.session.userId);
+      if (req.user && req.user.isActive === false) {
+        req.session.userId = null;
+        req.user = null;
+      }
       res.locals.user = req.user;
     } catch (e) {
       req.session.userId = null;

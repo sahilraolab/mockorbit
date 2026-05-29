@@ -100,7 +100,7 @@ module.exports.sendInvoiceEmail = async function (opts = {}) {
               <td style="font-size:0.85rem;color:#374151;text-align:right;">₹${fmt(baseAmount)}</td>
             </tr>
             <tr>
-              <td style="font-size:0.85rem;color:#6b7280;padding:5px 0;">GST @ 18%</td>
+              <td style="font-size:0.85rem;color:#6b7280;padding:5px 0;">GST (CGST + SGST) @ 18%</td>
               <td style="font-size:0.85rem;color:#374151;text-align:right;">₹${fmt(gstAmount)}</td>
             </tr>
             <tr><td colspan="2" style="padding:4px 0 8px;"><div style="border-top:2px solid #e0e7ff;"></div></td></tr>
@@ -110,7 +110,7 @@ module.exports.sendInvoiceEmail = async function (opts = {}) {
             </tr>
             <tr>
               <td colspan="2" style="font-size:0.72rem;color:#9ca3af;padding:6px 0 0;font-style:italic;">
-                Prices are inclusive of 18% GST (IGST). This document serves as a receipt of payment.
+                Prices are inclusive of 18% GST (CGST + SGST). This document serves as a receipt of payment.
               </td>
             </tr>
             ` : `
@@ -169,8 +169,8 @@ module.exports.sendInvoiceEmail = async function (opts = {}) {
     `Date        : ${dateStr}`,
     ...(!isFree ? [
       ``,
-      `Subtotal (excl. GST 18%) : ₹${fmt(baseAmount)}`,
-      `GST @ 18%                : ₹${fmt(gstAmount)}`,
+      `Subtotal (excl. GST)     : ₹${fmt(baseAmount)}`,
+      `GST (CGST + SGST) @ 18%                : ₹${fmt(gstAmount)}`,
       `Total Paid               : ${amountStr}`,
       ``,
       `Prices are inclusive of 18% GST (IGST).`,

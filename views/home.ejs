@@ -52,7 +52,7 @@
               <span><%= exam.icon || '📚' %></span>
             </div>
             <div>
-              <div class="mock-card-exam-name"><%= exam.name || s.title %></div>
+              <div class="mock-card-exam-name"><%= s.category || exam.name || s.title %></div>
               <div class="mock-card-series-sub"><%= s.totalMocks %> Full-Length Mock<%= s.totalMocks > 1 ? 's' : '' %></div>
             </div>
             <% if (s.price === 0) { %><span class="mock-card-free-badge">Free</span><% } %>
@@ -413,7 +413,7 @@
       <div class="how-step">
         <div class="how-step-num" aria-hidden="true">1</div>
         <h4>Pick Your Exam</h4>
-        <p>Browse our available test series. We currently offer AIBE XXI mock tests, with CLAT, Judiciary, UPSC, SSC CGL, and Current Affairs series coming soon.</p>
+        <p>Browse available test series across law, SSC, banking, judiciary, and more — each one built to match the actual exam pattern.</p>
       </div>
       <div class="how-step">
         <div class="how-step-num" aria-hidden="true">2</div>
@@ -590,17 +590,17 @@
           <span class="faq-icon" aria-hidden="true">+</span>
         </button>
         <div class="faq-answer" id="faq-2" role="region" itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer">
-          <p itemprop="text">MockOrbit currently offers full-length mock tests for AIBE XXI (All India Bar Examination). We are actively working on adding CLAT, Judiciary (PCS-J / HJS), UPSC, SSC CGL, and Current Affairs series. Contact us to be notified when your exam is added.</p>
+          <p itemprop="text">MockOrbit currently offers full-length mock tests across multiple competitive exams. We are actively expanding to cover more exams. Browse the series page to see what's live, and contact us to be notified when your exam is added.</p>
         </div>
       </div>
 
       <div class="faq-item" role="listitem" itemscope itemtype="https://schema.org/Question" itemprop="mainEntity">
         <button class="faq-question" aria-expanded="false" aria-controls="faq-3" itemprop="name">
-          What is AIBE and who should take this mock test?
+          Are the mock tests based on the actual exam pattern?
           <span class="faq-icon" aria-hidden="true">+</span>
         </button>
         <div class="faq-answer" id="faq-3" role="region" itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer">
-          <p itemprop="text">AIBE (All India Bar Examination) is a mandatory qualifying exam conducted by the Bar Council of India Trust for advocates who wish to practise law in India. If you are an LLB or BA LLB graduate enrolled with a State Bar Council and appearing in AIBE XXI (June 2026), our mock covers all 19 law topics across 380 questions — matching the actual exam pattern with open-book format and no negative marking.</p>
+          <p itemprop="text">Yes. Every mock test on MockOrbit is designed to mirror the actual exam — covering the right syllabus, question count, duration, and marking scheme. Questions are reviewed to match the difficulty level of the real exam so your practice translates directly to better performance.</p>
         </div>
       </div>
 

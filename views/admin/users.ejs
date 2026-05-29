@@ -1,11 +1,16 @@
 <%- include('layout-top', { title: title, currentPath: '/admin/users' }) %>
 
-<% if (success && success.length > 0) { %>
-  <div class="alert alert-success"><%= success[0] %></div>
-<% } %>
+<% if (error && error.length > 0) { %><div class="alert alert-error mb-4">⚠️ <%= error[0] %></div><% } %>
+<% if (success && success.length > 0) { %><div class="alert alert-success mb-4">✓ <%= success[0] %></div><% } %>
 
 <div class="admin-page-header">
-  <h3 style="font-family: 'DM Sans';">Students (<%= users.length %>)</h3>
+  <div>
+    <h3 style="font-family: 'DM Sans';">Students (<%= users.length %>)</h3>
+    <% const disabled = users.filter(u => u.isActive === false).length; %>
+    <% if (disabled > 0) { %>
+      <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:2px;"><%= disabled %> student<%= disabled > 1 ? 's' : '' %> disabled</p>
+    <% } %>
+  </div>
 </div>
 
 <div class="table-wrap">
@@ -14,31 +19,46 @@
       <tr>
         <th>Email</th>
         <th>Name</th>
-        <th>Purchased Tests</th>
+        <th>Purchased</th>
+        <th>Status</th>
         <th>Joined</th>
-        <th><span class="sr-only">Actions</span></th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       <% if (users.length === 0) { %>
-        <tr><td colspan="5" class="text-center text-muted" style="padding: 32px;">No users registered yet.</td></tr>
+        <tr><td colspan="6" class="text-center text-muted" style="padding: 32px;">No users registered yet.</td></tr>
       <% } %>
       <% users.forEach(u => { %>
-        <tr>
+        <tr style="<%= u.isActive === false ? 'opacity:0.55;' : '' %>">
           <td class="fw-600"><%= u.email || '—' %></td>
           <td><%= u.name || '—' %></td>
           <td>
             <% if (u.purchasedTests && u.purchasedTests.length > 0) { %>
               <span class="badge badge-green"><%= u.purchasedTests.length %> series</span>
             <% } else { %>
-              <span class="text-muted text-small">None</span>
+              <span style="font-size:0.8rem;color:var(--ink-muted);">None</span>
             <% } %>
           </td>
-          <td class="text-muted text-small"><%= new Date(u.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
           <td>
-            <form action="/admin/users/<%= u._id %>/login-as" method="POST" style="display:inline;" onsubmit="return confirm('Login as this student?')">
-              <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--accent);">Login As</button>
-            </form>
+            <% if (u.isActive === false) { %>
+              <span style="font-size:0.7rem;font-weight:600;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;border:1px solid #fde68a;">Disabled</span>
+            <% } else { %>
+              <span style="font-size:0.7rem;font-weight:600;background:var(--success-light);color:var(--success);padding:2px 8px;border-radius:999px;border:1px solid rgba(5,150,105,0.2);">Active</span>
+            <% } %>
+          </td>
+          <td style="font-size:0.8rem;color:var(--ink-muted);"><%= new Date(u.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+          <td>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <form action="/admin/users/<%= u._id %>/toggle-active" method="POST" style="margin:0;">
+                <button type="submit" class="btn btn-sm <%= u.isActive === false ? 'btn-primary' : 'btn-outline' %>">
+                  <%= u.isActive === false ? 'Enable' : 'Disable' %>
+                </button>
+              </form>
+              <form action="/admin/users/<%= u._id %>/login-as" method="POST" style="margin:0;" onsubmit="return confirm('Login as this student?')">
+                <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--accent);">Login As</button>
+              </form>
+            </div>
           </td>
         </tr>
       <% }) %>

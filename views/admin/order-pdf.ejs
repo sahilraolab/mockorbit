@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order #<%= payment._id %> — MockOrbit</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1c2b3a; background: #eef2f7; }
+    .print-btn { position: fixed; top: 16px; right: 16px; background: #2563eb; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; z-index: 99; }
+    @media print { .print-btn { display: none; } body { background: #fff; } }
+
+    .page { max-width: 560px; margin: 40px auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(28,43,58,0.10); }
+
+    .hdr { background: linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%); padding: 32px 40px; text-align: center; }
+    .brand { font-size: 1.5rem; font-weight: 800; color: #fff; }
+    .brand span { color: #60a5fa; }
+    .tagline { font-size: 0.68rem; color: rgba(255,255,255,0.4); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; margin-top: 6px; }
+    .accent-bar { height: 3px; background: linear-gradient(90deg,#16a34a,#22c55e); }
+
+    .body { padding: 36px 40px 28px; }
+    .status-label { font-size: 0.72rem; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+    .heading { font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 10px; }
+    .sub { font-size: 0.9rem; color: #6b7280; line-height: 1.6; margin-bottom: 26px; }
+
+    .summary-box { background: #f8faff; border: 1px solid #e0e7ff; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+    .summary-title { font-size: 0.72rem; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+    .row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; font-size: 0.85rem; }
+    .row .lbl { color: #6b7280; }
+    .row .val { font-weight: 600; color: #0f172a; }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 8px 0; }
+    .divider-bold { border: none; border-top: 2px solid #e0e7ff; margin: 8px 0; }
+    .total-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.92rem; font-weight: 800; }
+    .total-row .val { color: #2563eb; }
+    .gst-note { font-size: 0.68rem; color: #9ca3af; font-style: italic; margin-top: 6px; }
+    .pid { font-size: 0.72rem; color: #9ca3af; margin-top: 10px; }
+    .pid code { font-family: monospace; color: #6b7280; }
+
+    .ftr { padding: 0 40px 28px; border-top: 1px solid #e5e7eb; padding-top: 20px; text-align: center; }
+    .ftr p { font-size: 0.72rem; color: #9ca3af; line-height: 1.6; }
+    .ftr a { color: #2563eb; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">⬇ Save as PDF</button>
+
+<%
+  const isFree = !payment.amount || payment.amount === 0;
+  const amount = payment.amount || 0;
+  const baseAmount = isFree ? 0 : Math.round((amount / 1.18) * 100) / 100;
+  const gstAmount  = isFree ? 0 : Math.round((amount - baseAmount) * 100) / 100;
+  const fmt = n => n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const dateStr = new Date(payment.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+  const userName = payment.userId ? (payment.userId.name || payment.userId.email || 'Student') : 'Student';
+  const seriesTitle = payment.testSeriesId ? payment.testSeriesId.title : 'Mock Test Series';
+%>
+
+<div class="page">
+  <div class="hdr">
+    <div class="brand">Mock<span>Orbit</span></div>
+    <div class="tagline">Mission for Academic Rank &amp; Success</div>
+  </div>
+  <div class="accent-bar"></div>
+
+  <div class="body">
+    <div class="status-label">✓ <%= isFree ? 'Access Granted' : 'Payment Confirmed' %></div>
+    <div class="heading">Order Summary</div>
+    <div class="sub">Order for <strong><%= seriesTitle %></strong> &mdash; <%= userName %></div>
+
+    <div class="summary-box">
+      <div class="summary-title">Order Details</div>
+      <div class="row"><span class="lbl">Description</span><span class="val"><%= seriesTitle %></span></div>
+      <div class="row"><span class="lbl">Student</span><span class="val"><%= payment.userId ? payment.userId.email : '—' %></span></div>
+      <div class="row"><span class="lbl">Date</span><span class="val"><%= dateStr %></span></div>
+      <div class="row"><span class="lbl">Status</span><span class="val" style="color:<%= payment.status === 'success' ? '#059669' : '#dc2626' %>"><%= payment.status %></span></div>
+
+      <% if (!isFree) { %>
+      <hr class="divider">
+      <div class="row"><span class="lbl">Subtotal (excl. GST)</span><span class="val">₹<%= fmt(baseAmount) %></span></div>
+      <div class="row"><span class="lbl">GST (CGST + SGST) @ 18%</span><span class="val">₹<%= fmt(gstAmount) %></span></div>
+      <hr class="divider-bold">
+      <div class="total-row"><span>Total Paid</span><span class="val">₹<%= fmt(amount) %></span></div>
+      <div class="gst-note">Prices are inclusive of 18% GST (CGST + SGST). This document serves as a receipt of payment.</div>
+      <% } else { %>
+      <hr class="divider">
+      <div class="row"><span class="lbl">Amount</span><span class="val" style="color:#059669;">Free Access</span></div>
+      <% } %>
+
+      <% if (payment.razorpayPaymentId) { %>
+      <div class="pid">Payment ID: <code><%= payment.razorpayPaymentId %></code></div>
+      <% } %>
+      <% if (payment.razorpayOrderId) { %>
+      <div class="pid">Order ID: <code><%= payment.razorpayOrderId %></code></div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="ftr">
+    <p>
+      <strong style="color:#2563eb;">MockOrbit</strong><br>
+      Mock tests · All-India rank · Topic analytics<br>
+      <a href="<%= process.env.APP_URL || 'https://mockorbit.com' %>"><%= process.env.APP_URL || 'https://mockorbit.com' %></a>
+    </p>
+  </div>
+</div>
+
+</body>
+</html>

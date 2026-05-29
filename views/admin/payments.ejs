@@ -4,7 +4,7 @@
   <h3 style="font-family: 'DM Sans';">Payments & Invoices</h3>
   <div style="display:flex; gap:16px; align-items:center;">
     <div style="background:var(--success-light); color:var(--success); border-radius:var(--radius); padding:8px 16px; font-size:0.9rem; font-weight:700;">
-      ₹<%= (totalRevenue/100).toLocaleString('en-IN') %> Total Revenue
+      ₹<%= totalRevenue.toLocaleString('en-IN') %> Total Revenue
     </div>
     <div style="font-size:0.85rem; color:var(--ink-muted);"><%= payments.filter(p=>p.status==='success').length %> successful payments</div>
   </div>
@@ -21,6 +21,7 @@
         <th>Order ID</th>
         <th>Payment ID</th>
         <th>Date</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -33,7 +34,7 @@
             <div style="font-weight:500;"><%= p.userId ? p.userId.email : '—' %></div>
           </td>
           <td style="font-size:0.85rem;"><%= p.testSeriesId ? p.testSeriesId.title : 'Deleted' %></td>
-          <td style="font-weight:700; color:var(--ink);">₹<%= (p.amount/100).toLocaleString('en-IN') %></td>
+          <td style="font-weight:700; color:var(--ink);">₹<%= (p.amount || 0).toLocaleString('en-IN') %></td>
           <td>
             <span class="badge <%= p.status === 'success' ? 'badge-green' : p.status === 'failed' ? '' : 'badge-warm' %>"
               style="<%= p.status === 'failed' ? 'background:var(--danger-light);color:var(--danger);' : '' %>">
@@ -43,6 +44,7 @@
           <td><code style="font-size:0.75rem; color:var(--ink-muted);"><%= p.razorpayOrderId || '—' %></code></td>
           <td><code style="font-size:0.75rem; color:var(--ink-muted);"><%= p.razorpayPaymentId || '—' %></code></td>
           <td style="font-size:0.8rem; color:var(--ink-muted);"><%= new Date(p.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %></td>
+          <td><a href="/admin/payments/<%= p._id %>/pdf" target="_blank" class="btn btn-outline btn-sm">PDF</a></td>
         </tr>
       <% }) %>
     </tbody>

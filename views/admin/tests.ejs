@@ -61,6 +61,7 @@
           <td>
             <div style="display: flex; gap: 8px; flex-wrap:wrap;">
               <a href="/admin/questions?testId=<%= t._id %>" class="btn btn-outline btn-sm">Questions</a>
+              <a href="/admin/tests/<%= t._id %>/pdf" target="_blank" class="btn btn-outline btn-sm" title="Download questions as PDF">PDF</a>
               <button class="btn btn-outline btn-sm"
                 onclick="openEditModal('<%= t._id %>','<%= t.title.replace(/'/g, `\\'`) %>','<%= t.duration %>','<%= t.sortOrder %>')"
               >Edit</button>

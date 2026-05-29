@@ -232,11 +232,11 @@ exports.createTest = async (req, res) => {
 
 exports.updateTest = async (req, res) => {
   try {
-    const { title, duration, sortOrder } = req.body;
+    const { title, duration } = req.body;
     await Test.findByIdAndUpdate(req.params.id, {
       title: title.trim(),
-      duration: parseInt(duration),
-      sortOrder: parseInt(sortOrder) || 0
+      duration: parseInt(duration)
+      // sortOrder intentionally NOT updated here — drag-and-drop handles ordering
     });
     req.flash('success', 'Test updated');
   } catch (err) {
@@ -298,6 +298,18 @@ exports.reorderTests = async (req, res) => {
   } catch (err) {
     console.error('reorderTests error:', err);
     res.json({ success: false, message: err.message });
+  }
+};
+
+exports.downloadTestPdf = async (req, res) => {
+  try {
+    const test = await Test.findById(req.params.id).populate('testSeriesId').lean();
+    if (!test) return res.status(404).send('Test not found');
+    const questions = await Question.find({ testId: req.params.id }).sort({ createdAt: 1 }).lean();
+    res.render('admin/test-pdf', { test, questions, layout: false });
+  } catch (err) {
+    console.error('downloadTestPdf error:', err);
+    res.status(500).send('Failed to generate PDF preview');
   }
 };
 
@@ -485,6 +497,19 @@ exports.loginAsUser = async (req, res) => {
   } catch (e) { req.flash('error', 'Failed'); res.redirect('/admin/users'); }
 };
 
+exports.toggleUserActive = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) { req.flash('error', 'User not found'); return res.redirect('/admin/users'); }
+    user.isActive = !user.isActive;
+    await user.save();
+    req.flash('success', user.isActive ? 'Student enabled' : 'Student disabled');
+  } catch (e) {
+    req.flash('error', 'Failed to update status');
+  }
+  res.redirect('/admin/users');
+};
+
 // ─── Organizations ────────────────────────────────────────────────────────────
 
 exports.listOrgs = async (req, res) => {
@@ -521,6 +546,20 @@ exports.listPayments = async (req, res) => {
   const payments = await Payment.find().populate('userId', 'email name').populate('testSeriesId', 'title price').sort({ createdAt: -1 }).limit(300).lean();
   const totalRevenue = payments.filter(p => p.status === 'success').reduce((s, p) => s + (p.amount || 0), 0);
   res.render('admin/payments', { title: 'Payments & Invoices', payments, totalRevenue });
+};
+
+exports.downloadOrderPdf = async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id)
+      .populate('userId', 'email name')
+      .populate('testSeriesId', 'title price')
+      .lean();
+    if (!payment) return res.status(404).send('Order not found');
+    res.render('admin/order-pdf', { payment, layout: false });
+  } catch (err) {
+    console.error('downloadOrderPdf error:', err);
+    res.status(500).send('Failed to generate order summary');
+  }
 };
 
 // ─── Testimonials ─────────────────────────────────────────────────────────────

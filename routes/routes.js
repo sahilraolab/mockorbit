@@ -101,6 +101,7 @@ adminRouter.post('/series/:id/delete', requireAdmin, adminController.deleteSerie
 adminRouter.get('/tests', requireAdmin, adminController.listTests);
 adminRouter.post('/tests', requireAdmin, adminController.createTest);
 adminRouter.post('/tests/reorder', requireAdmin, adminController.reorderTests);
+adminRouter.get('/tests/:id/pdf', requireAdmin, adminController.downloadTestPdf);
 adminRouter.post('/tests/:id/update', requireAdmin, adminController.updateTest);
 adminRouter.post('/tests/:id/move', requireAdmin, adminController.moveTest);
 adminRouter.post('/tests/:id/delete', requireAdmin, adminController.deleteTest);
@@ -112,10 +113,12 @@ adminRouter.post('/questions/:id/update', requireAdmin, adminController.updateQu
 adminRouter.post('/questions/:id/delete', requireAdmin, adminController.deleteQuestion);
 adminRouter.get('/users', requireAdmin, adminController.listUsers);
 adminRouter.post('/users/:id/login-as', requireAdmin, adminController.loginAsUser);
+adminRouter.post('/users/:id/toggle-active', requireAdmin, adminController.toggleUserActive);
 adminRouter.get('/organizations', requireAdmin, adminController.listOrgs);
 adminRouter.post('/organizations/:id/login-as', requireAdmin, adminController.loginAsOrg);
 adminRouter.get('/stop-impersonation', adminController.stopImpersonation);
 adminRouter.get('/payments', requireAdmin, adminController.listPayments);
+adminRouter.get('/payments/:id/pdf', requireAdmin, adminController.downloadOrderPdf);
 adminRouter.get('/testimonials', requireAdmin, adminController.listTestimonials);
 adminRouter.post('/testimonials/:id/approve', requireAdmin, adminController.approveTestimonial);
 adminRouter.post('/testimonials/:id/reject', requireAdmin, adminController.rejectTestimonial);

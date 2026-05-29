@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
     purchasedAt:  { type: Date, default: Date.now }
   }],
 
+  isActive:  { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });
 
