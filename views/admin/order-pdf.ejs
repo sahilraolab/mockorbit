@@ -65,7 +65,7 @@
 
   <div class="body">
     <div class="status-label">✓ <%= isFree ? 'Access Granted' : 'Payment Confirmed' %></div>
-    <div class="heading">Order Summary</div>
+    <div class="heading">Tax Invoice</div>
     <div class="sub">Order for <strong><%= seriesTitle %></strong> &mdash; <%= userName %></div>
 
     <div class="summary-box">
@@ -100,7 +100,8 @@
     <p>
       <strong style="color:#2563eb;">MockOrbit</strong><br>
       Mock tests · All-India rank · Topic analytics<br>
-      <a href="<%= process.env.APP_URL || 'https://mockorbit.com' %>"><%= process.env.APP_URL || 'https://mockorbit.com' %></a>
+      <a href="<%= process.env.APP_URL || 'https://mockorbit.com' %>"><%= process.env.APP_URL || 'https://mockorbit.com' %></a><br>
+      <span style="color:#b0b8c1;font-size:0.68rem;">A brand of Gaurik Enterprises.</span>
     </p>
   </div>
 </div>
