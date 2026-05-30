@@ -49,7 +49,27 @@ exports.listByExam = async (req, res) => {
 
 exports.showSeries = async (req, res) => {
   try {
-    const series = await TestSeries.findById(req.params.id).populate('examId').lean();
+    const param = req.params.slug;
+    const isObjectId = /^[a-f\d]{24}$/i.test(param);
+
+    let series;
+    if (isObjectId) {
+      series = await TestSeries.findById(param).populate('examId').lean();
+      if (series) {
+        // Generate slug if missing, then always redirect to slug URL
+        if (!series.slug) {
+          const base = series.title.toLowerCase().replace(/[^\w\s-]/g,'').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
+          let slug = base, n = 2;
+          while (await TestSeries.findOne({ slug, _id: { $ne: series._id } })) slug = `${base}-${n++}`;
+          await TestSeries.findByIdAndUpdate(series._id, { slug });
+          series.slug = slug;
+        }
+        return res.redirect(301, `/series/${series.slug}`);
+      }
+    } else {
+      series = await TestSeries.findOne({ slug: param }).populate('examId').lean();
+    }
+
     if (!series) { req.flash('error', 'Test series not found'); return res.redirect('/'); }
 
     const hasPurchased = req.user ? req.user.hasPurchased(series._id) : false;

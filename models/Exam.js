@@ -38,6 +38,7 @@ const examSchema = new mongoose.Schema({
 const testSeriesSchema = new mongoose.Schema({
   examId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Exam' },  // optional — kept for backwards-compat
   category: { type: String, trim: true },                           // direct category (replaces exam.category)
+  slug:     { type: String, trim: true, sparse: true },             // URL-friendly identifier
   title: { type: String, required: true, trim: true },
   price: { type: Number, required: true, min: 0 },
   totalMocks: { type: Number, required: true, min: 1 },

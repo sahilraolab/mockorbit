@@ -94,8 +94,38 @@ exports.deleteExam = async (req, res) => {
 
 // ─── Test Series ─────────────────────────────────────────────────────────────
 
+function makeBaseSlug(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+async function generateUniqueSlug(title, excludeId = null) {
+  const base = makeBaseSlug(title);
+  let slug = base;
+  let n = 2;
+  while (true) {
+    const q = { slug };
+    if (excludeId) q._id = { $ne: excludeId };
+    const exists = await TestSeries.findOne(q).lean();
+    if (!exists) break;
+    slug = `${base}-${n++}`;
+  }
+  return slug;
+}
+
 exports.listSeries = async (req, res) => {
   const series = await TestSeries.find().populate('examId').sort({ sortOrder: 1, createdAt: 1 }).lean();
+  // Lazily generate slugs for any series that doesn't have one
+  const needsSlug = series.filter(s => !s.slug);
+  for (const s of needsSlug) {
+    const slug = await generateUniqueSlug(s.title, s._id);
+    await TestSeries.findByIdAndUpdate(s._id, { slug });
+    s.slug = slug;
+  }
   res.render('admin/series', { title: 'Manage Test Series', series, error: req.flash('error'), success: req.flash('success') });
 };
 
@@ -112,8 +142,10 @@ exports.createSeries = async (req, res) => {
     const mockLanguages = req.body.mockLanguages
       ? req.body.mockLanguages.split(',').map(s => s.trim()).filter(Boolean)
       : [];
+    const slug = await generateUniqueSlug(title.trim());
     await TestSeries.create({
       title: title.trim(),
+      slug,
       price: parseFloat(price) || 0,
       totalMocks: parseInt(totalMocks) || 1,
       description: description?.trim() || undefined,
@@ -145,8 +177,10 @@ exports.updateSeries = async (req, res) => {
     const mockLanguages = req.body.mockLanguages
       ? req.body.mockLanguages.split(',').map(s => s.trim()).filter(Boolean)
       : [];
+    const slug = await generateUniqueSlug(title.trim(), req.params.id);
     await TestSeries.findByIdAndUpdate(req.params.id, {
       title: title.trim(),
+      slug,
       price: parseFloat(price) || 0,
       totalMocks: parseInt(totalMocks) || 1,
       description: description?.trim() || undefined,

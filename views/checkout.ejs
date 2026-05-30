@@ -3,7 +3,7 @@
 <section class="section" aria-labelledby="checkout-heading">
   <div class="container">
     <div style="margin-bottom:28px;">
-      <a href="/series/<%= series._id %>" style="font-size:0.85rem; color:var(--ink-muted); text-decoration:none;" aria-label="Back to series details">← Back</a>
+      <a href="/series/<%= series.slug || series._id %>" style="font-size:0.85rem; color:var(--ink-muted); text-decoration:none;" aria-label="Back to series details">← Back</a>
     </div>
     <h1 id="checkout-heading" style="font-size:1.6rem; margin-bottom:32px;">Complete Your Purchase</h1>
 

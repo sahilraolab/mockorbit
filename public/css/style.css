@@ -505,8 +505,10 @@ textarea.form-control { resize: vertical; min-height: 100px; }
 
 /* Right: scrollable track */
 .mock-showcase-right {
-  overflow: hidden;
+  /* do NOT use overflow:hidden here — it blocks the inner scroll track */
+  overflow: visible;
   padding: 24px 0;
+  min-width: 0;            /* allow flex child to shrink below content size */
 }
 .mock-showcase-track {
   display: flex;
@@ -515,12 +517,19 @@ textarea.form-control { resize: vertical; min-height: 100px; }
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  padding: 4px 24px 12px;
+  /* No left/right padding — use ::before/::after spacers instead
+     because padding is silently dropped in overflow-x:auto flex containers */
+  padding: 8px 0 16px;
   scrollbar-width: none;
-  height: 100%;
   align-items: stretch;
 }
 .mock-showcase-track::-webkit-scrollbar { display: none; }
+/* Reliable left/right spacing via flex spacer elements */
+.mock-showcase-track::before,
+.mock-showcase-track::after  {
+  content: '';
+  flex: 0 0 24px;
+}
 
 /* Card */
 .mock-card {
@@ -687,15 +696,15 @@ textarea.form-control { resize: vertical; min-height: 100px; }
   .mock-showcase-sub { display: none; }
   .mock-showcase-meta { margin-top: 0; }
   .mock-showcase-nav { margin-top: 0; margin-left: auto; }
-  .mock-showcase-right { padding: 16px 0; }
-  .mock-showcase-track { padding: 4px 20px 12px; justify-content: center; }
-  .mock-card { flex: 0 0 calc(100% - 40px); max-width: 480px; }
+  .mock-showcase-right { padding: 16px 0; overflow: hidden; }
+  /* Remove justify-content:center — it clips the left edge in overflow-x:auto containers */
+  .mock-showcase-track { padding: 8px 0 16px; justify-content: flex-start; }
+  .mock-card { flex: 0 0 min(320px, calc(100vw - 48px)); max-width: 400px; }
 }
 @media (max-width: 480px) {
   .mock-showcase-left { padding: 20px 16px 16px; }
-  .mock-showcase-track { padding: 4px 16px 10px; }
-  .mock-card { flex: 0 0 calc(100% - 32px); max-width: 100%; }
-  .mock-card-stats { gap: 10px; }
+  .mock-showcase-track { padding: 8px 0 16px; }
+  .mock-card { flex: 0 0 calc(100vw - 40px); max-width: 100%; }
 }
 
 /* Stats bar */

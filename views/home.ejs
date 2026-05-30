@@ -38,7 +38,7 @@
       <div class="mock-showcase-track" id="mockTrack">
         <% tickerSeries.forEach(s => {
              const exam = s.examId || {};
-             const href = '/series/' + s._id;
+             const href = '/series/' + (s.slug || s._id);
         %>
         <%
           const mockLangsSlider = s.mockLanguages && s.mockLanguages.length > 0

@@ -51,7 +51,7 @@ const seriesRouter = express.Router();
 const seriesController = require('../controllers/seriesController');
 seriesRouter.get('/exam/:examSlug', seriesController.listByExam);
 seriesRouter.post('/review', require('../middlewares/auth').requireAuth, seriesController.submitReview);
-seriesRouter.get('/:id', seriesController.showSeries);
+seriesRouter.get('/:slug', seriesController.showSeries);
 
 // Payment routes
 const paymentRouter = express.Router();
