@@ -52,10 +52,21 @@ exports.verifyEmailOTP = async (req, res) => {
 
     user.otp = undefined;
     await user.save();
-    req.session.userId = user._id;
+
     const returnTo = req.session.returnTo || '/dashboard';
     delete req.session.returnTo;
-    res.json({ success: true, redirect: returnTo });
+    req.session.userId = user._id.toString();   // string, not ObjectId
+
+    // Explicitly flush session to store before responding.
+    // Without this, the very next request (the redirect) can arrive before
+    // express-session has written the session, causing requireAuth to fail.
+    req.session.save(err => {
+      if (err) {
+        console.error('[Auth] session save error:', err);
+        return res.status(500).json({ success: false, message: 'Login failed. Please try again.' });
+      }
+      res.json({ success: true, redirect: returnTo });
+    });
   } catch (err) {
     console.error('[Auth] verifyEmailOTP error:', err);
     res.status(500).json({ success: false, message: 'Verification failed. Please try again.' });

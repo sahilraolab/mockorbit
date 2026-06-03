@@ -14,7 +14,8 @@
       "Bash(node -e \"require\\('./controllers/homeController'\\); require\\('./controllers/seriesController'\\); require\\('./routes/routes'\\); console.log\\('✓ OK'\\);\")",
       "Bash(grep -v \"^.*:.*{.*}$\")",
       "Bash(node -e \"require\\('./controllers/paymentController'\\); require\\('./routes/routes'\\); console.log\\('✓ routes OK'\\);\")",
-      "Bash(node -e \"require\\('./controllers/paymentController'\\); require\\('./routes/routes'\\); console.log\\('✓ OK'\\);\")"
+      "Bash(node -e \"require\\('./controllers/paymentController'\\); require\\('./routes/routes'\\); console.log\\('✓ OK'\\);\")",
+      "Bash(node -e \"require\\('./middlewares/auth'\\); require\\('./controllers/paymentController'\\); console.log\\('✓ OK'\\);\")"
     ],
     "additionalDirectories": [
       "/Users/sahil/.claude/projects/-Users-sahil-Downloads-prepflow"

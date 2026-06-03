@@ -16,7 +16,8 @@
       <div>
         <h2 style="font-size:1rem; font-family:'DM Sans',sans-serif; margin-bottom:16px; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.05em;">Order Summary</h2>
         <div class="card">
-          <span class="badge badge-orange mb-3"><%= series.examId.name %></span>
+          <% const examLabel = series.category || (series.examId && series.examId.name) || ''; %>
+          <% if (examLabel) { %><span class="badge badge-orange mb-3"><%= examLabel %></span><% } %>
           <h3 style="font-family:'DM Sans',sans-serif; font-size:1.15rem; margin-bottom:8px;"><%= series.title %></h3>
           <p class="text-small mb-4"><%= series.totalMocks %> Mock Tests · Lifetime Access</p>
 

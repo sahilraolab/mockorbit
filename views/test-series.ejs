@@ -177,7 +177,7 @@
       <% seriesReviews.forEach(r => { %>
         <div class="ts-review-card">
           <div class="ts-review-top">
-            <div class="ts-review-avatar"><%= r.name[0].toUpperCase() %></div>
+            <div class="ts-review-avatar"><%= (r.name && r.name[0]) ? r.name[0].toUpperCase() : '?' %></div>
             <div class="ts-review-author">
               <strong><%= r.name %></strong>
               <% if (r.role) { %><span><%= r.role %></span><% } %>

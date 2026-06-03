@@ -546,7 +546,7 @@
           </div>
           <p class="testimonial-text">"<%= t.text %>"</p>
           <div class="testimonial-author">
-            <div class="testimonial-avatar" aria-hidden="true"><%= t.name[0].toUpperCase() %></div>
+            <div class="testimonial-avatar" aria-hidden="true"><%= (t.name && t.name[0]) ? t.name[0].toUpperCase() : '?' %></div>
             <div>
               <div class="testimonial-name"><%= t.name %></div>
               <% if (t.role) { %><div class="testimonial-role"><%= t.role %></div><% } %>

@@ -191,7 +191,7 @@
       <% seriesReviews.forEach(r => { %>
         <div class="sd-review-card">
           <div class="sd-review-top">
-            <div class="sd-review-avatar"><%= r.name[0].toUpperCase() %></div>
+            <div class="sd-review-avatar"><%= (r.name && r.name[0]) ? r.name[0].toUpperCase() : '?' %></div>
             <div class="sd-review-meta">
               <div class="sd-review-name"><%= r.name %></div>
               <% if (r.role) { %><div class="sd-review-role"><%= r.role %></div><% } %>

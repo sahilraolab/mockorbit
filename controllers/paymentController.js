@@ -21,9 +21,15 @@ exports.showCheckout = async (req, res) => {
       return res.redirect('/');
     }
 
-    // Canonicalise to slug URL
+    // Canonicalise to slug URL (use 302 — session is brand-new, avoid browser caching the redirect)
     if (isObjectId && series.slug) {
-      return res.redirect(301, `/payment/checkout/${series.slug}`);
+      return res.redirect(302, `/payment/checkout/${series.slug}`);
+    }
+
+    if (!req.user) {
+      req.flash('error', 'Please login to continue');
+      req.session.returnTo = req.originalUrl;
+      return res.redirect('/auth/login');
     }
 
     if (req.user.hasPurchased(series._id)) {
@@ -51,7 +57,11 @@ exports.showCheckout = async (req, res) => {
 // ─── Create Razorpay order ─────────────────────────────────────────────────
 exports.createOrder = async (req, res) => {
   try {
-    const series = await TestSeries.findById(req.params.seriesId);
+    const param = req.params.seriesId;
+    const isObjectId = /^[a-f\d]{24}$/i.test(param);
+    const series = isObjectId
+      ? await TestSeries.findById(param)
+      : await TestSeries.findOne({ slug: param });
     if (!series) return res.status(404).json({ success: false, message: 'Series not found' });
 
     if (req.user.hasPurchased(series._id)) {
@@ -184,7 +194,11 @@ exports.webhook = async (req, res) => {
 // Allowed when: series.price === 0  OR  ALLOW_FREE_ACCESS=true  OR  mock mode
 exports.freeAccess = async (req, res) => {
   try {
-    const series = await TestSeries.findById(req.params.seriesId);
+    const param = req.params.seriesId;
+    const isObjectId = /^[a-f\d]{24}$/i.test(param);
+    const series = isObjectId
+      ? await TestSeries.findById(param)
+      : await TestSeries.findOne({ slug: param });
     if (!series) {
       req.flash('error', 'Test series not found');
       return res.redirect('/');
@@ -193,7 +207,7 @@ exports.freeAccess = async (req, res) => {
     const isFree = series.price === 0;
     if (!isFree && !isFreeAccessEnabled()) {
       req.flash('error', 'This test series requires purchase');
-      return res.redirect(`/series/exam/${series.examId}`);
+      return res.redirect(`/series/${series.slug || series._id}`);
     }
 
     if (req.user.hasPurchased(series._id)) {

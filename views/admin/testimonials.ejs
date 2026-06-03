@@ -32,7 +32,7 @@
           <div style="flex:1; min-width:280px;">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
               <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0;">
-                <%= t.name[0].toUpperCase() %>
+                <%= (t.name && t.name[0]) ? t.name[0].toUpperCase() : '?' %>
               </div>
               <div>
                 <div style="font-weight:600; color:var(--ink); font-size:0.95rem;"><%= t.name %></div>
