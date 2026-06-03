@@ -63,7 +63,7 @@
           <button type="submit" class="btn btn-success">Access Free →</button>
         </form>
       <% } else { %>
-        <a href="/payment/checkout/<%= series._id %>" class="btn btn-primary">Buy Now →</a>
+        <a href="/payment/checkout/<%= series.slug || series._id %>" class="btn btn-primary">Buy Now →</a>
       <% } %>
     </div>
 
@@ -177,7 +177,7 @@
     <% } else { %>
       <p class="sd-bottom-cta-title">Ready to start preparing?</p>
       <p class="sd-bottom-cta-sub">One-time payment · Lifetime access · Instant unlock</p>
-      <a href="/payment/checkout/<%= series._id %>" class="btn btn-primary btn-lg btn-block">Buy Now — ₹<%= series.price.toLocaleString('en-IN') %></a>
+      <a href="/payment/checkout/<%= series.slug || series._id %>" class="btn btn-primary btn-lg btn-block">Buy Now — ₹<%= series.price.toLocaleString('en-IN') %></a>
       <p style="font-size:0.75rem;color:var(--ink-muted);text-align:center;margin-top:10px;">🔒 Secure payment via Razorpay</p>
     <% } %>
   </div>

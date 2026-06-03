@@ -10,10 +10,20 @@ const isFreeAccessEnabled = () =>
 // ─── Checkout page ─────────────────────────────────────────────────────────
 exports.showCheckout = async (req, res) => {
   try {
-    const series = await TestSeries.findById(req.params.seriesId).populate('examId').lean();
+    const param = req.params.seriesId;
+    const isObjectId = /^[a-f\d]{24}$/i.test(param);
+    const series = isObjectId
+      ? await TestSeries.findById(param).populate('examId').lean()
+      : await TestSeries.findOne({ slug: param }).populate('examId').lean();
+
     if (!series) {
       req.flash('error', 'Test series not found');
       return res.redirect('/');
+    }
+
+    // Canonicalise to slug URL
+    if (isObjectId && series.slug) {
+      return res.redirect(301, `/payment/checkout/${series.slug}`);
     }
 
     if (req.user.hasPurchased(series._id)) {
