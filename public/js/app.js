@@ -64,7 +64,10 @@ if (testInterface) {
       optionsEl.appendChild(btn);
     });
 
-    // Update palette
+    // Update palette + answered counter
+    const answeredCount = Object.keys(answers).length;
+    const paletteCount = document.getElementById('paletteCount');
+    if (paletteCount) paletteCount.textContent = `${answeredCount} / ${questions.length} answered`;
     document.querySelectorAll('.q-dot').forEach((dot, i) => {
       dot.classList.toggle('answered', answers[questions[i]._id] !== undefined);
       dot.classList.toggle('current', i === index);
