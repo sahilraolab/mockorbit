@@ -21,6 +21,7 @@ exports.contact = (req, res) => {
     title: `Contact MockOrbit — Support, Partnerships & Queries`,
     metaDesc: 'Get in touch with MockOrbit for account support, test access issues, payment queries, or institution partnership enquiries. We respond within 24 hours.',
     metaKeywords: 'contact MockOrbit, MockOrbit support, mock test help, competitive exam support India',
+    w3formsAccessKey: process.env.W3FORMS_ACCESS_KEY || '',
     user: req.user || null
   });
 };
