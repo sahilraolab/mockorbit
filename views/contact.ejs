@@ -62,16 +62,18 @@
         </div>
       </div>
 
-      <!-- Contact form (submits to W3Forms) -->
+      <!-- Contact form (submits to Web3Forms) -->
       <div class="contact-form-col">
         <div class="card" style="padding: 36px;">
           <h2 style="margin-bottom:8px; font-size:1.4rem;">Send us a Message</h2>
+          <div id="contactFormPanel">
           <p style="margin-bottom:28px; font-size:0.9rem;">Fill in the form below and we'll respond by email.</p>
 
-          <div id="contactFormMsg" class="alert hidden" role="status" aria-live="polite"></div>
+          <div id="contactFormMsg" class="alert hidden" role="alert" aria-live="polite"></div>
 
-          <form id="w3forms-contact" action="https://api.w3forms.com/submit" method="POST" novalidate>
-            <input type="hidden" name="access_key" value="<%= w3formsAccessKey %>">
+          <form id="contactForm" action="https://api.web3forms.com/submit" method="POST" novalidate>
+            <input type="hidden" name="access_key" value="dc261c52-95fd-4a44-b395-cf96d9ce9e9c">
+            <input type="hidden" name="from_name" value="MockOrbit Website">
             <div class="form-group">
               <label class="form-label" for="cf-name">Your Name</label>
               <input class="form-control" type="text" name="name" id="cf-name" placeholder="Rahul Sharma" autocomplete="name" required>
@@ -82,7 +84,7 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="cf-subject">Subject</label>
-              <select class="form-control" name="subject" id="cf-subject" required>
+              <select class="form-control" name="topic" id="cf-subject" required>
                 <option value="">Select a topic</option>
                 <option value="Account or Login Issue">Account or Login Issue</option>
                 <option value="Test Access Problem">Test Access Problem</option>
@@ -97,10 +99,21 @@
               <textarea class="form-control" name="message" id="cf-msg" rows="5" placeholder="Describe your issue or question in detail..." required></textarea>
             </div>
             <!-- Honeypot: invisible to people, tempting to bots. Leave empty. -->
-            <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+            <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
             <button class="btn btn-primary btn-block" id="contactSubmitBtn" type="submit">Send Message →</button>
           </form>
           <p class="text-muted text-small" style="margin-top:12px; text-align:center;">We typically respond within 24 hours on business days.</p>
+          </div>
+
+          <div id="contactSuccess" class="contact-success hidden" role="status" aria-live="polite" tabindex="-1">
+            <div class="contact-success-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h3>Message sent successfully</h3>
+            <p>Thank you<span id="contactSuccessName"></span>. We've received your message and our support team will reply to <strong id="contactSuccessEmail"></strong> within 24 hours on business days.</p>
+            <p class="text-muted text-small">For urgent issues, call us at <a href="tel:+919654687526" class="contact-link">+91 96546 87526</a> (Mon–Sat, 9 AM – 6 PM IST).</p>
+            <button type="button" class="btn btn-outline" id="contactSendAnother">Send another message</button>
+          </div>
         </div>
       </div>
     </div>
@@ -136,52 +149,102 @@
 </section>
 
 <script>
-document.getElementById('w3forms-contact').addEventListener('submit', async function(event) {
-  event.preventDefault();
-  const form = this;
+(function() {
+  const form = document.getElementById('contactForm');
+  const panel = document.getElementById('contactFormPanel');
+  const success = document.getElementById('contactSuccess');
   const btn = document.getElementById('contactSubmitBtn');
   const msgEl = document.getElementById('contactFormMsg');
-  const showMsg = (type, text) => {
-    msgEl.className = `alert alert-${type}`;
+  const btnLabel = btn.textContent;
+
+  const showError = (text) => {
+    msgEl.className = 'alert alert-error';
     msgEl.textContent = text;
     msgEl.classList.remove('hidden');
   };
 
-  const name = form.name.value.trim();
-  const email = form.email.value.trim();
-  const subject = form.subject.value;
-  const msg = form.message.value.trim();
+  form.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    msgEl.classList.add('hidden');
 
-  if (!name || !email || !subject || !msg) {
-    return showMsg('error', 'Please fill in all fields before submitting.');
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return showMsg('error', 'Please enter a valid email address.');
-  }
+    const name = form.name.value.trim();
+    const email = form.email.value.trim();
+    const topic = form.topic.value;
+    const msg = form.message.value.trim();
 
-  btn.disabled = true;
-  showMsg('info', 'Sending…');
-  try {
-    const data = Object.fromEntries(new FormData(form));
-    data.subject = `[MockOrbit] ${subject} — from ${name}`;
-    const response = await fetch(form.action, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(data),
-    });
-    const result = await response.json();
-    if (response.ok && result.success) {
-      showMsg('success', "Thanks — your message was sent. We'll get back to you within 24 hours.");
-      form.reset();
-    } else {
-      showMsg('error', result.message || 'Something went wrong. Please try again.');
+    if (!name || !email || !topic || !msg) {
+      return showError('Please fill in all fields before submitting.');
     }
-  } catch (_err) {
-    showMsg('error', 'Network error. Please try again.');
-  } finally {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return showError('Please enter a valid email address.');
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    const showSuccess = () => {
+      document.getElementById('contactSuccessName').textContent = `, ${name.split(' ')[0]}`;
+      document.getElementById('contactSuccessEmail').textContent = email;
+      form.reset();
+      panel.classList.add('hidden');
+      success.classList.remove('hidden');
+      success.focus();
+    };
+
+    // 1) Save a backup copy in our own database
+    let saved = false;
+    let saveError = '';
+    try {
+      const saveRes = await fetch('/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ name, email, topic, message: msg, botcheck: form.botcheck.checked }),
+      });
+      const saveResult = await saveRes.json().catch(() => ({}));
+      saved = saveRes.ok && saveResult.success;
+      // Validation / rate-limit errors are shown as-is; server errors fall through to Web3Forms
+      if (!saved && saveRes.status >= 400 && saveRes.status < 500) saveError = saveResult.message || '';
+    } catch (_err) { /* network issue — still try Web3Forms */ }
+
+    if (saveError) {
+      btn.disabled = false;
+      btn.textContent = btnLabel;
+      return showError(saveError);
+    }
+
+    // 2) Email delivery via Web3Forms — a failure here is fine if the message was saved
+    let emailed = false;
+    let emailError = '';
+    try {
+      const formData = new FormData(form);
+      formData.set('subject', `[MockOrbit] ${topic} — from ${name}`);
+      formData.set('replyto', email);
+      const response = await fetch(form.action, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: formData,
+      });
+      const result = await response.json().catch(() => ({}));
+      emailed = response.ok && result.success;
+      if (!emailed) emailError = result.message || '';
+    } catch (_err) { /* handled below */ }
+
     btn.disabled = false;
-  }
-});
+    btn.textContent = btnLabel;
+
+    if (saved || emailed) {
+      showSuccess();
+    } else {
+      showError(emailError || 'Something went wrong. Please try again, or email us at hello@mockorbit.com.');
+    }
+  });
+
+  document.getElementById('contactSendAnother').addEventListener('click', function() {
+    success.classList.add('hidden');
+    panel.classList.remove('hidden');
+    form.name.focus();
+  });
+})();
 
 // FAQ accordion
 document.querySelectorAll('.faq-q').forEach(btn => {

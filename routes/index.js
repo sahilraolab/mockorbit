@@ -9,6 +9,7 @@ router.get('/', homeController.home);
 router.get('/company', staticController.company);
 router.get('/about', staticController.about);
 router.get('/contact', staticController.contact);
+router.post('/contact', staticController.submitContact);
 router.get('/privacy', staticController.privacy);
 router.get('/terms', staticController.terms);
 router.get('/refund', staticController.refund);

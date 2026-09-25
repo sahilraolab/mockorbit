@@ -1,3 +1,5 @@
+const ContactMessage = require('../models/ContactMessage');
+
 exports.company = (req, res) => {
   res.render('company', {
     title: `MockOrbit — India's Leading Mock Test Platform for Competitive Exams`,
@@ -21,9 +23,38 @@ exports.contact = (req, res) => {
     title: `Contact MockOrbit — Support, Partnerships & Queries`,
     metaDesc: 'Get in touch with MockOrbit for account support, test access issues, payment queries, or institution partnership enquiries. We respond within 24 hours.',
     metaKeywords: 'contact MockOrbit, MockOrbit support, mock test help, competitive exam support India',
-    w3formsAccessKey: process.env.W3FORMS_ACCESS_KEY || '',
     user: req.user || null
   });
+};
+
+exports.submitContact = async (req, res) => {
+  try {
+    const { name, email, topic, message, botcheck } = req.body || {};
+
+    // Honeypot filled in: pretend success so bots don't retry
+    if (botcheck) return res.json({ success: true });
+
+    const clean = v => (typeof v === 'string' ? v.trim() : '');
+    const data = { name: clean(name), email: clean(email), topic: clean(topic), message: clean(message) };
+
+    if (!data.name || !data.email || !data.topic || !data.message) {
+      return res.status(400).json({ success: false, message: 'Please fill in all fields before submitting.' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+    }
+    await ContactMessage.create({
+      ...data,
+      userId: req.user ? req.user._id : null,
+      ip: (req.get('x-forwarded-for') || '').split(',')[0].trim() || req.ip,
+      userAgent: (req.get('user-agent') || '').slice(0, 300),
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Contact form save error:', err.message);
+    const status = err.name === 'ValidationError' ? 400 : 500;
+    res.status(status).json({ success: false, message: 'Could not save your message.' });
+  }
 };
 
 exports.privacy = (req, res) => {
